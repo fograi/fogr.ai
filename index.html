@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classifieds</title>
+    <style>
+      body {
+        font-family: 'Times New Roman', Times, serif;
+        background-color: #f8f8f8;
+        color: #000;
+        margin: 0;
+        padding: 0;
+      }
+
+      .header {
+        background-color: #000;
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 36px;
+        font-family: 'Georgia', serif;
+      }
+
+      .header p {
+        font-size: 18px;
+        font-style: italic;
+        margin: 5px 0 15px 0;
+      }
+      .classified-time {
+        font-size: 12px;
+        color: #888;
+        margin-top: 5px;
+        font-style: italic;
+      }
+      .filter-container {
+        margin-top: 10px;
+      }
+
+      .filter-container select {
+        padding: 5px;
+        font-size: 14px;
+      }
+
+      .container {
+        column-count: auto;
+        column-gap: 10px;
+        column-width: 12rem;
+        margin: 20px auto;
+        background: #fff;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid #ccc;
+      }
+
+      .classified-section {
+        break-inside: avoid;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        margin-bottom: 10px;
+        padding: 10px;
+      }
+
+      .section-title {
+        font-weight: bold;
+        font-size: 18px;
+        text-transform: uppercase;
+        border-bottom: 2px solid #000;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+      }
+
+      .classified {
+        margin-bottom: 10px;
+      }
+
+      .classified-title {
+        font-weight: bold;
+        font-size: 16px;
+      }
+
+      .classified-description {
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .classified-contact {
+        font-style: italic;
+        font-size: 12px;
+        color: #555;
+      }
+
+      hr {
+        border: none;
+        border-top: 1px dashed #000;
+        margin: 10px 0;
+      }
+
+      .loading-skeleton {
+        background-color: #ddd;
+        height: 20px;
+        margin-bottom: 10px;
+        animation: shimmer 1.5s infinite linear;
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: -200px 0;
+        }
+        100% {
+          background-position: 200px 0;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          column-count: 1;
+          width: 90%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1><i>fógraí</i></h1>
+      <p><i>classifieds</i></p>
+      <div class="filter-container">
+        <label for="section-filter">Filter by Section:</label>
+        <select id="section-filter">
+          <option value="all">All</option>
+        </select>
+      </div>
+    </div>
+    <div class="container" id="classifieds-container">
+      <!-- Classifieds content will be dynamically loaded here -->
+    </div>
+
+    <script>
+      const sectionsList = [
+        'for-sale',
+        'real-estate',
+        'vehicles',
+        'jobs',
+        'services',
+        'miscellaneous',
+        'announcements',
+        'personals',
+        'lost-and-found',
+        'community-events',
+        'pets',
+        'education',
+        'business-opportunities',
+        'rentals',
+        'wanted',
+      ];
+
+      function populateSectionFilter() {
+        const sectionFilter = document.getElementById('section-filter');
+        sectionFilter.innerHTML = ''; // Clear existing options
+
+        // Add "All" option
+        const allOption = document.createElement('option');
+        allOption.value = 'all';
+        allOption.textContent = 'All';
+        sectionFilter.appendChild(allOption);
+
+        // Add dynamic sections
+        sectionsList.forEach((section) => {
+          const option = document.createElement('option');
+          option.value = section;
+          option.textContent = section
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+          sectionFilter.appendChild(option);
+        });
+      }
+
+      // Call function on load
+      populateSectionFilter();
+
+      function filterClassifieds() {
+        const selectedSection = document.getElementById('section-filter').value;
+
+        // Filter data based on the selected section
+        const filteredData =
+          selectedSection === 'all'
+            ? mockData // Show all if 'All' is selected
+            : mockData.filter((ad) => ad.section === selectedSection);
+
+        // Reload classifieds with filtered data
+        loadClassifieds(filteredData);
+      }
+
+      // Attach event listener to the filter
+      document
+        .getElementById('section-filter')
+        .addEventListener('change', filterClassifieds);
+
+      // Mock data for classifieds
+      const mockData = [
+        // For Sale
+        {
+          section: 'for-sale',
+          title: 'Antique Sofa',
+          description:
+            'Vintage style, recently reupholstered. Perfect for a living room.',
+          contact: '555-111-2222',
+          platform: 'viber',
+          timestamp: '2025-01-06T14:30:00Z',
+        },
+        {
+          section: 'for-sale',
+          title: 'Electric Scooter',
+          description: 'Eco-friendly and barely used. Includes charger.',
+          contact: '555-333-4444',
+        },
+        {
+          section: 'for-sale',
+          title: 'Kitchen Appliances',
+          description: 'Toaster and blender combo. Excellent condition.',
+          contact: '555-555-6666',
+          platform: 'signal',
+        },
+
+        // Real Estate
+        {
+          section: 'real-estate',
+          title: '2-Bedroom Apartment',
+          description:
+            'Modern apartment in city center. Close to public transport.',
+          contact: '555-777-8888',
+        },
+        {
+          section: 'real-estate',
+          title: 'Cozy Cottage',
+          description: 'Charming 3-bedroom cottage with a large garden.',
+          contact: '555-999-0000',
+        },
+
+        // Vehicles
+        {
+          section: 'vehicles',
+          title: 'Used Sedan',
+          description: '2016 Toyota Corolla. Low mileage and great condition.',
+          contact: '555-101-2020',
+          platform: 'viber',
+        },
+        {
+          section: 'vehicles',
+          title: 'Harley Davidson Bike',
+          description: 'Classic motorcycle, fully serviced, ready to ride.',
+          contact: '555-303-4040',
+        },
+
+        // Jobs
+        {
+          section: 'jobs',
+          title: 'Office Assistant',
+          description: 'Part-time position in a friendly office environment.',
+          contact: 'jobs@company.com',
+        },
+        {
+          section: 'jobs',
+          title: 'Construction Worker',
+          description: 'Looking for experienced workers. Competitive pay.',
+          contact: '555-505-6060',
+        },
+        {
+          section: 'jobs',
+          title: 'Graphic Designer',
+          description: 'Freelance opportunity for a creative individual.',
+          contact: '555-707-8080',
+          platform: 'signal',
+        },
+
+        // Services
+        {
+          section: 'services',
+          title: 'Plumbing Services',
+          description: 'Reliable plumber available for all types of repairs.',
+          contact: '555-909-1010',
+          platform: 'sms',
+        },
+        {
+          section: 'services',
+          title: 'Lawn Mowing',
+          description: 'Affordable lawn care services for all yard sizes.',
+          contact: '555-111-1212',
+        },
+
+        // Miscellaneous
+        {
+          section: 'miscellaneous',
+          title: 'Book Collection',
+          description: 'Selling a variety of novels and rare editions.',
+          contact: '555-131-1414',
+          platform: 'messenger',
+        },
+        {
+          section: 'miscellaneous',
+          title: 'Vintage Camera',
+          description: 'Classic film camera, great for collectors.',
+          contact: '555-151-1616',
+        },
+
+        // Announcements
+        {
+          section: 'announcements',
+          title: 'Charity Bake Sale',
+          description: 'Come support our community with delicious treats!',
+          contact: '555-171-1818',
+        },
+        {
+          section: 'announcements',
+          title: 'Wedding Invitation',
+          description: 'You are warmly invited to our special day.',
+          contact: '555-191-2020',
+          platform: 'viber',
+        },
+
+        // Personals
+        {
+          section: 'personals',
+          title: 'Friendship Wanted',
+          description:
+            'Looking for a hiking partner. Enjoy the great outdoors.',
+          contact: '555-212-2323',
+        },
+        {
+          section: 'personals',
+          title: 'Language Exchange',
+          description:
+            'Want to practice Spanish in exchange for English lessons.',
+          contact: '555-242-2525',
+        },
+
+        // Lost and Found
+        {
+          section: 'lost-and-found',
+          title: 'Lost Cat',
+          description: 'Black cat with green eyes. Last seen near Main Street.',
+          contact: '555-262-2727',
+        },
+        {
+          section: 'lost-and-found',
+          title: 'Found Bracelet',
+          description: 'Silver bracelet with engravings. Found in the park.',
+          contact: '555-282-2929',
+          platform: 'sms',
+        },
+
+        // Community Events
+        {
+          section: 'community-events',
+          title: 'Neighborhood Cleanup',
+          description: 'Join us to beautify our streets this Saturday.',
+          contact: '555-303-3131',
+        },
+        {
+          section: 'community-events',
+          title: 'Local Farmers Market',
+          description: 'Fresh produce and homemade goods every weekend.',
+          contact: '555-323-3333',
+          platform: 'call',
+        },
+
+        // Pets
+        {
+          section: 'pets',
+          title: 'Golden Retriever Puppies',
+          description: 'Adorable, playful puppies looking for a loving home.',
+          contact: '555-343-3535',
+          platform: 'messenger',
+        },
+        {
+          section: 'pets',
+          title: 'Cat Adoption',
+          description: 'Sweet tabby cat, 2 years old, spayed and vaccinated.',
+          contact: '555-363-3737',
+        },
+
+        // Education
+        {
+          section: 'education',
+          title: 'Math Tutoring',
+          description: 'Experienced tutor available for all grade levels.',
+          contact: '555-383-3939',
+          platform: 'whatsapp',
+        },
+        {
+          section: 'education',
+          title: 'Music Lessons',
+          description:
+            'Piano and guitar lessons for beginners and intermediates.',
+          contact: '555-404-4141',
+        },
+
+        // Business Opportunities
+        {
+          section: 'business-opportunities',
+          title: 'Franchise Available',
+          description:
+            'Own your own coffee shop. Franchise opportunities open.',
+          contact: '555-424-4343',
+        },
+        {
+          section: 'business-opportunities',
+          title: 'Tech Startup Investment',
+          description: 'Seeking partners for innovative tech project.',
+          contact: '555-444-4545',
+          platform: 'messenger',
+        },
+
+        // Rentals
+        {
+          section: 'rentals',
+          title: 'Studio Apartment',
+          description: 'Affordable studio near downtown. Utilities included.',
+          contact: '555-464-4747',
+        },
+        {
+          section: 'rentals',
+          title: 'Vacation Cabin',
+          description: 'Secluded cabin rental for weekend getaways.',
+          contact: '555-484-4949',
+          platform: 'whatsapp',
+        },
+
+        // Wanted
+        {
+          section: 'wanted',
+          title: 'Looking for a Bike',
+          description: 'Seeking a used road bike in good condition.',
+          contact: '555-505-5151',
+          platform: 'messenger',
+        },
+        {
+          section: 'wanted',
+          title: 'Roommate Needed',
+          description: 'Looking for a roommate for a 2-bedroom apartment.',
+          contact: '555-525-5353',
+          platform: 'call',
+        },
+      ];
+
+      const classifiedsContainer = document.getElementById(
+        'classifieds-container'
+      );
+
+      function displayLoadingSkeletons() {
+        classifiedsContainer.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+          const skeleton = document.createElement('div');
+          skeleton.className = 'loading-skeleton';
+          classifiedsContainer.appendChild(skeleton);
+        }
+      }
+
+      function loadClassifieds(data) {
+        const sections = {}; // To group classifieds by their section
+        classifiedsContainer.innerHTML = ''; // Clear the container
+
+        // Irish phone number regex
+        const irishPhoneRegex =
+          /^((\+353|0)[1-9]\d{1,2})?[\s-]?\d{3}[\s-]?\d{4}$/;
+
+        // Group data by section
+        data.forEach((ad) => {
+          if (!sections[ad.section]) {
+            sections[ad.section] = [];
+          }
+          sections[ad.section].push(ad);
+        });
+
+        // Create sections and append them
+        Object.keys(sections).forEach((section) => {
+          const sectionDiv = document.createElement('div');
+          sectionDiv.className = 'classified-section';
+
+          const title = document.createElement('div');
+          title.className = 'section-title';
+          title.textContent = section.replace(/-/g, ' ').toUpperCase();
+
+          sectionDiv.appendChild(title);
+
+          sections[section].forEach((ad, index) => {
+            const adDiv = document.createElement('div');
+            adDiv.className = 'classified';
+
+            const adTitle = document.createElement('div');
+            adTitle.className = 'classified-title';
+            adTitle.textContent = ad.title;
+
+            const adDescription = document.createElement('div');
+            adDescription.className = 'classified-description';
+            adDescription.textContent = ad.description;
+
+            const adContact = document.createElement('div');
+            adContact.className = 'classified-contact';
+
+            // Recognize contact type and preferred platform
+            if (ad.contact) {
+              let link = null;
+
+              // Default handling for email and phone number
+              if (!ad.platform) {
+                if (/\S+@\S+\.\S+/.test(ad.contact)) {
+                  // Email
+                  link = document.createElement('a');
+                  link.href = `mailto:${ad.contact}`;
+                  link.textContent = `Email: ${ad.contact}`;
+                } else if (irishPhoneRegex.test(ad.contact)) {
+                  // Irish phone number
+                  link = document.createElement('a');
+                  link.href = `tel:${ad.contact.replace(/\s+/g, '')}`;
+                  link.textContent = `Call: ${ad.contact}`;
+                }
+              } else {
+                // Platform-specific handling
+                switch (ad.platform) {
+                  case 'call':
+                    link = document.createElement('a');
+                    link.href = `tel:${ad.contact.replace(/\s+/g, '')}`;
+                    link.textContent = `Call: ${ad.contact}`;
+                    break;
+                  case 'sms':
+                    link = document.createElement('a');
+                    link.href = `sms:${ad.contact.replace(/\s+/g, '')}`;
+                    link.textContent = `Text: ${ad.contact}`;
+                    break;
+                  case 'whatsapp':
+                    link = document.createElement('a');
+                    link.href = `https://wa.me/${ad.contact
+                      .replace(/\s+/g, '')
+                      .replace(/^0/, '353')}`;
+                    link.textContent = `WhatsApp: ${ad.contact}`;
+                    break;
+                  case 'signal':
+                    link = document.createElement('a');
+                    link.href = `signal://send?phone=${ad.contact
+                      .replace(/\s+/g, '')
+                      .replace(/^0/, '353')}`;
+                    link.textContent = `Signal: ${ad.contact}`;
+                    break;
+                  case 'viber':
+                    link = document.createElement('a');
+                    link.href = `viber://chat?number=${ad.contact
+                      .replace(/\s+/g, '')
+                      .replace(/^0/, '353')}`;
+                    link.textContent = `Viber: ${ad.contact}`;
+                    break;
+                  case 'messenger':
+                    link = document.createElement('a');
+                    link.href = `https://m.me/${ad.contact}`;
+                    link.textContent = `Messenger: ${ad.contact}`;
+                    break;
+                  default:
+                    link = document.createElement('span');
+                    link.textContent = ad.contact; // Fallback for unhandled cases
+                }
+              }
+
+              if (link) {
+                link.style.textDecoration = 'none';
+                link.style.color = '#007bff';
+                adContact.appendChild(link);
+              }
+            }
+
+            const adTime = document.createElement('div');
+            adTime.className = 'classified-time';
+            adTime.textContent = timeAgo(ad.timestamp);
+
+            adDiv.appendChild(adTitle);
+            adDiv.appendChild(adDescription);
+            adDiv.appendChild(adContact);
+            adDiv.appendChild(adTime);
+            sectionDiv.appendChild(adDiv);
+
+            // Add <hr> separator except after the last classified in the group
+            if (index < sections[section].length - 1) {
+              const hr = document.createElement('hr');
+              sectionDiv.appendChild(hr);
+            }
+          });
+
+          classifiedsContainer.appendChild(sectionDiv);
+        });
+      }
+      // Helper function to calculate time ago
+      function timeAgo(date) {
+        const now = new Date();
+        const past = new Date(date);
+        const diff = Math.floor((now - past) / 1000); // Difference in seconds
+
+        if (diff < 60) return `${diff} seconds ago`;
+        if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+        if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`;
+        if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`;
+        return `${Math.floor(diff / 31536000)} years ago`;
+      }
+      // Simulate loading process
+      displayLoadingSkeletons();
+      setTimeout(() => loadClassifieds(mockData), 2000);
+    </script>
+  </body>
+</html>
