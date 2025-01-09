@@ -6,6 +6,7 @@
     "contact": "555-TICK-TOCK",
     "platform": "call",
     "timestamp": "2025-01-07T15:30:00Z",
+    "serious": 25,
     "satire": 85,
     "img": "https://picsum.photos/200/300"
   },
@@ -36,7 +37,8 @@
     "contact": "555-WAX-N-WICK",
     "platform": "call",
     "timestamp": "2025-01-07T17:15:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "personals",
@@ -45,7 +47,8 @@
     "contact": "555-SILENT",
     "platform": "messenger",
     "timestamp": "2025-01-07T18:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "lost-and-found",
@@ -54,7 +57,8 @@
     "contact": "555-CLIFFS",
     "platform": "sms",
     "timestamp": "2025-01-07T19:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "real-estate",
@@ -63,7 +67,8 @@
     "contact": "555-DOOR-TWO",
     "platform": "whatsapp",
     "timestamp": "2025-01-07T20:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "services",
@@ -72,7 +77,8 @@
     "contact": "555-FOG-PATH",
     "platform": "signal",
     "timestamp": "2025-01-07T20:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "personals",
@@ -81,7 +87,8 @@
     "contact": "555-STILL",
     "platform": "messenger",
     "timestamp": "2025-01-07T21:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "jobs",
@@ -90,7 +97,8 @@
     "contact": "555-SCRIPTOR",
     "platform": "email",
     "timestamp": "2025-01-07T19:30:00Z",
-    "satire": 85
+    "satire": 34,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "rentals",
@@ -98,7 +106,9 @@
     "description": "Shady shed rental for sulking.",
     "contact": "555-484-4949",
     "platform": "whatsapp",
-    "timestamp": "2025-01-08T19:45:36.408413Z"
+    "timestamp": "2025-01-08T19:45:36.408413Z",
+    "satire": 34,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "rentals",
@@ -106,7 +116,9 @@
     "description": "Hidden hut rental for secret stuff.",
     "contact": "555-484-4949",
     "platform": "whatsapp",
-    "timestamp": "2025-01-08T14:53:36.408413Z"
+    "timestamp": "2025-01-08T14:53:36.408413Z",
+    "satire": 34,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "rentals",
@@ -114,7 +126,9 @@
     "description": "Secluded cabin rental for weekend getaways.",
     "contact": "555-484-4949",
     "platform": "whatsapp",
-    "timestamp": "2025-01-08T08:53:36.408413Z"
+    "timestamp": "2025-01-08T08:53:36.408413Z",
+    "satire": 34,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "personals",
@@ -123,7 +137,8 @@
     "contact": "555-ETCHINGS",
     "platform": "messenger",
     "timestamp": "2025-01-07T21:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "for-sale",
@@ -132,7 +147,8 @@
     "contact": "555-VANITY",
     "platform": "call",
     "timestamp": "2025-01-07T22:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "services",
@@ -141,7 +157,8 @@
     "contact": "555-WILDE-WORDS",
     "platform": "email",
     "timestamp": "2025-01-07T22:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "lost-and-found",
@@ -150,7 +167,8 @@
     "contact": "555-PRICELESS",
     "platform": "sms",
     "timestamp": "2025-01-07T23:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "real-estate",
@@ -159,14 +177,17 @@
     "contact": "555-SCENE",
     "platform": "whatsapp",
     "timestamp": "2025-01-07T23:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "jobs",
     "title": "Construction Worker",
     "description": "Looking for experienced workers. Competitive pay.",
     "contact": "555-505-6060",
-    "timestamp": "2025-01-08T02:22:36.408413Z"
+    "timestamp": "2025-01-08T02:22:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "for-sale",
@@ -175,7 +196,8 @@
     "contact": "555-111-2222",
     "platform": "viber",
     "timestamp": "2025-01-06T14:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "lost-and-found",
@@ -184,7 +206,8 @@
     "contact": "555-WHISPER",
     "platform": "sms",
     "timestamp": "2025-01-08T00:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "wanted",
@@ -192,7 +215,9 @@
     "description": "Looking for a roommate for a 2-bedroom apartment.",
     "contact": "555-525-5353",
     "platform": "call",
-    "timestamp": "2025-01-06T06:46:36.408413Z"
+    "timestamp": "2025-01-06T06:46:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "for-sale",
@@ -201,7 +226,8 @@
     "contact": "555-CUP-RUNE",
     "platform": "call",
     "timestamp": "2025-01-08T00:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "services",
@@ -210,7 +236,8 @@
     "contact": "555-MENDER",
     "platform": "signal",
     "timestamp": "2025-01-08T01:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "real-estate",
@@ -219,7 +246,8 @@
     "contact": "555-JESTER",
     "platform": "whatsapp",
     "timestamp": "2025-01-08T02:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "lost-and-found",
@@ -228,7 +256,8 @@
     "contact": "555-SHADOW",
     "platform": "sms",
     "timestamp": "2025-01-08T02:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "personals",
@@ -237,7 +266,8 @@
     "contact": "555-FOG-WALK",
     "platform": "messenger",
     "timestamp": "2025-01-08T01:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "wanted",
@@ -245,35 +275,45 @@
     "description": "Seeking a used road bike in good condition.",
     "contact": "555-505-5151",
     "platform": "messenger",
-    "timestamp": "2025-01-05T03:23:36.408413Z"
+    "timestamp": "2025-01-05T03:23:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "personals",
     "title": "Friendship Wanted",
     "description": "Looking for a hiking partner. Enjoy the great outdoors.",
     "contact": "555-212-2323",
-    "timestamp": "2025-01-04T08:01:36.408413Z"
+    "timestamp": "2025-01-04T08:01:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "pets",
     "title": "Cat Adoption",
     "description": "Sweet tabby cat, 2 years old, spayed and vaccinated.",
     "contact": "555-363-3737",
-    "timestamp": "2025-01-03T07:13:36.408413Z"
+    "timestamp": "2025-01-03T07:13:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "business-opportunities",
     "title": "Franchise Available",
     "description": "Own your own coffee shop. Franchise opportunities open.",
     "contact": "555-424-4343",
-    "timestamp": "2025-01-02T03:58:36.408413Z"
+    "timestamp": "2025-01-02T03:58:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "for-sale",
     "title": "Electric Scooter",
     "description": "Eco-friendly and barely used. Includes charger.",
     "contact": "555-333-4444",
-    "timestamp": "2025-01-01T15:50:36.408413Z"
+    "timestamp": "2025-01-01T15:50:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "pets",
@@ -281,14 +321,18 @@
     "description": "Adorable, playful puppies looking for a loving home.",
     "contact": "555-343-3535",
     "platform": "messenger",
-    "timestamp": "2024-12-30T03:09:36.408413Z"
+    "timestamp": "2024-12-30T03:09:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "community-events",
     "title": "Neighborhood Cleanup",
     "description": "Join us to beautify our streets this Saturday.",
     "contact": "555-303-3131",
-    "timestamp": "2024-12-27T23:13:36.408413Z"
+    "timestamp": "2024-12-27T23:13:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "miscellaneous",
@@ -296,7 +340,9 @@
     "description": "Selling a variety of novels and rare editions.",
     "contact": "555-131-1414",
     "platform": "messenger",
-    "timestamp": "2024-12-27T04:50:36.408413Z"
+    "timestamp": "2024-12-27T04:50:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "miscellaneous",
@@ -305,7 +351,8 @@
     "contact": "555-QUERY",
     "platform": "email",
     "timestamp": "2025-01-08T03:00:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "for-sale",
@@ -313,21 +360,27 @@
     "description": "Toaster and blender combo. Excellent condition.",
     "contact": "555-555-6666",
     "platform": "signal",
-    "timestamp": "2024-12-27T00:57:36.408413Z"
+    "timestamp": "2024-12-27T00:57:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "personals",
     "title": "Language Exchange",
     "description": "Want to practice Spanish in exchange for English lessons.",
     "contact": "555-242-2525",
-    "timestamp": "2024-12-26T08:40:36.408413Z"
+    "timestamp": "2024-12-26T08:40:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "jobs",
     "title": "Office Assistant",
     "description": "Part-time position in a friendly office environment.",
     "contact": "jobs@company.com",
-    "timestamp": "2024-12-25T21:54:36.408413Z"
+    "timestamp": "2024-12-25T21:54:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "vehicles",
@@ -335,14 +388,18 @@
     "description": "2016 Toyota Corolla. Low mileage and great condition.",
     "contact": "555-101-2020",
     "platform": "viber",
-    "timestamp": "2024-12-25T00:15:36.408413Z"
+    "timestamp": "2024-12-25T00:15:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "miscellaneous",
     "title": "Vintage Camera",
     "description": "Classic film camera, great for collectors.",
     "contact": "555-151-1616",
-    "timestamp": "2024-12-22T06:11:36.408413Z"
+    "timestamp": "2024-12-22T06:11:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "jobs",
@@ -350,7 +407,9 @@
     "description": "Freelance opportunity for a creative individual.",
     "contact": "555-707-8080",
     "platform": "signal",
-    "timestamp": "2024-12-21T05:46:36.408413Z"
+    "timestamp": "2024-12-21T05:46:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "business-opportunities",
@@ -358,7 +417,9 @@
     "description": "Seeking partners for innovative tech project.",
     "contact": "555-444-4545",
     "platform": "messenger",
-    "timestamp": "2024-12-21T05:02:36.408413Z"
+    "timestamp": "2024-12-21T05:02:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "education",
@@ -366,7 +427,9 @@
     "description": "Experienced tutor available for all grade levels.",
     "contact": "555-383-3939",
     "platform": "whatsapp",
-    "timestamp": "2024-12-20T19:29:36.408413Z"
+    "timestamp": "2024-12-20T19:29:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "services",
@@ -374,14 +437,18 @@
     "description": "Reliable plumber available for all types of repairs.",
     "contact": "555-909-1010",
     "platform": "sms",
-    "timestamp": "2024-12-20T04:21:36.408413Z"
+    "timestamp": "2024-12-20T04:21:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "education",
     "title": "Music Lessons",
     "description": "Piano and guitar lessons for beginners and intermediates.",
     "contact": "555-404-4141",
-    "timestamp": "2024-12-19T12:58:36.408413Z"
+    "timestamp": "2024-12-19T12:58:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "community-events",
@@ -389,21 +456,27 @@
     "description": "Fresh produce and homemade goods every weekend.",
     "contact": "555-323-3333",
     "platform": "call",
-    "timestamp": "2024-12-16T17:41:36.408413Z"
+    "timestamp": "2024-12-16T17:41:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "vehicles",
     "title": "Harley Davidson Bike",
     "description": "Classic motorcycle, fully serviced, ready to ride.",
     "contact": "555-303-4040",
-    "timestamp": "2024-12-16T08:59:36.408413Z"
+    "timestamp": "2024-12-16T08:59:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "services",
     "title": "Lawn Mowing",
     "description": "Affordable lawn care services for all yard sizes.",
     "contact": "555-111-1212",
-    "timestamp": "2024-12-15T14:32:36.408413Z"
+    "timestamp": "2024-12-15T14:32:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "lost-and-found",
@@ -411,28 +484,36 @@
     "description": "Silver bracelet with engravings. Found in the park.",
     "contact": "555-282-2929",
     "platform": "sms",
-    "timestamp": "2024-12-15T03:42:36.408413Z"
+    "timestamp": "2024-12-15T03:42:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "lost-and-found",
     "title": "Lost Cat",
     "description": "Black cat with green eyes. Last seen near Main Street.",
     "contact": "555-262-2727",
-    "timestamp": "2024-12-13T09:59:36.408413Z"
+    "timestamp": "2024-12-13T09:59:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "real-estate",
     "title": "2-Bedroom Apartment",
     "description": "Modern apartment in city center. Close to public transport.",
     "contact": "555-777-8888",
-    "timestamp": "2024-12-12T09:21:36.408413Z"
+    "timestamp": "2024-12-12T09:21:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "rentals",
     "title": "Studio Apartment",
     "description": "Affordable studio near downtown. Utilities included.",
     "contact": "555-464-4747",
-    "timestamp": "2024-12-11T09:01:36.408413Z"
+    "timestamp": "2024-12-11T09:01:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "announcements",
@@ -440,20 +521,26 @@
     "description": "You are warmly invited to our special day.",
     "contact": "555-191-2020",
     "platform": "viber",
-    "timestamp": "2024-12-11T03:01:36.408413Z"
+    "timestamp": "2024-12-11T03:01:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "real-estate",
     "title": "Cozy Cottage",
     "description": "Charming 3-bedroom cottage with a large garden.",
     "contact": "555-999-0000",
-    "timestamp": "2024-12-10T23:46:36.408413Z"
+    "timestamp": "2024-12-10T23:46:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "announcements",
     "title": "Charity Bake Sale",
     "description": "Come support our community with delicious treats!",
     "contact": "555-171-1818",
-    "timestamp": "2024-12-09T13:37:36.408413Z"
+    "timestamp": "2024-12-09T13:37:36.408413Z",
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   }
 ]
