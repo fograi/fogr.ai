@@ -3,13 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Classifieds</title>
+    <title>fógraí - Classifieds</title>
     <link rel="stylesheet" href="stylish.css" />
   </head>
   <body>
     <div class="header">
       <h1><i>fógraí</i></h1>
-      <p><i>classifieds</i></p>
       <div class="filter-container">
         <label for="section-filter">Filter by Section:</label>
         <select id="section-filter">
@@ -19,6 +18,7 @@
     </div>
     <div class="container" id="classifieds-container">
       <!-- Classifieds content will be dynamically loaded here -->
+      <loading-skeletons></loading-skeletons>
     </div>
     <script src="./scripting.js"></script>
   </body>

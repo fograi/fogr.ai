@@ -11,7 +11,7 @@ fetch('./mocks.json')
   .then((data) => {
     classifiedData = data; // Store fetched data globally
     displayLoadingSkeletons();
-    setTimeout(() => loadClassifieds(data), 2000); // Load all classifieds initially
+    loadClassifieds(data); // Load all classifieds initially
   })
   .catch((error) => console.error('Failed to load mockData:', error));
 
@@ -80,9 +80,15 @@ const classifiedsContainer = document.getElementById('classifieds-container');
 
 function displayLoadingSkeletons() {
   classifiedsContainer.innerHTML = '';
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 24; i++) {
     const skeleton = document.createElement('div');
-    skeleton.className = 'loading-skeleton';
+    skeleton.className = 'classified-skeleton';
+    skeleton.innerHTML = `
+      <div class="skeleton-title"></div>
+      <div class="skeleton-description"></div>
+      <div class="skeleton-contact"></div>
+      <div class="skeleton-time"></div>
+    `;
     classifiedsContainer.appendChild(skeleton);
   }
 }
