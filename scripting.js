@@ -251,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('ad-form-overlay');
   const openButton = document.getElementById('open-overlay');
   const cancelButton = document.getElementById('cancel-button');
+  const formContainer = document.querySelector(".form-container");
   const priceTotal = document.getElementById('price-total');
   const contentInput = document.getElementById('content');
   const imagesInput = document.getElementById('images');

@@ -324,3 +324,30 @@ button {
 button:hover {
   background: #444;
 }
+
+.open-overlay-button {
+  position: absolute;
+  right: 15px; /* Align to the right edge of the header */
+  top: 50%; /* Center vertically within the header */
+  transform: translateY(-50%); /* Adjust for precise vertical centering */
+  display: flex; /* Flexbox for centering the content */
+  justify-content: center; /* Horizontal centering */
+  align-items: center; /* Vertical centering */
+  background-color: #fff;
+  color: #000;
+  font-size: 22px; /* Adjust font size for emoji rendering */
+  width: 40px; /* Circle width */
+  height: 40px; /* Circle height */
+  border: 1px solid #ccc;
+  border-radius: 50%; /* Make it a perfect circle */
+  cursor: pointer;
+  line-height: 1; /* Prevents unwanted spacing inside the button */
+  padding: 0; /* No padding to avoid misalignment */
+  text-align: center; /* Ensure the symbol is centered */
+  font-family: Arial, sans-serif; /* Set a consistent font for emoji alignment */
+  overflow: hidden; /* Ensures no overflow for unusual rendering */
+}
+
+.open-overlay-button:hover {
+  background-color: #ddd;
+}
