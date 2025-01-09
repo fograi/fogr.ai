@@ -6,7 +6,8 @@
     "contact": "555-TICK-TOCK",
     "platform": "call",
     "timestamp": "2025-01-07T15:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/200/300"
   },
   {
     "section": "for-sale",
@@ -15,7 +16,8 @@
     "contact": "555-GLOW-FAE",
     "platform": "call",
     "timestamp": "2025-01-07T18:30:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/200"
   },
   {
     "section": "lost-and-found",
@@ -24,7 +26,8 @@
     "contact": "555-WRITE-ME",
     "platform": "sms",
     "timestamp": "2025-01-07T16:45:00Z",
-    "satire": 85
+    "satire": 85,
+    "img": "https://picsum.photos/300/300"
   },
   {
     "section": "miscellaneous",

@@ -15,10 +15,106 @@
           <option value="all">All</option>
         </select>
       </div>
+      <button
+        id="open-overlay"
+        class="open-overlay-button"
+        aria-label="Add a new classified ad"
+      >
+        +
+      </button>
     </div>
     <div class="container" id="classifieds-container">
       <!-- Classifieds content will be dynamically loaded here -->
       <loading-skeletons></loading-skeletons>
+    </div>
+    <div
+      id="ad-form-overlay"
+      class="overlay hidden"
+      aria-hidden="true"
+      role="dialog"
+      aria-labelledby="overlay-title"
+    >
+      <div class="form-container" tabindex="-1">
+        <h2>Submit Your Ad</h2>
+        <div id="price-summary" class="sticky-price">
+          Total Price: €<span id="price-total">0.00</span>
+        </div>
+        <form id="ad-form">
+          <!-- Section -->
+          <label for="section">Section:</label>
+          <select id="section" name="section">
+            <option value="for-sale">For Sale</option>
+            <option value="real-estate">Real Estate</option>
+            <option value="vehicles">Vehicles</option>
+            <option value="jobs">Jobs</option>
+            <option value="services">Services</option>
+            <option value="miscellaneous">Miscellaneous</option>
+            <option value="announcements">Announcements</option>
+            <option value="personals">Personals</option>
+            <option value="lost-and-found">Lost and Found</option>
+            <option value="community-events">Community Events</option>
+          </select>
+
+          <!-- Ad Title -->
+          <label for="title">Ad Title (Max 50 characters):</label>
+          <input type="text" id="title" name="title" maxlength="50" required />
+
+          <!-- Ad Content -->
+          <label for="content">Ad Content (First 100 characters free):</label>
+          <textarea
+            id="content"
+            name="content"
+            maxlength="300"
+            rows="5"
+            required
+          ></textarea>
+
+          <!-- Image Upload -->
+          <label for="images"
+            >Upload Images (First image free, max size 2MB):</label
+          >
+          <input
+            type="file"
+            id="images"
+            name="images"
+            accept="image/*"
+            multiple
+          />
+
+          <!-- Contact -->
+          <label for="contact">Contact Method:</label>
+          <input
+            type="text"
+            id="contact"
+            name="contact"
+            placeholder="Enter email or phone"
+            required
+          />
+          <div id="contact-options">
+            <label>
+              <input type="radio" name="preferred-method" value="sms" /> SMS
+            </label>
+            <label>
+              <input type="radio" name="preferred-method" value="call" /> Call
+            </label>
+            <label>
+              <input type="radio" name="preferred-method" value="whatsapp" />
+              WhatsApp
+            </label>
+          </div>
+
+          <!-- Price Display -->
+          <div id="price-summary">
+            Total Price: €<span id="price-total">0.00</span>
+          </div>
+
+          <!-- Buttons -->
+          <div class="form-buttons">
+            <button type="button" id="cancel-button">Cancel</button>
+            <button type="submit">Submit</button>
+          </div>
+        </form>
+      </div>
     </div>
     <script src="./scripting.js"></script>
   </body>

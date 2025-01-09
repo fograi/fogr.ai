@@ -118,6 +118,16 @@ function loadClassifieds(data) {
     const adDiv = document.createElement('div');
     adDiv.className = 'classified';
 
+    // Add image if available
+    if (ad.img) {
+      const img = document.createElement('img');
+      img.src = ad.img;
+      img.alt = ad.title || 'Classified Image';
+      img.className = 'classified-image';
+      img.classList.add('bw'); // Apply the B&W filter for higher satire
+      adDiv.appendChild(img);
+    }
+
     const adTitle = document.createElement('div');
     adTitle.className = 'classified-title';
     adTitle.textContent = ad.title;
@@ -236,3 +246,67 @@ function timeAgo(date) {
   if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`;
   return `${Math.floor(diff / 31536000)} years ago`;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('ad-form-overlay');
+  const openButton = document.getElementById('open-overlay');
+  const cancelButton = document.getElementById('cancel-button');
+  const priceTotal = document.getElementById('price-total');
+  const contentInput = document.getElementById('content');
+  const imagesInput = document.getElementById('images');
+
+  const basePrice = 0; // Initial price
+  const extraContentPrice = 0.1; // Price per extra character
+  const extraImagePrice = 2.0; // Price per additional image
+
+  // Open overlay
+  openButton.addEventListener('click', () => {
+    overlay.classList.remove('hidden');
+    overlay.setAttribute('aria-hidden', 'false');
+    formContainer.focus(); // Focus the form container for accessibility
+  });
+
+  // Close overlay function
+  function closeOverlay() {
+    overlay.classList.add('hidden');
+    overlay.setAttribute('aria-hidden', 'true');
+    openButton.focus(); // Return focus to the trigger button
+  }
+
+  function calculatePrice() {
+    let price = basePrice;
+
+    // Calculate extra content price
+    const contentLength = contentInput.value.length;
+    if (contentLength > 100) {
+      price += (contentLength - 100) * extraContentPrice;
+    }
+
+    // Calculate extra image price
+    const images = imagesInput.files;
+    if (images.length > 1) {
+      price += (images.length - 1) * extraImagePrice;
+    }
+
+    // Update price display
+    priceTotal.textContent = price.toFixed(2);
+  }
+
+  // Event listeners
+  contentInput.addEventListener('input', calculatePrice);
+  imagesInput.addEventListener('change', calculatePrice);
+  cancelButton.addEventListener('click', closeOverlay);
+  // Close overlay on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
+      closeOverlay();
+    }
+  });
+
+  // Close overlay on clicking outside the form
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      closeOverlay();
+    }
+  });
+});
