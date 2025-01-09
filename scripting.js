@@ -195,10 +195,22 @@ function loadClassifieds(data) {
     adTime.className = 'classified-time';
     adTime.textContent = timeAgo(ad.timestamp);
 
+    // Add satire gauge
+    const gaugeContainer = document.createElement('div');
+    gaugeContainer.className = 'satire-gauge-container';
+    gaugeContainer.innerHTML = `
+      <label class="satire-label"><i>Serious</i></label>
+      <div class="satire-gauge">
+        <div class="satire-bar" style="width: ${ad.satire || 0}%;"></div>
+      </div>
+      <label class="satire-label"><i>Satire</i></label>
+    `;
+
     adDiv.appendChild(adTitle);
     adDiv.appendChild(adDescription);
     adDiv.appendChild(adContact);
     adDiv.appendChild(adTime);
+    adDiv.appendChild(gaugeContainer);
 
     // Append the ad to the current section
     classifiedsContainer.lastChild.appendChild(adDiv);

@@ -62,12 +62,14 @@ body {
 }
 
 .section-title {
-  font-weight: bold;
-  font-size: 18px;
-  text-transform: uppercase;
-  border-bottom: 2px solid #000;
-  padding-bottom: 5px;
-  margin-bottom: 10px;
+  background-color: #000; /* Black background */
+  color: #fff; /* White text */
+  text-align: center; /* Center the text */
+  font-size: 18px; /* Adjust font size as needed */
+  font-weight: bold; /* Make the text bold */
+  padding: 10px; /* Add some padding for better spacing */
+  margin: 5px 0; /* Add margin above and below the section title */
+  border-radius: 5px; /* Optional: rounded corners for a smoother look */
 }
 
 .classified {
@@ -75,8 +77,10 @@ body {
 }
 
 .classified-title {
+  text-align: center;
   font-weight: bold;
   font-size: 16px;
+  padding-bottom: 5px;
 }
 
 .classified-description {
@@ -145,6 +149,33 @@ hr {
   100% {
     background-position: 200% 0;
   }
+}
+
+.satire-gauge-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.satire-label {
+  font-size: 12px;
+  color: #555;
+}
+
+.satire-gauge {
+  flex-grow: 1;
+  height: 10px;
+  background-color: #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.satire-bar {
+  height: 100%;
+  background-color: #007bff;
+  transition: width 0.3s ease-in-out;
 }
 
 @media (max-width: 768px) {
