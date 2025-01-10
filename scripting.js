@@ -206,25 +206,25 @@ function loadClassifieds(data) {
     adTime.textContent = timeAgo(ad.timestamp);
 
     // Add satire gauge
-    const gaugeContainer = document.createElement('div');
-    gaugeContainer.className = 'satire-gauge-container';
-    gaugeContainer.innerHTML = `
-    <label class="satire-label">
-      <i>Serious</i><br/>🤔&nbsp;(${100 - (ad.satire || 0)}%)
-    </label>
-    <div class="satire-gauge">
-      <div class="satire-bar" style="width: ${ad.satire || 0}%;"></div>
-    </div>
-    <label class="satire-label">
-      <i>Satire</i><br/>🤥&nbsp;(${ad.satire || 0}%)
-    </label>
-  `;
+    // const gaugeContainer = document.createElement('div');
+    // gaugeContainer.className = 'satire-gauge-container';
+    // gaugeContainer.innerHTML = `
+    //   <label class="satire-label">
+    //     <i>Serious</i><br/>🤔&nbsp;(${100 - (ad.satire || 0)}%)
+    //   </label>
+    //   <div class="satire-gauge">
+    //     <div class="satire-bar" style="width: ${ad.satire || 0}%;"></div>
+    //   </div>
+    //   <label class="satire-label">
+    //     <i>Satire</i><br/>🤥&nbsp;(${ad.satire || 0}%)
+    //   </label>
+    // `;
 
     adDiv.appendChild(adTitle);
     adDiv.appendChild(adDescription);
     adDiv.appendChild(adContact);
     adDiv.appendChild(adTime);
-    adDiv.appendChild(gaugeContainer);
+    // adDiv.appendChild(gaugeContainer);
 
     // Append the ad to the current section
     classifiedsContainer.lastChild.appendChild(adDiv);
