@@ -263,10 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const baseChars = 256; // First 256 characters are free
   const maxChars = 1024; // Maximum character limit
-  const charGroupSize = 16; // Group size for additional pricing
+  const charGroupSize = 32; // Group size for additional pricing
   const pricePerGroup = 0.1; // Cost per group of characters
   const baseImages = 1; // First image is free
-  const pricePerExtraImage = 0.2; // Cost per extra image
+  const pricePerExtraImage = 0.1; // Cost per extra image
 
   // Open overlay
   openButton.addEventListener('click', () => {
@@ -280,32 +280,6 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.classList.add('hidden');
     overlay.setAttribute('aria-hidden', 'true');
     openButton.focus(); // Return focus to the trigger button
-  }
-
-  function calculatePrice() {
-    let price = 0; // Start with free price
-    const contentLength = contentInput.value.length;
-
-    // Check if content length exceeds the base free limit
-    if (contentLength > baseChars) {
-      const extraChars = Math.min(
-        contentLength - baseChars,
-        maxChars - baseChars
-      ); // Cap at max chars
-      const groups = Math.ceil(extraChars / charGroupSize); // Calculate number of groups
-      price += groups * pricePerGroup; // Increment price
-    }
-
-    // Calculate price for additional images
-    const numImages = imagesInput.files.length;
-    if (numImages > baseImages) {
-      const extraImages = numImages - baseImages; // Images beyond the free limit
-      price += extraImages * pricePerExtraImage; // Add cost for extra images
-    }
-
-    // Update the price display
-    priceTotalHeader.textContent = price.toFixed(2);
-    priceTotalFooter.textContent = price.toFixed(2);
   }
 
   // Event listeners
@@ -330,4 +304,112 @@ document.addEventListener('DOMContentLoaded', () => {
       closeOverlay();
     }
   });
+
+  const contactField = document.getElementById('contact');
+  const contactLabel = document.getElementById('contact-label');
+  const contactOptions = document.querySelectorAll(
+    'input[name="preferred-method"]'
+  );
+
+  // Price mapping
+  const methodPrices = {
+    email: 0.0,
+    sms: 0.15,
+    call: 0.15,
+    whatsapp: 0.1,
+    signal: 0.05,
+    viber: 0.1,
+    messenger: 0.0,
+    telegram: 0.0,
+    snapchat: 0.0,
+  };
+
+  // Function to update the contact field and label
+  function updateContactField(selectedValue) {
+    if (selectedValue === 'email') {
+      // Set as email input
+      contactField.type = 'email';
+      contactField.placeholder = 'Enter your email';
+      contactLabel.textContent = 'Your Email:';
+      contactField.setAttribute(
+        'pattern',
+        '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}'
+      );
+      contactField.setAttribute('title', 'Please enter a valid email address.');
+    } else if (selectedValue === 'call' || selectedValue === 'sms') {
+      // Special case for "Call" or "SMS" - strictly phone number
+      contactField.type = 'tel';
+      contactField.placeholder = 'Enter your phone number';
+      contactLabel.textContent = 'Your Phone Number:';
+      contactField.setAttribute(
+        'pattern',
+        '^\\+?[0-9]{1,4}?[ -]?\\(?[0-9]{1,3}\\)?[ -]?[0-9]{1,4}[ -]?[0-9]{1,9}$'
+      );
+      contactField.setAttribute(
+        'title',
+        'Please enter a valid phone number, e.g., +1234567890'
+      );
+    } else {
+      // General case for other methods
+      contactField.type = 'tel';
+      contactField.placeholder = `Enter your ${selectedValue} ID or phone number`;
+      contactLabel.textContent = `Your ${
+        selectedValue.charAt(0).toUpperCase() + selectedValue.slice(1)
+      }:`;
+      contactField.removeAttribute('pattern'); // Remove previous validation
+      contactField.removeAttribute('title'); // Remove previous tooltip
+      contactField.setAttribute(
+        'pattern',
+        '^\\+?[0-9]{1,4}?[ -]?\\(?[0-9]{1,3}\\)?[ -]?[0-9]{1,4}[ -]?[0-9]{1,9}$'
+      );
+      contactField.setAttribute(
+        'title',
+        `Please enter a valid ${selectedValue} ID or phone number, e.g., +1234567890`
+      );
+    }
+  }
+
+  // Set the default state (email)
+  updateContactField('email');
+
+  // Add event listeners to update based on selection
+  contactOptions.forEach((option) => {
+    option.addEventListener('change', (event) => {
+      const selectedValue = event.target.value;
+      updateContactField(selectedValue);
+      calculatePrice();
+    });
+  });
+
+  function calculatePrice() {
+    let price = 0; // Start with the base price of 0
+
+    // Calculate content price
+    const contentLength = contentInput.value.length;
+    if (contentLength > baseChars) {
+      const extraChars = Math.min(
+        contentLength - baseChars,
+        maxChars - baseChars
+      );
+      const groups = Math.ceil(extraChars / charGroupSize);
+      price += groups * pricePerGroup;
+    }
+
+    // Calculate image price
+    const numImages = imagesInput.files.length;
+    if (numImages > baseImages) {
+      const extraImages = numImages - baseImages;
+      price += extraImages * pricePerExtraImage;
+    }
+
+    // Calculate contact method price
+    const selectedContactMethod = document.querySelector(
+      'input[name="preferred-method"]:checked'
+    ).value;
+    price += methodPrices[selectedContactMethod] || 0;
+
+    // Update the price display
+    priceTotalHeader.textContent = price.toFixed(2);
+    priceTotalFooter.textContent = price.toFixed(2);
+  }
 });

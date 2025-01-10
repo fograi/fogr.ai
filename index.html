@@ -36,7 +36,7 @@
     >
       <div class="form-container" tabindex="-1">
         <h2>Submit Your Ad</h2>
-        <div id="price-summary" class="sticky-price">
+        <div class="sticky-price price-summary">
           Total Price: €<span id="price-total-header">0.00</span>
         </div>
         <form id="ad-form">
@@ -61,7 +61,7 @@
 
           <!-- Ad Content -->
           <label for="content"
-            >Ad Content (256 chars free, €0.10/16 chars after, max 1024):</label
+            >Ad Content (256 chars free, €0.10/32 chars after, max 1024):</label
           >
           <textarea
             id="content"
@@ -85,49 +85,62 @@
           />
 
           <!-- Contact -->
-          <label for="contact">Contact Method:</label>
-          <input
-            type="text"
-            id="contact"
-            name="contact"
-            placeholder="Enter email or phone"
-            required
-          />
-          <div id="contact-options">
+          <fieldset id="contact-options">
+            <legend>Preferred Contact Method:</legend>
             <label>
-              <input type="radio" name="preferred-method" value="email" /> Email
+              <input
+                type="radio"
+                name="preferred-method"
+                value="email"
+                required
+                checked
+              />
+              Email (Free)
             </label>
             <label>
               <input type="radio" name="preferred-method" value="sms" /> SMS
+              (+€0.15)
             </label>
             <label>
               <input type="radio" name="preferred-method" value="call" /> Call
+              (+€0.15)
             </label>
             <label>
               <input type="radio" name="preferred-method" value="whatsapp" />
-              WhatsApp
+              WhatsApp (+€0.10)
             </label>
             <label>
               <input type="radio" name="preferred-method" value="signal" />
-              Signal
+              Signal (+€0.05)
             </label>
             <label>
               <input type="radio" name="preferred-method" value="viber" /> Viber
+              (+€0.10)
             </label>
             <label>
               <input type="radio" name="preferred-method" value="messenger" />
-              Messenger </label
-            ><label>
-              <input type="radio" name="preferred-method" value="telegram" />
-              Telegram </label
-            ><label>
-              <input type="radio" name="preferred-method" value="snapchat" />
-              SnapChat
+              Messenger (Free)
             </label>
-          </div>
+            <label>
+              <input type="radio" name="preferred-method" value="telegram" />
+              Telegram (Free)
+            </label>
+            <label>
+              <input type="radio" name="preferred-method" value="snapchat" />
+              SnapChat (Free)
+            </label>
+          </fieldset>
+          <label for="contact" id="contact-label">Your Email:</label>
+          <input
+            type="email"
+            id="contact"
+            name="contact"
+            placeholder="Enter email"
+            required
+          />
 
           <!-- Price Display -->
-          <div id="price-summary">
+          <div class="price-summary">
             Total Price: €<span id="price-total-footer">0.00</span>
           </div>
 

@@ -330,7 +330,7 @@ textarea {
   width: auto; /* Allow content-defined width */
 }
 
-#price-summary {
+.price-summary {
   font-size: 18px;
   font-weight: bold;
   text-align: right;
