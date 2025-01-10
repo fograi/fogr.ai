@@ -37,7 +37,7 @@
       <div class="form-container" tabindex="-1">
         <h2>Submit Your Ad</h2>
         <div id="price-summary" class="sticky-price">
-          Total Price: €<span id="price-total">0.00</span>
+          Total Price: €<span id="price-total-header">0.00</span>
         </div>
         <form id="ad-form">
           <!-- Section -->
@@ -60,18 +60,21 @@
           <input type="text" id="title" name="title" maxlength="50" required />
 
           <!-- Ad Content -->
-          <label for="content">Ad Content (First 100 characters free):</label>
+          <label for="content"
+            >Ad Content (256 chars free, €0.10/16 chars after, max 1024):</label
+          >
           <textarea
             id="content"
             name="content"
-            maxlength="300"
+            maxlength="1024"
             rows="5"
+            placeholder=""
             required
           ></textarea>
 
           <!-- Image Upload -->
           <label for="images"
-            >Upload Images (First image free, max size 2MB):</label
+            >Upload Images (1st free, €0.10/image after):</label
           >
           <input
             type="file"
@@ -92,6 +95,9 @@
           />
           <div id="contact-options">
             <label>
+              <input type="radio" name="preferred-method" value="email" /> Email
+            </label>
+            <label>
               <input type="radio" name="preferred-method" value="sms" /> SMS
             </label>
             <label>
@@ -101,11 +107,28 @@
               <input type="radio" name="preferred-method" value="whatsapp" />
               WhatsApp
             </label>
+            <label>
+              <input type="radio" name="preferred-method" value="signal" />
+              Signal
+            </label>
+            <label>
+              <input type="radio" name="preferred-method" value="viber" /> Viber
+            </label>
+            <label>
+              <input type="radio" name="preferred-method" value="messenger" />
+              Messenger </label
+            ><label>
+              <input type="radio" name="preferred-method" value="telegram" />
+              Telegram </label
+            ><label>
+              <input type="radio" name="preferred-method" value="snapchat" />
+              SnapChat
+            </label>
           </div>
 
           <!-- Price Display -->
           <div id="price-summary">
-            Total Price: €<span id="price-total">0.00</span>
+            Total Price: €<span id="price-total-footer">0.00</span>
           </div>
 
           <!-- Buttons -->

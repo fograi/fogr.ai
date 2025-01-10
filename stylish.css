@@ -276,15 +276,46 @@ label {
 }
 
 /* General form styles */
-.overlay input,
 .overlay select,
-.overlay textarea {
-  width: 100%; /* Apply full width only for overlay elements */
+.overlay textarea,
+.overlay input {
+  width: 90%; /* Apply full width only for overlay elements */
   padding: 10px;
   margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-family: 'Times New Roman', serif;
+}
+
+.overlay #contact-options input {
+  width: auto; /* Allow content-defined width */
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: 'Times New Roman', serif;
+}
+
+.overlay #contact-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Two equal columns */
+  gap: 10px; /* Space between grid items */
+}
+
+.overlay #contact-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Space between radio input and label text */
+  font-family: 'Times New Roman', serif;
+  font-size: 14px; /* Adjust font size for readability */
+}
+
+.overlay #contact-options input[type='radio'] {
+  width: auto; /* Ensure the radio buttons retain default size */
+  padding: 0;
+  margin: 0;
+  border: none; /* Remove unnecessary borders */
+  border-radius: 0; /* No border radius for native radio buttons */
 }
 
 /* Retain the original style for other inputs and selects */

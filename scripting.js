@@ -209,12 +209,16 @@ function loadClassifieds(data) {
     const gaugeContainer = document.createElement('div');
     gaugeContainer.className = 'satire-gauge-container';
     gaugeContainer.innerHTML = `
-      <label class="satire-label"><i>Serious</i></label>
-      <div class="satire-gauge">
-        <div class="satire-bar" style="width: ${ad.satire || 0}%;"></div>
-      </div>
-      <label class="satire-label"><i>Satire</i></label>
-    `;
+    <label class="satire-label">
+      <i>Serious</i><br/>🤔&nbsp;(${100 - (ad.satire || 0)}%)
+    </label>
+    <div class="satire-gauge">
+      <div class="satire-bar" style="width: ${ad.satire || 0}%;"></div>
+    </div>
+    <label class="satire-label">
+      <i>Satire</i><br/>🤥&nbsp;(${ad.satire || 0}%)
+    </label>
+  `;
 
     adDiv.appendChild(adTitle);
     adDiv.appendChild(adDescription);
@@ -251,14 +255,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('ad-form-overlay');
   const openButton = document.getElementById('open-overlay');
   const cancelButton = document.getElementById('cancel-button');
-  const formContainer = document.querySelector(".form-container");
-  const priceTotal = document.getElementById('price-total');
+  const formContainer = document.querySelector('.form-container');
+  const priceTotalHeader = document.getElementById('price-total-header');
+  const priceTotalFooter = document.getElementById('price-total-footer');
   const contentInput = document.getElementById('content');
   const imagesInput = document.getElementById('images');
 
-  const basePrice = 0; // Initial price
-  const extraContentPrice = 0.1; // Price per extra character
-  const extraImagePrice = 2.0; // Price per additional image
+  const baseChars = 256; // First 256 characters are free
+  const maxChars = 1024; // Maximum character limit
+  const charGroupSize = 16; // Group size for additional pricing
+  const pricePerGroup = 0.1; // Cost per group of characters
+  const baseImages = 1; // First image is free
+  const pricePerExtraImage = 0.2; // Cost per extra image
 
   // Open overlay
   openButton.addEventListener('click', () => {
@@ -275,26 +283,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function calculatePrice() {
-    let price = basePrice;
-
-    // Calculate extra content price
+    let price = 0; // Start with free price
     const contentLength = contentInput.value.length;
-    if (contentLength > 100) {
-      price += (contentLength - 100) * extraContentPrice;
+
+    // Check if content length exceeds the base free limit
+    if (contentLength > baseChars) {
+      const extraChars = Math.min(
+        contentLength - baseChars,
+        maxChars - baseChars
+      ); // Cap at max chars
+      const groups = Math.ceil(extraChars / charGroupSize); // Calculate number of groups
+      price += groups * pricePerGroup; // Increment price
     }
 
-    // Calculate extra image price
-    const images = imagesInput.files;
-    if (images.length > 1) {
-      price += (images.length - 1) * extraImagePrice;
+    // Calculate price for additional images
+    const numImages = imagesInput.files.length;
+    if (numImages > baseImages) {
+      const extraImages = numImages - baseImages; // Images beyond the free limit
+      price += extraImages * pricePerExtraImage; // Add cost for extra images
     }
 
-    // Update price display
-    priceTotal.textContent = price.toFixed(2);
+    // Update the price display
+    priceTotalHeader.textContent = price.toFixed(2);
+    priceTotalFooter.textContent = price.toFixed(2);
   }
 
   // Event listeners
-  contentInput.addEventListener('input', calculatePrice);
+  contentInput.addEventListener('input', () => {
+    if (contentInput.value.length > maxChars) {
+      contentInput.value = contentInput.value.slice(0, maxChars);
+    }
+    calculatePrice();
+  });
   imagesInput.addEventListener('change', calculatePrice);
   cancelButton.addEventListener('click', closeOverlay);
   // Close overlay on Escape key
