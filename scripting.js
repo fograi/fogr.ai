@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
     price += contactPrice;
 
     // Credit card fee
-    const creditCardFee = 0.25;
+    const creditCardFee = 0.32;
     if (price > 0) {
       price += creditCardFee;
     }
