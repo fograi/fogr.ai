@@ -124,6 +124,14 @@ body {
   padding-bottom: 5px;
 }
 
+.classified-price {
+  font-size: 18px; /* Slightly larger for visibility */
+  font-weight: bold; /* Make the price stand out */
+  color: #007bff; /* A blue shade, adjust to your theme */
+  margin: 5px 0; /* Add spacing above and below */
+  text-align: right;
+}
+
 .classified-description {
   font-size: 14px;
   line-height: 1.6;

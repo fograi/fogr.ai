@@ -132,6 +132,13 @@ function loadClassifieds(data) {
     adTitle.className = 'classified-title';
     adTitle.textContent = ad.title;
 
+    // Add price
+    const adPrice = document.createElement('div');
+    adPrice.className = 'classified-price';
+    adPrice.textContent = ad.price
+      ? `€${ad.price % 1 === 0 ? ad.price : ad.price.toFixed(2)}`
+      : 'Price on request';
+
     const adDescription = document.createElement('div');
     adDescription.className = 'classified-description';
     adDescription.textContent = ad.description;
@@ -223,6 +230,9 @@ function loadClassifieds(data) {
     adDiv.appendChild(adTitle);
     adDiv.appendChild(adDescription);
     adDiv.appendChild(adContact);
+    if (ad.price) {
+      adDiv.appendChild(adPrice);
+    }
     adDiv.appendChild(adTime);
     // adDiv.appendChild(gaugeContainer);
 
