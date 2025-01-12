@@ -382,34 +382,64 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function calculatePrice() {
-    let price = 0; // Start with the base price of 0
+    let price = 0; // Base price
+    const contentPriceEl = document.getElementById('content-price');
+    const imagesPriceEl = document.getElementById('images-price');
+    const contactPriceEl = document.getElementById('contact-price');
+    const breakdownTotalEl = document.getElementById('price-total-breakdown');
+    const breakdownEl = document.getElementById('price-breakdown');
 
-    // Calculate content price
     const contentLength = contentInput.value.length;
+    let contentPrice = 0;
+
+    // Content pricing
     if (contentLength > baseChars) {
       const extraChars = Math.min(
         contentLength - baseChars,
         maxChars - baseChars
       );
       const groups = Math.ceil(extraChars / charGroupSize);
-      price += groups * pricePerGroup;
+      contentPrice = groups * pricePerGroup;
+      price += contentPrice;
     }
 
-    // Calculate image price
+    // Image pricing
     const numImages = imagesInput.files.length;
+    let imagesPrice = 0;
     if (numImages > baseImages) {
       const extraImages = numImages - baseImages;
-      price += extraImages * pricePerExtraImage;
+      imagesPrice = extraImages * pricePerExtraImage;
+      price += imagesPrice;
     }
 
-    // Calculate contact method price
+    // Contact method pricing
     const selectedContactMethod = document.querySelector(
       'input[name="preferred-method"]:checked'
     ).value;
-    price += methodPrices[selectedContactMethod] || 0;
+    const contactPrice = methodPrices[selectedContactMethod] || 0;
+    price += contactPrice;
 
-    // Update the price display
+    // Credit card fee
+    const creditCardFee = 0.25;
+    if (price > 0) {
+      price += creditCardFee;
+    }
+
+    // Update individual prices
+    contentPriceEl.textContent = contentPrice.toFixed(2);
+    imagesPriceEl.textContent = imagesPrice.toFixed(2);
+    contactPriceEl.textContent = contactPrice.toFixed(2);
+    breakdownTotalEl.textContent = price.toFixed(2);
+
+    // Update total prices
     priceTotalHeader.textContent = price.toFixed(2);
     priceTotalFooter.textContent = price.toFixed(2);
+
+    // Show or hide the breakdown
+    if (price > 0) {
+      breakdownEl.classList.remove('hidden');
+    } else {
+      breakdownEl.classList.add('hidden');
+    }
   }
 });

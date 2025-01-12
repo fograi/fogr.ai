@@ -9,7 +9,7 @@
   <body>
     <div class="header">
       <h1><i>fógraí</i></h1>
-      <div class="filter-container" style="display: none;">
+      <div class="filter-container" style="display: none">
         <label for="section-filter">Filter by Section:</label>
         <select id="section-filter">
           <option value="all">All</option>
@@ -39,20 +39,66 @@
         <div class="sticky-price price-summary">
           Total Price: €<span id="price-total-header">0.00</span>
         </div>
+        <div id="price-breakdown" class="hidden">
+          <p>Price Breakdown:</p>
+          <ul>
+            <li>Ad Content: €<span id="content-price">0.00</span></li>
+            <li>Images: €<span id="images-price">0.00</span></li>
+            <li>Contact Method: €<span id="contact-price">0.00</span></li>
+            <li>Credit Card Fee: €0.25</li>
+          </ul>
+          <strong>Total: €<span id="price-total-breakdown">0.00</span></strong>
+        </div>
         <form id="ad-form">
           <!-- Section -->
           <label for="section">Section:</label>
           <select id="section" name="section">
             <option value="for-sale">For Sale</option>
+            <option value="wanted">Wanted</option>
             <option value="real-estate">Real Estate</option>
             <option value="vehicles">Vehicles</option>
+            <option value="cars-motorbikes-boats">
+              Cars, Motorbikes & Boats
+            </option>
             <option value="jobs">Jobs</option>
             <option value="services">Services</option>
+            <option value="pets">Pets</option>
+            <option value="home-and-garden">Home & Garden</option>
+            <option value="electronics">Electronics</option>
+            <option value="fashion-beauty">Fashion & Beauty</option>
+            <option value="sports-and-hobbies">Sports & Hobbies</option>
             <option value="miscellaneous">Miscellaneous</option>
             <option value="announcements">Announcements</option>
             <option value="personals">Personals</option>
             <option value="lost-and-found">Lost and Found</option>
             <option value="community-events">Community Events</option>
+            <option value="antiques-collectables">
+              Antiques & Collectables
+            </option>
+            <option value="arts-and-crafts">Arts & Crafts</option>
+            <option value="baby-and-nursery">Baby & Nursery</option>
+            <option value="books-and-magazines">Books & Magazines</option>
+            <option value="business-and-office">Business & Office</option>
+            <option value="consoles-and-games">Consoles & Games</option>
+            <option value="diy-and-renovation">DIY & Renovation</option>
+            <option value="dvd-cd-movies">DVD, CD & Movies</option>
+            <option value="farming">Farming</option>
+            <option value="health-and-beauty">Health & Beauty</option>
+            <option value="jewellery-and-watches">Jewellery & Watches</option>
+            <option value="mobile-phones-and-accessories">
+              Mobile Phones & Accessories
+            </option>
+            <option value="music-instruments">
+              Music Instruments & Equipment
+            </option>
+            <option value="photography">Photography</option>
+            <option value="sports-and-fitness">Sports & Fitness</option>
+            <option value="tickets">Tickets</option>
+            <option value="toys-and-games">Toys & Games</option>
+            <option value="birthday">Birthday</option>
+            <option value="death-notice">Death Notice</option>
+            <option value="death-anniversary">Death Anniversary</option>
+            <option value="wedding">Wedding</option>
           </select>
 
           <!-- Ad Title -->

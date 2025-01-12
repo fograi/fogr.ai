@@ -1,5 +1,15 @@
 [
   {
+    "section": "jobs",
+    "title": "Seeking a Curious Mind for Timeless Adventures",
+    "description": "Embark on a journey to decode ancient tales and hidden whispers. You will sift through forgotten scrolls and the echoes of stars. A passion for riddles, maps, and cryptic runes required. Those unafraid to dream beyond horizons, apply within. Fortune favors the bold and curious.",
+    "contact": "555-ADVENTURE",
+    "platform": "email",
+    "timestamp": "2025-01-10T14:00:00Z",
+    "satire": 40,
+    "img": "https://picsum.photos/304/206"
+  },
+  {
     "section": "lost-and-found",
     "title": "Lost: A Flicker of Light",
     "description": "Last seen dancing on the surface of a quiet lake, as if it had leapt from the stars themselves. It holds no weight but lingers like a dream. If found, return it to the twilight where it belongs, and the skies may grant you a wish in gratitude.",
@@ -38,7 +48,7 @@
     "timestamp": "2025-01-07T15:30:00Z",
     "serious": 25,
     "satire": 85,
-    "img": "https://picsum.photos/200/300"
+    "img": "https://picsum.photos/250/250"
   },
   {
     "section": "for-sale",
@@ -392,7 +402,7 @@
     "platform": "signal",
     "timestamp": "2024-12-27T00:57:36.408413Z",
     "satire": 85,
-    "img": "https://picsum.photos/302/204"  
+    "img": "https://picsum.photos/302/204"
   },
   {
     "section": "personals",
@@ -469,7 +479,7 @@
     "platform": "sms",
     "timestamp": "2024-12-20T04:21:36.408413Z",
     "satire": 85,
-    "img": "https://picsum.photos/3122/223"
+    "img": "https://picsum.photos/312/223"
   },
   {
     "section": "education",
