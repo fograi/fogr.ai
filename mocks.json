@@ -60,7 +60,8 @@
     "platform": "call",
     "timestamp": "2025-01-07T18:30:00Z",
     "satire": 85,
-    "img": "https://picsum.photos/300/200"
+    "img": "https://picsum.photos/300/200",
+    "price": 0
   },
   {
     "section": "for-sale",

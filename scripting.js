@@ -137,7 +137,9 @@ function loadClassifieds(data) {
     adPrice.className = 'classified-price';
     adPrice.textContent = ad.price
       ? `€${ad.price % 1 === 0 ? ad.price : ad.price.toFixed(2)}`
-      : 'Price on request';
+      : ad.price === 0
+      ? 'Free'
+      : '';
 
     const adDescription = document.createElement('div');
     adDescription.className = 'classified-description';
@@ -230,7 +232,7 @@ function loadClassifieds(data) {
     adDiv.appendChild(adTitle);
     adDiv.appendChild(adDescription);
     adDiv.appendChild(adContact);
-    if (ad.price) {
+    if (ad.price === 0 || ad.price) {
       adDiv.appendChild(adPrice);
     }
     adDiv.appendChild(adTime);
