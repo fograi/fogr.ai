@@ -22,7 +22,7 @@ jobs:
 
       # Step 3: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ # Directory containing your static files
+          publish_dir: ./ # This should be the directory where your static files are located
