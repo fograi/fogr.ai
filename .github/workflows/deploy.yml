@@ -1,28 +1,34 @@
-name: Deploy with Secrets
+name: Custom GitHub Pages Deploy
 
 on:
   push:
     branches:
-      - main
+      - main # or whatever branch you are using for your GitHub Pages source
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
-      # Step 1: Checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Step 2: Replace placeholders with secrets
-      - name: Replace placeholders with secrets
+      - name: Replace placeholders in js/sbClient.js
         run: |
-          sed -i "s|{{SUPABASE_URL}}|${{ secrets.SUPABASE_URL }}|g" ./js/sbClient.js
-          sed -i "s|{{SUPABASE_ANON_KEY}}|${{ secrets.SUPABASE_ANON_KEY }}|g" ./js/sbClient.js
+          sed -i 's/{{SUPABASE_URL}}/${{ secrets.SUPABASE_URL }}/g' ./js/sbClient.js
+          sed -i 's/{{SUPABASE_ANON_KEY}}/${{ secrets.SUPABASE_ANON_KEY }}/g' ./js/sbClient.js
 
-      # Step 3: Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: actions-gh-pages@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ # This should be the directory where your static files are located
+          # Upload entire repository
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v2
