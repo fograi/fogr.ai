@@ -5286,6 +5286,73 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fogr.ai@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "fogr.ai@workspace:."
+  dependencies:
+    "@heroui/badge": ^2.2.10
+    "@heroui/button": 2.2.15
+    "@heroui/card": ^2.2.14
+    "@heroui/checkbox": ^2.3.14
+    "@heroui/chip": ^2.2.11
+    "@heroui/code": ^2.2.11
+    "@heroui/dropdown": ^2.3.15
+    "@heroui/image": ^2.2.10
+    "@heroui/input": ^2.4.15
+    "@heroui/kbd": 2.2.11
+    "@heroui/link": ^2.2.12
+    "@heroui/listbox": 2.3.14
+    "@heroui/modal": ^2.2.12
+    "@heroui/navbar": 2.2.13
+    "@heroui/react": ^2.7.4
+    "@heroui/select": ^2.4.15
+    "@heroui/skeleton": ^2.2.10
+    "@heroui/snippet": ^2.2.16
+    "@heroui/switch": 2.2.13
+    "@heroui/system": 2.4.11
+    "@heroui/theme": 2.4.11
+    "@next/eslint-plugin-next": 15.2.1
+    "@react-aria/ssr": 3.9.7
+    "@react-aria/visually-hidden": 3.8.19
+    "@react-types/shared": 3.27.0
+    "@supabase/supabase-js": ^2.49.1
+    "@tailwindcss/postcss": ^4.0.9
+    "@types/formidable": ^3.4.5
+    "@types/node": 22.13.9
+    "@types/react": ^19.0.0
+    "@types/react-dom": ^19.0.4
+    "@typescript-eslint/eslint-plugin": 8.26.0
+    "@typescript-eslint/parser": 8.26.0
+    autoprefixer: ^10.4.20
+    aws-sdk: ^2.1692.0
+    clsx: 2.1.1
+    eslint: ^9.21.0
+    eslint-config-next: 15.2.1
+    eslint-config-prettier: 10.0.2
+    eslint-plugin-import: ^2.31.0
+    eslint-plugin-jsx-a11y: ^6.10.2
+    eslint-plugin-node: ^11.1.0
+    eslint-plugin-prettier: 5.2.3
+    eslint-plugin-react: ^7.37.4
+    eslint-plugin-react-hooks: ^5.2.0
+    eslint-plugin-unused-imports: 4.1.4
+    formidable: ^3.5.2
+    framer-motion: ^12.4.10
+    intl-messageformat: ^10.7.15
+    next: 15.2.1
+    next-themes: ^0.4.4
+    postcss: ^8.5.3
+    postcss-cli: ^11.0.0
+    prettier: 3.5.3
+    react: ^19.0.0
+    react-dom: ^19.0.0
+    react-masonry-css: ^1.0.16
+    tailwind-variants: 0.3.1
+    tailwindcss: ^4.0.9
+    typescript: 5.8.2
+  languageName: unknown
+  linkType: soft
+
 "for-each@npm:^0.3.3":
   version: 0.3.5
   resolution: "for-each@npm:0.3.5"
@@ -6560,73 +6627,6 @@ __metadata:
   checksum: 20ebfe79b2d2e7cf9cbc8239a72662b584f71164096e6e8896c8325055497c96f6b80cd22c258e8a2f2aa382a787795ec3ee8b37b422a302c7d4381b0d5ecfbb
   languageName: node
   linkType: hard
-
-"next-app-template@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "next-app-template@workspace:."
-  dependencies:
-    "@heroui/badge": ^2.2.10
-    "@heroui/button": 2.2.15
-    "@heroui/card": ^2.2.14
-    "@heroui/checkbox": ^2.3.14
-    "@heroui/chip": ^2.2.11
-    "@heroui/code": ^2.2.11
-    "@heroui/dropdown": ^2.3.15
-    "@heroui/image": ^2.2.10
-    "@heroui/input": ^2.4.15
-    "@heroui/kbd": 2.2.11
-    "@heroui/link": ^2.2.12
-    "@heroui/listbox": 2.3.14
-    "@heroui/modal": ^2.2.12
-    "@heroui/navbar": 2.2.13
-    "@heroui/react": ^2.7.4
-    "@heroui/select": ^2.4.15
-    "@heroui/skeleton": ^2.2.10
-    "@heroui/snippet": ^2.2.16
-    "@heroui/switch": 2.2.13
-    "@heroui/system": 2.4.11
-    "@heroui/theme": 2.4.11
-    "@next/eslint-plugin-next": 15.2.1
-    "@react-aria/ssr": 3.9.7
-    "@react-aria/visually-hidden": 3.8.19
-    "@react-types/shared": 3.27.0
-    "@supabase/supabase-js": ^2.49.1
-    "@tailwindcss/postcss": ^4.0.9
-    "@types/formidable": ^3.4.5
-    "@types/node": 22.13.9
-    "@types/react": ^19.0.0
-    "@types/react-dom": ^19.0.4
-    "@typescript-eslint/eslint-plugin": 8.26.0
-    "@typescript-eslint/parser": 8.26.0
-    autoprefixer: ^10.4.20
-    aws-sdk: ^2.1692.0
-    clsx: 2.1.1
-    eslint: ^9.21.0
-    eslint-config-next: 15.2.1
-    eslint-config-prettier: 10.0.2
-    eslint-plugin-import: ^2.31.0
-    eslint-plugin-jsx-a11y: ^6.10.2
-    eslint-plugin-node: ^11.1.0
-    eslint-plugin-prettier: 5.2.3
-    eslint-plugin-react: ^7.37.4
-    eslint-plugin-react-hooks: ^5.2.0
-    eslint-plugin-unused-imports: 4.1.4
-    formidable: ^3.5.2
-    framer-motion: ^12.4.10
-    intl-messageformat: ^10.7.15
-    next: 15.2.1
-    next-themes: ^0.4.4
-    postcss: ^8.5.3
-    postcss-cli: ^11.0.0
-    prettier: 3.5.3
-    react: ^19.0.0
-    react-dom: ^19.0.0
-    react-masonry-css: ^1.0.16
-    tailwind-variants: 0.3.1
-    tailwindcss: ^4.0.9
-    typescript: 5.8.2
-  languageName: unknown
-  linkType: soft
 
 "next-themes@npm:^0.4.4":
   version: 0.4.4
