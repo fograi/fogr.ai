@@ -1,8 +1,10 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Next.js + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: "fógraí",
+  title: "fógraí",
+  description: "fógraí is an online classifieds platform for Ireland",
+  keywords: "classifieds, ads, buy, sell, trade",
   navItems: [
     {
       label: "Home",
