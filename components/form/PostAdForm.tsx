@@ -9,36 +9,7 @@ import { Button } from "@heroui/button";
 import { User } from "@supabase/supabase-js";
 
 import { MailIcon } from "@/components/icons";
-
-const categories = [
-  { key: "motors", label: "Motors", emoji: "🚗" },
-  { key: "property", label: "Property", emoji: "🏠" },
-  { key: "jobs", label: "Jobs", emoji: "💼" },
-  { key: "services", label: "Services", emoji: "🛠️" },
-  { key: "farming", label: "Farming", emoji: "🚜" },
-  { key: "electronics", label: "Electronics", emoji: "📱" },
-  { key: "homeAndGarden", label: "Home & Garden", emoji: "🛋️" },
-  { key: "fashion", label: "Fashion", emoji: "👗" },
-  { key: "sportsAndHobbies", label: "Sports & Hobbies", emoji: "⚽" },
-  { key: "babyAndKids", label: "Baby & Kids", emoji: "🍼" },
-  { key: "business", label: "Business", emoji: "🏢" },
-  { key: "education", label: "Education", emoji: "📚" },
-  { key: "community", label: "Community", emoji: "🗣️" },
-  { key: "pets", label: "Pets", emoji: "🐶" },
-  {
-    key: "antiquesAndCollectables",
-    label: "Antiques & Collectables",
-    emoji: "🖼️",
-  },
-  { key: "artAndCrafts", label: "Art & Crafts", emoji: "🎨" },
-  { key: "healthAndBeauty", label: "Health & Beauty", emoji: "💄" },
-  { key: "booksAndMagazines", label: "Books & Magazines", emoji: "📖" },
-  { key: "musicAndInstruments", label: "Music & Instruments", emoji: "🎸" },
-  { key: "tickets", label: "Tickets", emoji: "🎟️" },
-  { key: "freeStuff", label: "Free Stuff", emoji: "🎁" },
-  { key: "swap", label: "Swap", emoji: "🔄" },
-  { key: "wanted", label: "Wanted", emoji: "📢" },
-];
+import { categories } from "@/constants/categories";
 
 interface PostAdFormProps {
   user: User;
