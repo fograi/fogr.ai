@@ -8,6 +8,7 @@ import { Input, Textarea } from "@heroui/input";
 import { Select, SelectItem } from "@heroui/select";
 import { Button } from "@heroui/button";
 import { User } from "@supabase/supabase-js";
+import { Code } from "@heroui/code";
 
 import { MailIcon } from "@/components/icons";
 import { categories } from "@/constants/categories";
@@ -25,6 +26,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
   const [image, setImage] = useState<string | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [noPrice, setNoPrice] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const email = user.email || "anon@no.mail";
 
   const MIN_TITLE_LENGTH = 5;
@@ -37,6 +39,71 @@ export default function PostAdForm({ user }: PostAdFormProps) {
       callback(null);
     }
   }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Validation checks
+    if (!category) {
+      setError("Please select a category.");
+
+      return;
+    }
+
+    if (title.length < MIN_TITLE_LENGTH || title.length > MAX_TITLE_LENGTH) {
+      setError(
+        `Title must be between ${MIN_TITLE_LENGTH} and ${MAX_TITLE_LENGTH} characters.`,
+      );
+
+      return;
+    }
+
+    if (
+      description.length < MIN_DESC_LENGTH ||
+      description.length > MAX_DESC_LENGTH
+    ) {
+      setError(
+        `Description must be between ${MIN_DESC_LENGTH} and ${MAX_DESC_LENGTH} characters.`,
+      );
+
+      return;
+    }
+
+    // Data to submit
+    const adData = {
+      category,
+      title,
+      description,
+      image, // Optional
+      price: noPrice ? null : price, // Optional
+      userEmail: user.email,
+    };
+
+    // Replace this with actual API call
+    fetch("/api/submit-ad", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(adData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        alert(data);
+        // Reset form
+        setCategory(null);
+        setTitle("");
+        setDescription("");
+        setImage(null);
+        setPrice(null);
+        setNoPrice(false);
+      })
+      .catch((error) => {
+        alert(error);
+        setError("Failed to submit ad. Please try again.");
+      });
+  };
 
   return (
     <div className="flex justify-center items-center pt-8">
@@ -195,10 +262,18 @@ export default function PostAdForm({ user }: PostAdFormProps) {
             </p>
           )}
         </CardFooter>
+        {error && (
+          <CardFooter className="text-md border-t border-zinc-300 dark:border-zinc-600 flex justify-center">
+            <Code color="danger" size="lg">
+              {error}
+            </Code>
+          </CardFooter>
+        )}
         <CardFooter className="text-md border-t border-zinc-300 dark:border-zinc-600 flex justify-between">
           <Button
             className="mt-3 w-full bg-zinc-800 dark:bg-zinc-200 text-zinc-200 dark:text-zinc-800"
             variant="ghost"
+            onClick={handleSubmit}
           >
             Submit Ad
           </Button>
