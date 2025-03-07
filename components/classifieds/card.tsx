@@ -8,7 +8,7 @@ interface ClassifiedCardProps {
   id: number;
   title: string;
   description: string;
-  section: string;
+  category: string;
   price: number;
   email: string;
   img?: string;
@@ -17,7 +17,7 @@ interface ClassifiedCardProps {
 const ClassifiedCard = ({
   title,
   description,
-  section,
+  category,
   price,
   email,
   img,
@@ -31,7 +31,7 @@ const ClassifiedCard = ({
       shadow="lg"
     >
       <CardHeader className="flex justify-center items-center mb-2 pb-1 bg-zinc-800 dark:bg-zinc-200 text-zinc-200 dark:text-zinc-800">
-        <h3 className="text-lg font-bold uppercase tracking-wide">{section}</h3>
+        <h3 className="text-lg font-bold uppercase tracking-wide">{category}</h3>
       </CardHeader>
       <CardBody>
         {img && (

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
+import { Checkbox } from "@heroui/checkbox";
 import { Image } from "@heroui/image";
 import { Input, Textarea } from "@heroui/input";
 import { Select, SelectItem } from "@heroui/select";
@@ -16,13 +17,14 @@ interface PostAdFormProps {
 }
 
 export default function PostAdForm({ user }: PostAdFormProps) {
-  const [section, setSection] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(true);
   const [isEditingDesc, setIsEditingDesc] = useState(true);
   const [image, setImage] = useState<string | null>(null);
   const [price, setPrice] = useState<number | null>(null);
+  const [noPrice, setNoPrice] = useState(false);
   const email = user.email || "anon@no.mail";
 
   const MIN_TITLE_LENGTH = 5;
@@ -46,19 +48,21 @@ export default function PostAdForm({ user }: PostAdFormProps) {
         <CardHeader className="flex justify-center items-center mb-2 pb-1 bg-zinc-800 dark:bg-zinc-200 text-zinc-200 dark:text-zinc-800">
           <button
             className="text-lg font-bold uppercase tracking-wide bg-transparent border-none cursor-pointer"
-            onClick={() => shouldEdit("section", () => setSection(null))}
+            onClick={() => shouldEdit("category", () => setCategory(null))}
           >
-            {section ?? "Create a New Ad"}
+            {category ?? "Create a New Ad"}
           </button>
         </CardHeader>
         <CardBody>
-          {section === null && (
+          {category === null && (
             <>
               <Select isRequired items={categories} label="Category">
                 {(category) => (
                   <SelectItem
+                    key={category.key}
+                    startContent={category.emoji}
                     onPress={() => {
-                      setSection(category.label);
+                      setCategory(category.label);
                     }}
                   >
                     {category.label}
@@ -142,23 +146,36 @@ export default function PostAdForm({ user }: PostAdFormProps) {
               <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
             </>
           )}
-          <Input
-            label="Price"
-            labelPlacement="outside"
-            placeholder="Enter Price"
-            startContent={
-              <div className="pointer-events-none flex items-center">
-                <span className="text-default-400 text-small">€</span>
-              </div>
-            }
-            step={0.01}
-            type="number"
-            validate={(value) =>
-              parseFloat(value) >= 0 ? null : "Please enter a proper price"
-            }
-            value={price !== null ? price.toString() : ""}
-            onChange={(e) => setPrice(parseFloat(e.target.value))}
-          />
+          <div className="flex items-baseline gap-12 w-fit">
+            <Input
+              className="flex-grow"
+              isDisabled={noPrice}
+              label="Price"
+              labelPlacement="outside"
+              placeholder="Enter Price"
+              startContent={
+                <div className="pointer-events-none flex items-center">
+                  <span className="text-default-400 text-small">€</span>
+                </div>
+              }
+              step={0.01}
+              type="number"
+              validate={(value) =>
+                parseFloat(value) >= 0 ? null : "Please enter a proper price"
+              }
+              value={noPrice ? "" : price !== null ? price.toString() : ""}
+              onChange={(e) => setPrice(parseFloat(e.target.value))}
+            />
+            <Checkbox
+              isSelected={noPrice}
+              onChange={() => {
+                setNoPrice(!noPrice);
+                setPrice(null);
+              }}
+            >
+              No&nbsp;Price
+            </Checkbox>
+          </div>
         </CardBody>
         <CardFooter className="text-md border-t border-zinc-300 dark:border-zinc-600 flex justify-between">
           <p className="flex items-center">
