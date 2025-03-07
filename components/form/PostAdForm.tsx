@@ -81,7 +81,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
     };
 
     // Replace this with actual API call
-    fetch("/api/submit-ad", {
+    fetch("/api/submit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
