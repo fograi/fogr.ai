@@ -5,7 +5,7 @@ import {
   MAX_DESC_LENGTH,
 } from "@/constants/validations";
 
-export const onRequestPost = async (context: { request: Request }) => {
+export const onRequestPost = async (context) => {
   try {
     const req = await context.request.json();
     const { category, title, description, image, price, userEmail } = req;
