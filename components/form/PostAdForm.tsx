@@ -12,6 +12,12 @@ import { Code } from "@heroui/code";
 
 import { MailIcon } from "@/components/icons";
 import { categories } from "@/constants/categories";
+import {
+  MIN_TITLE_LENGTH,
+  MAX_TITLE_LENGTH,
+  MIN_DESC_LENGTH,
+  MAX_DESC_LENGTH,
+} from "@/constants/validations";
 
 interface PostAdFormProps {
   user: User;
@@ -28,11 +34,6 @@ export default function PostAdForm({ user }: PostAdFormProps) {
   const [noPrice, setNoPrice] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const email = user.email || "anon@no.mail";
-
-  const MIN_TITLE_LENGTH = 5;
-  const MAX_TITLE_LENGTH = 50;
-  const MIN_DESC_LENGTH = 10;
-  const MAX_DESC_LENGTH = 500;
 
   function shouldEdit(item: string, callback: (n: null) => void) {
     if (window.confirm(`Are you sure you want to edit the ${item}?`)) {
