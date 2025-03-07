@@ -6,7 +6,7 @@ import { Checkbox } from "@heroui/checkbox";
 import { Image } from "@heroui/image";
 import { Input, Textarea } from "@heroui/input";
 import { Select, SelectItem } from "@heroui/select";
-import { Button } from "@heroui/button";
+import { Button, PressEvent } from "@heroui/button";
 import { User } from "@supabase/supabase-js";
 import { Code } from "@heroui/code";
 
@@ -41,8 +41,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (_e: PressEvent) => {
     setError(null);
 
     // Validation checks
@@ -274,7 +273,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
           <Button
             className="mt-3 w-full bg-zinc-800 dark:bg-zinc-200 text-zinc-200 dark:text-zinc-800"
             variant="ghost"
-            onClick={handleSubmit}
+            onPress={handleSubmit}
           >
             Submit Ad
           </Button>
