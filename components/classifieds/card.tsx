@@ -60,7 +60,16 @@ const ClassifiedCard = ({
         </Link>
         {typeof price === "number" && (
           <p className="text-md text-blue-500 font-medium">
-            <strong>{price > 0 ? `€${price.toFixed(2)}` : "Free"}</strong>
+            <strong>
+              {price > 0
+                ? new Intl.NumberFormat("en-IE", {
+                    style: "currency",
+                    currency: "EUR",
+                    minimumFractionDigits: price % 1 === 0 ? 0 : 2,
+                    maximumFractionDigits: 2,
+                  }).format(price)
+                : "Free"}
+            </strong>
           </p>
         )}
       </CardFooter>
