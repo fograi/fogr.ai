@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build && mkdir -p .vercel/output && cp _worker.js .vercel/output/_worker.js",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx -c .eslintrc.json --fix",
     "pages:build": "npx @cloudflare/next-on-pages",
