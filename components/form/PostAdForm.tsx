@@ -100,9 +100,6 @@ export default function PostAdForm({ user }: PostAdFormProps) {
     setLoading(true);
     fetch("/api/submit", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: formData,
     })
       .then((response) => {

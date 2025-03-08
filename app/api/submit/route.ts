@@ -11,12 +11,6 @@ export const runtime = "edge"; // Required for Cloudflare Pages
 
 export async function POST(req: Request) {
   try {
-    if (!req.headers.get("content-type")?.includes("multipart/form-data")) {
-      return errorResponse(
-        "Invalid content type. Expected multipart/form-data.",
-      );
-    }
-
     const formData = await req.formData();
     const category = formData.get("category");
     const title = formData.get("title");
@@ -58,13 +52,6 @@ export async function POST(req: Request) {
       if (image.size > MAX_IMAGE_SIZE) {
         return errorResponse("Image is too large. Maximum size is 5MB.");
       }
-    }
-
-    // 🚀 Simulate random success or failure
-    const isSuccess = Math.random() > 0.5;
-
-    if (!isSuccess) {
-      return errorResponse("Submission failed. Try again.");
     }
 
     return new Response(
