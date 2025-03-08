@@ -17,6 +17,8 @@ import {
   MAX_TITLE_LENGTH,
   MIN_DESC_LENGTH,
   MAX_DESC_LENGTH,
+  ALLOWED_IMAGE_TYPES,
+  MAX_IMAGE_SIZE,
 } from "@/constants/validations";
 
 interface PostAdFormProps {
@@ -28,8 +30,8 @@ export default function PostAdForm({ user }: PostAdFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(true);
-  const [isEditingDesc, setIsEditingDesc] = useState(true);
   const [image, setImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<Blob | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [noPrice, setNoPrice] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,11 +49,21 @@ export default function PostAdForm({ user }: PostAdFormProps) {
     setError(null);
     setSuccess(null);
 
-    // Validation checks
     if (!category) {
       setError("Please select a category.");
 
       return;
+    }
+
+    if (imageFile) {
+      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+        return alert(
+          `Invalid image type. Only ${ALLOWED_IMAGE_TYPES.join(", ")} are allowed.`,
+        );
+      }
+      if (imageFile.size > MAX_IMAGE_SIZE) {
+        return alert("Image is too large. Maximum size is 5MB.");
+      }
     }
 
     if (title.length < MIN_TITLE_LENGTH || title.length > MAX_TITLE_LENGTH) {
@@ -73,24 +85,25 @@ export default function PostAdForm({ user }: PostAdFormProps) {
       return;
     }
 
-    // Data to submit
-    const adData = {
-      category,
-      title,
-      description,
-      image, // Optional
-      price: noPrice ? null : price, // Optional
-      userEmail: user.email,
-    };
+    if (price && (isNaN(price) || Number(price) < 0)) {
+      return setError("Invalid price.");
+    }
+
+    const formData = new FormData();
+
+    formData.append("category", category);
+    formData.append("title", title);
+    formData.append("description", description);
+    price && formData.append("price", price.toString());
+    imageFile && formData.append("image", imageFile);
 
     setLoading(true);
-    // Replace this with actual API call
     fetch("/api/submit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(adData),
+      body: formData,
     })
       .then((response) => {
         if (!response.ok) {
@@ -100,8 +113,8 @@ export default function PostAdForm({ user }: PostAdFormProps) {
       })
       .catch((error) => {
         setError(error.message);
-      });
-    setLoading(false);
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -153,9 +166,10 @@ export default function PostAdForm({ user }: PostAdFormProps) {
                 accept="image/*"
                 label="Image"
                 type="file"
-                onChange={(e) =>
-                  setImage(URL.createObjectURL(e.target.files?.[0]!))
-                }
+                onChange={(e) => {
+                  setImage(URL.createObjectURL(e.target.files?.[0]!));
+                  setImageFile(e.target.files?.[0]!);
+                }}
               />
               <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
             </>
@@ -185,33 +199,18 @@ export default function PostAdForm({ user }: PostAdFormProps) {
               <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
             </>
           )}
-          {!isEditingDesc &&
-          description &&
-          description.length >= MIN_DESC_LENGTH ? (
-            <button
-              className="text-md mb-3 leading-relaxed flex justify-center items-center bg-transparent border-none p-0 text-left w-full cursor-pointer"
-              onClick={() =>
-                shouldEdit("description ", () => setIsEditingDesc(true))
-              }
-            >
-              {description}
-            </button>
-          ) : (
-            <>
-              <Textarea
-                isRequired
-                label="Description"
-                maxLength={MAX_DESC_LENGTH}
-                minLength={MIN_DESC_LENGTH}
-                placeholder={`Enter Description (${MIN_DESC_LENGTH} - ${MAX_DESC_LENGTH} characters)`}
-                value={description}
-                onBlur={() => setIsEditingDesc(false)}
-                onChange={(e) => setDescription(e.target.value)}
-                onFocus={() => setIsEditingDesc(true)}
-              />
-              <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
-            </>
-          )}
+          <>
+            <Textarea
+              isRequired
+              label="Description"
+              maxLength={MAX_DESC_LENGTH}
+              minLength={MIN_DESC_LENGTH}
+              placeholder={`Enter Description (${MIN_DESC_LENGTH} - ${MAX_DESC_LENGTH} characters)`}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
+          </>
           <div className="flex items-baseline gap-12 w-fit">
             <Input
               className="flex-grow"
