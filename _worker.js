@@ -4,7 +4,7 @@ export default {
 
     // ✅ Handle API route
     if (url.pathname === "/api/submit" && request.method === "POST") {
-      return new Response("Hello, world!", {
+      return new Response("Hello, world, I am the worker!", {
         headers: { "Content-Type": "text/plain" },
       });
     }
