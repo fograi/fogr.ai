@@ -33,6 +33,8 @@ export default function PostAdForm({ user }: PostAdFormProps) {
   const [price, setPrice] = useState<number | null>(null);
   const [noPrice, setNoPrice] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const email = user.email || "anon@no.mail";
 
   function shouldEdit(item: string, callback: (n: null) => void) {
@@ -43,6 +45,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
 
   const handleSubmit = (_e: PressEvent) => {
     setError(null);
+    setSuccess(null);
 
     // Validation checks
     if (!category) {
@@ -80,6 +83,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
       userEmail: user.email,
     };
 
+    setLoading(true);
     // Replace this with actual API call
     fetch("/api/submit", {
       method: "POST",
@@ -88,21 +92,16 @@ export default function PostAdForm({ user }: PostAdFormProps) {
       },
       body: JSON.stringify(adData),
     })
-      .then((response) => response.json())
-      .then((data) => {
-        alert(data);
-        // Reset form
-        setCategory(null);
-        setTitle("");
-        setDescription("");
-        setImage(null);
-        setPrice(null);
-        setNoPrice(false);
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to submit ad.");
+        }
+        setSuccess(response.statusText);
       })
       .catch((error) => {
-        alert(error);
-        setError("Failed to submit ad. Please try again.");
+        setError(error.message);
       });
+    setLoading(false);
   };
 
   return (
@@ -262,16 +261,17 @@ export default function PostAdForm({ user }: PostAdFormProps) {
             </p>
           )}
         </CardFooter>
-        {error && (
+        {(error || success) && (
           <CardFooter className="text-md border-t border-zinc-300 dark:border-zinc-600 flex justify-center">
-            <Code color="danger" size="lg">
-              {error}
+            <Code color={error ? "danger" : "success"} size="lg">
+              {error ?? success}
             </Code>
           </CardFooter>
         )}
         <CardFooter className="text-md border-t border-zinc-300 dark:border-zinc-600 flex justify-between">
           <Button
             className="mt-3 w-full bg-zinc-800 dark:bg-zinc-200 text-zinc-200 dark:text-zinc-800"
+            isDisabled={loading}
             variant="ghost"
             onPress={handleSubmit}
           >
