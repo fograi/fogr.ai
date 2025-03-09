@@ -1,9 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import {
-  RekognitionClient,
-  DetectModerationLabelsCommand,
-  ModerationLabel,
-} from "@aws-sdk/client-rekognition";
+import { OpenAI } from "openai";
 
 import {
   MIN_TITLE_LENGTH,
@@ -60,14 +55,22 @@ export async function POST(req: Request) {
         return errorResponse("Image is too large. Maximum size is 5MB.");
       }
 
-      const imageUrl = await uploadToS3(image);
-      const moderationLabels = await moderateImage(imageUrl);
+      const moderationFailed = await moderateTextAndImage(
+        title + " - " + description,
+        image,
+      );
 
-      if (moderationLabels && moderationLabels.length > 0) {
-        console.log("Moderation Labels:", moderationLabels);
-
+      if (moderationFailed) {
         return errorResponse(
           "Image failed moderation and may contain inappropriate content.",
+        );
+      }
+    } else {
+      const moderationFailed = await moderateText(title + " - " + description);
+
+      if (moderationFailed) {
+        return errorResponse(
+          "Ad failed moderation and may contain inappropriate content.",
         );
       }
     }
@@ -91,50 +94,53 @@ function errorResponse(message: string) {
   });
 }
 
-async function uploadToS3(image: File): Promise<string> {
-  const s3 = new S3Client({
-    region: process.env.AWS_REGION as string,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
-    },
-  });
+// 🔍 OpenAI Moderation (Text)
+async function moderateText(text: string): Promise<boolean> {
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const moderation = await openai.moderations.create({
+      model: "omni-moderation-latest",
+      input: text,
+    });
 
-  const fileKey = `uploads/${Date.now()}-${image.name}`;
-  const buffer = Buffer.from(await image.arrayBuffer());
+    console.log(moderation);
 
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: fileKey,
-      Body: buffer,
-      ContentType: image.type,
-    }),
-  );
+    return moderation.results.some((r) => r.flagged);
+  } catch (error) {
+    console.error(error);
 
-  return `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${fileKey}`;
+    return true;
+  }
 }
 
-// Function to Run AWS Rekognition Moderation
-async function moderateImage(
-  imageUrl: string,
-): Promise<ModerationLabel[] | undefined> {
-  const rekognition = new RekognitionClient({
-    region: process.env.AWS_REGION as string,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
-    },
-  });
+// 🖼️ OpenAI Image Moderation (Direct File)
+async function moderateTextAndImage(
+  text: string,
+  image: File,
+): Promise<boolean> {
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const base64Image = await fileToBase64(image);
+    const moderation = await openai.moderations.create({
+      model: "omni-moderation-latest",
+      input: [
+        { type: "text", text: text },
+        { type: "image_url", image_url: { url: base64Image } },
+      ],
+    });
 
-  const imageKey = imageUrl.split(".com/")[1]; // Extract image key from URL
+    console.log(moderation);
 
-  const command = new DetectModerationLabelsCommand({
-    Image: { S3Object: { Bucket: process.env.S3_BUCKET_NAME, Name: imageKey } },
-    MinConfidence: 75,
-  });
+    return moderation.results.some((r) => r.flagged);
+  } catch (error) {
+    console.error(error);
 
-  const { ModerationLabels } = await rekognition.send(command);
+    return true;
+  }
+}
 
-  return ModerationLabels;
+async function fileToBase64(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  return `data:${file.type};base64,${buffer.toString("base64")}`;
 }
