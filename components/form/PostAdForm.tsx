@@ -37,8 +37,9 @@ filter.add(bannedWords);
 export default function PostAdForm({ user }: PostAdFormProps) {
   const [category, setCategory] = useState<string | null>(null);
   const [title, setTitle] = useState("");
+  const [titleError, setTitleError] = useState<string | null>(null);
   const [description, setDescription] = useState("");
-  const [isEditingTitle, setIsEditingTitle] = useState(true);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<Blob | null>(null);
   const [price, setPrice] = useState<number | null>(null);
@@ -57,6 +58,8 @@ export default function PostAdForm({ user }: PostAdFormProps) {
   const handleSubmit = (_e: PressEvent) => {
     setError(null);
     setSuccess(null);
+    setTitleError(null);
+    setDescriptionError(null);
 
     if (!category) {
       setError("Please select a category.");
@@ -67,29 +70,36 @@ export default function PostAdForm({ user }: PostAdFormProps) {
     if (imageFile) {
       if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
         return alert(
-          `Invalid image type. Only ${ALLOWED_IMAGE_TYPES.join(", ")} are allowed.`,
+          `Invalid image type. Only ${ALLOWED_IMAGE_TYPES.map((ait) => ait.substring(6)).join(" or ")} are allowed.`,
         );
       }
       if (imageFile.size > MAX_IMAGE_SIZE) {
-        return alert("Image is too large. Maximum size is 5MB.");
+        return alert(
+          `Image is too large. Maximum size is ${(MAX_IMAGE_SIZE / 1_000_000).toFixed(0)}MB.`,
+        );
       }
     }
 
-    if (title.length < MIN_TITLE_LENGTH || title.length > MAX_TITLE_LENGTH) {
-      setError(
-        `Title must be between ${MIN_TITLE_LENGTH} and ${MAX_TITLE_LENGTH} characters.`,
-      );
+    if (title.length < MIN_TITLE_LENGTH) {
+      setError(`Title too short.`);
+      setTitleError(`Title too short.`);
+
+      return;
+    } else if (title.length > MAX_TITLE_LENGTH) {
+      setTitleError(`Title too long.`);
+      setError(`Title too long.`);
 
       return;
     }
 
-    if (
-      description.length < MIN_DESC_LENGTH ||
-      description.length > MAX_DESC_LENGTH
-    ) {
-      setError(
-        `Description must be between ${MIN_DESC_LENGTH} and ${MAX_DESC_LENGTH} characters.`,
-      );
+    if (description.length < MIN_DESC_LENGTH) {
+      setDescriptionError(`Description too short.`);
+      setError(`Description too short.`);
+
+      return;
+    } else if (description.length > MAX_DESC_LENGTH) {
+      setDescriptionError(`Description too long.`);
+      setError(`Description too long.`);
 
       return;
     }
@@ -98,11 +108,18 @@ export default function PostAdForm({ user }: PostAdFormProps) {
       return setError("Invalid price.");
     }
 
-    // 🚩 Local Moderation (Fastest to Slowest)
-    const combinedText = `${title} ${description}`;
+    // 🚩 Local Moderation
 
-    if (filter.check(combinedText)) {
-      return setError("Failed profanity filter.");
+    if (filter.check(title)) {
+      // @ts-expect-error
+      setTitleError(filter.badWordsUsed(title).join(", "));
+
+      return setError("Title failed profanity filter.");
+    } else if (filter.check(description)) {
+      // @ts-expect-error
+      setDescriptionError(filter.badWordsUsed(description).join(", "));
+
+      return setError("Description failed profanity filter.");
     }
 
     const obscenity = new RegExpMatcher({
@@ -110,8 +127,32 @@ export default function PostAdForm({ user }: PostAdFormProps) {
       ...englishRecommendedTransformers,
     });
 
-    if (obscenity.hasMatch(combinedText)) {
-      return setError("Failed obscenity filter.");
+    if (obscenity.hasMatch(title)) {
+      setTitleError(
+        obscenity
+          .getAllMatches(title)
+          .map(
+            (m) =>
+              englishDataset.getPayloadWithPhraseMetadata(m).phraseMetadata
+                ?.originalWord,
+          )
+          .join(", "),
+      );
+
+      return setError("Title failed obscenity filter.");
+    } else if (obscenity.hasMatch(description)) {
+      setDescriptionError(
+        obscenity
+          .getAllMatches(description)
+          .map(
+            (m) =>
+              englishDataset.getPayloadWithPhraseMetadata(m).phraseMetadata
+                ?.originalWord,
+          )
+          .join(", "),
+      );
+
+      return setError("Description failed obscenity filter.");
     }
 
     const formData = new FormData();
@@ -191,7 +232,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
             <>
               <Input
                 accept="image/*"
-                label={`Image (Max ${MAX_IMAGE_SIZE / 1_000_000}MB, ${ALLOWED_IMAGE_TYPES.join(", ")}`}
+                label={`Image (Max ${(MAX_IMAGE_SIZE / 1_000_000).toFixed(0)}MB, ${ALLOWED_IMAGE_TYPES.map((ait) => ait.substring(6)).join(" or ")})`}
                 labelPlacement="outside"
                 type="file"
                 onChange={(e) => {
@@ -202,35 +243,26 @@ export default function PostAdForm({ user }: PostAdFormProps) {
               <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
             </>
           )}
-          {!isEditingTitle && title && title.length >= MIN_TITLE_LENGTH ? (
-            <button
-              className="text-lg font-semibold flex justify-center items-center mb-2 bg-transparent border-none p-0 cursor-pointer"
-              onClick={() =>
-                shouldEdit("title ", () => setIsEditingTitle(true))
-              }
-            >
-              {title}
-            </button>
-          ) : (
-            <>
-              <Input
-                isRequired
-                label="Title"
-                labelPlacement="outside"
-                maxLength={MAX_TITLE_LENGTH}
-                minLength={MIN_TITLE_LENGTH}
-                placeholder={`Enter Ad Title (${MIN_TITLE_LENGTH} - ${MAX_TITLE_LENGTH} characters)`}
-                value={title}
-                onBlur={() => setIsEditingTitle(false)}
-                onChange={(e) => setTitle(e.target.value)}
-                onFocus={() => setIsEditingTitle(true)}
-              />
-              <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
-            </>
-          )}
+
+          <Input
+            isRequired
+            errorMessage={titleError}
+            isInvalid={titleError !== null}
+            label="Title"
+            labelPlacement="outside"
+            maxLength={MAX_TITLE_LENGTH}
+            minLength={MIN_TITLE_LENGTH}
+            placeholder={`Enter Ad Title (${MIN_TITLE_LENGTH} - ${MAX_TITLE_LENGTH} characters)`}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
+
           <>
             <Textarea
               isRequired
+              errorMessage={descriptionError}
+              isInvalid={descriptionError !== null}
               label="Description"
               labelPlacement="outside"
               maxLength={MAX_DESC_LENGTH}

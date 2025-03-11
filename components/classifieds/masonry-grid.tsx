@@ -8,7 +8,7 @@ import { mockClassifieds } from "@/lib/mockData";
 
 const ClassifiedMasonryGrid = () => {
   const breakpointColumnsObj = {
-    default: 3,
+    default: 1,
     7680: 12,
     5120: 10,
     3840: 8,
