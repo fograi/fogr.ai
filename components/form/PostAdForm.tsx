@@ -9,8 +9,15 @@ import { Select, SelectItem } from "@heroui/select";
 import { Button, PressEvent } from "@heroui/button";
 import { User } from "@supabase/supabase-js";
 import { Code } from "@heroui/code";
+import filter from "leo-profanity";
+import {
+  RegExpMatcher,
+  englishDataset,
+  englishRecommendedTransformers,
+} from "obscenity";
 
 import { MailIcon } from "@/components/icons";
+import { bannedWords } from "@/constants/banned-words";
 import { categories } from "@/constants/categories";
 import {
   MIN_TITLE_LENGTH,
@@ -24,6 +31,8 @@ import {
 interface PostAdFormProps {
   user: User;
 }
+
+filter.add(bannedWords);
 
 export default function PostAdForm({ user }: PostAdFormProps) {
   const [category, setCategory] = useState<string | null>(null);
@@ -89,6 +98,22 @@ export default function PostAdForm({ user }: PostAdFormProps) {
       return setError("Invalid price.");
     }
 
+    // 🚩 Local Moderation (Fastest to Slowest)
+    const combinedText = `${title} ${description}`;
+
+    if (filter.check(combinedText)) {
+      return setError("Failed profanity filter.");
+    }
+
+    const obscenity = new RegExpMatcher({
+      ...englishDataset.build(),
+      ...englishRecommendedTransformers,
+    });
+
+    if (obscenity.hasMatch(combinedText)) {
+      return setError("Failed obscenity filter.");
+    }
+
     const formData = new FormData();
 
     formData.append("category", category);
@@ -132,7 +157,12 @@ export default function PostAdForm({ user }: PostAdFormProps) {
         <CardBody>
           {category === null && (
             <>
-              <Select isRequired items={categories} label="Category">
+              <Select
+                isRequired
+                items={categories}
+                label="Category"
+                labelPlacement="outside"
+              >
                 {(category) => (
                   <SelectItem
                     key={category.key}
@@ -161,7 +191,8 @@ export default function PostAdForm({ user }: PostAdFormProps) {
             <>
               <Input
                 accept="image/*"
-                label="Image"
+                label={`Image (Max ${MAX_IMAGE_SIZE / 1_000_000}MB, ${ALLOWED_IMAGE_TYPES.join(", ")}`}
+                labelPlacement="outside"
                 type="file"
                 onChange={(e) => {
                   setImage(URL.createObjectURL(e.target.files?.[0]!));
@@ -185,6 +216,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
               <Input
                 isRequired
                 label="Title"
+                labelPlacement="outside"
                 maxLength={MAX_TITLE_LENGTH}
                 minLength={MIN_TITLE_LENGTH}
                 placeholder={`Enter Ad Title (${MIN_TITLE_LENGTH} - ${MAX_TITLE_LENGTH} characters)`}
@@ -200,6 +232,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
             <Textarea
               isRequired
               label="Description"
+              labelPlacement="outside"
               maxLength={MAX_DESC_LENGTH}
               minLength={MIN_DESC_LENGTH}
               placeholder={`Enter Description (${MIN_DESC_LENGTH} - ${MAX_DESC_LENGTH} characters)`}

@@ -1,4 +1,10 @@
 import { OpenAI } from "openai";
+import filter from "leo-profanity";
+import {
+  RegExpMatcher,
+  englishDataset,
+  englishRecommendedTransformers,
+} from "obscenity";
 
 import {
   MIN_TITLE_LENGTH,
@@ -8,73 +14,80 @@ import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE,
 } from "@/constants/validations";
+import { bannedWords } from "@/constants/banned-words";
 
 export const runtime = "edge"; // Required for Cloudflare Pages
+
+filter.add(bannedWords);
 
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const category = formData.get("category");
-    const title = formData.get("title");
-    const description = formData.get("description");
+    const title = formData.get("title")?.toString() || "";
+    const description = formData.get("description")?.toString() || "";
     const price = formData.get("price") as string | null;
     const image = formData.get("image") as File | null;
 
     if (!category) {
       return errorResponse("Category is required.");
     }
-    if (
-      !title ||
-      title.length < MIN_TITLE_LENGTH ||
-      title.length > MAX_TITLE_LENGTH
-    ) {
-      return errorResponse(
-        `Title must be between ${MIN_TITLE_LENGTH}-${MAX_TITLE_LENGTH} characters.`,
-      );
+
+    if (title.length < MIN_TITLE_LENGTH) {
+      return errorResponse(`Title too short`);
+    } else if (title.length > MAX_TITLE_LENGTH) {
+      return errorResponse(`Title too long.`, 413);
     }
-    if (
-      !description ||
-      description.length < MIN_DESC_LENGTH ||
-      description.length > MAX_DESC_LENGTH
-    ) {
-      return errorResponse(
-        `Description must be between ${MIN_DESC_LENGTH}-${MAX_DESC_LENGTH} characters.`,
-      );
+
+    if (description.length < MIN_DESC_LENGTH) {
+      return errorResponse(`Description too short.`);
+    } else if (description.length > MAX_DESC_LENGTH) {
+      return errorResponse(`Description too long.`, 413);
     }
+
     if (price && (isNaN(parseFloat(price)) || Number(price) < 0)) {
       return errorResponse("Invalid price.");
     }
 
+    // 🚩 Local Moderation (Fastest to Slowest)
+    const combinedText = `${title} ${description}`;
+
+    if (filter.check(combinedText)) {
+      return errorResponse("Failed profanity filter.");
+    }
+
+    const obscenity = new RegExpMatcher({
+      ...englishDataset.build(),
+      ...englishRecommendedTransformers,
+    });
+
+    if (obscenity.hasMatch(combinedText)) {
+      return errorResponse("Failed obscenity filter.");
+    }
+
+    // 🔍 OpenAI Moderation (Last Check)
     if (image) {
       if (!ALLOWED_IMAGE_TYPES.includes(image.type)) {
-        return errorResponse(
-          `Invalid image type. Only ${ALLOWED_IMAGE_TYPES.join(", ")} are allowed.`,
-        );
+        return errorResponse(`Invalid image type.`, 415);
       }
       if (image.size > MAX_IMAGE_SIZE) {
-        return errorResponse("Image is too large. Maximum size is 5MB.");
+        return errorResponse("Image is too large.", 413);
       }
 
-      const moderationFailed = await moderateTextAndImage(
-        title + " - " + description,
-        image,
-      );
+      const failed = await moderateTextAndImage(combinedText, image);
 
-      if (moderationFailed) {
-        return errorResponse(
-          "Image failed moderation and may contain inappropriate content.",
-        );
+      if (failed) {
+        return errorResponse("Failed AI moderation.");
       }
     } else {
-      const moderationFailed = await moderateText(title + " - " + description);
+      const failed = await moderateText(combinedText);
 
-      if (moderationFailed) {
-        return errorResponse(
-          "Ad failed moderation and may contain inappropriate content.",
-        );
+      if (failed) {
+        return errorResponse("Failed AI moderation.");
       }
     }
 
+    // 🚀 Success
     return new Response(
       JSON.stringify({ success: true, message: "Ad submitted successfully!" }),
       {
@@ -83,18 +96,11 @@ export async function POST(req: Request) {
       },
     );
   } catch (error) {
-    return errorResponse(JSON.stringify(error));
+    return errorResponse(JSON.stringify(error), 500);
   }
 }
 
-function errorResponse(message: string) {
-  return new Response(JSON.stringify({ success: false, message }), {
-    status: 400,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-// 🔍 OpenAI Moderation (Text)
+// 🔍 OpenAI Text Moderation
 async function moderateText(text: string): Promise<boolean> {
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -103,17 +109,14 @@ async function moderateText(text: string): Promise<boolean> {
       input: text,
     });
 
-    console.log(moderation);
-
     return moderation.results.some((r) => r.flagged);
-  } catch (error) {
-    console.error(error);
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_) {
     return true;
   }
 }
 
-// 🖼️ OpenAI Image Moderation (Direct File)
+// 🖼️ OpenAI Image + Text Moderation
 async function moderateTextAndImage(
   text: string,
   image: File,
@@ -121,6 +124,7 @@ async function moderateTextAndImage(
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const base64Image = await fileToBase64(image);
+
     const moderation = await openai.moderations.create({
       model: "omni-moderation-latest",
       input: [
@@ -129,12 +133,9 @@ async function moderateTextAndImage(
       ],
     });
 
-    console.log(moderation);
-
     return moderation.results.some((r) => r.flagged);
-  } catch (error) {
-    console.error(error);
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_) {
     return true;
   }
 }
@@ -143,4 +144,11 @@ async function fileToBase64(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
 
   return `data:${file.type};base64,${buffer.toString("base64")}`;
+}
+
+function errorResponse(message: string, status = 400) {
+  return new Response(JSON.stringify({ success: false, message }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 }
