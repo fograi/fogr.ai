@@ -29,6 +29,7 @@ export async function POST(req: Request) {
     const description = formData.get("description")?.toString() || "";
     const price = formData.get("price") as string | null;
     const images = formData.getAll("images") as File[];
+    const combinedImage = formData.get("combinedImage") as string | null;
 
     if (!category) {
       return errorResponse("Category is required.");
@@ -89,11 +90,16 @@ export async function POST(req: Request) {
       if (!validImageSizes.length) {
         return errorResponse("Image(s) too large.", 413);
       }
+      if (images.length === 1) {
+        const failed = await moderateTextAndImage(combinedText, images[0]);
 
-      const failed = await moderateTextAndImages(combinedText, images);
+        if (failed) return errorResponse("Failed AI moderation.");
+      } else {
+        if (!combinedImage)
+          return errorResponse("Missing combined image for moderation.");
+        const failed = await moderateTextAndImages(combinedText, combinedImage);
 
-      if (failed) {
-        return errorResponse("Failed AI moderation.");
+        if (failed) return errorResponse("Failed AI moderation.");
       }
     } else {
       const failed = await moderateText(combinedText);
@@ -135,24 +141,18 @@ async function moderateText(text: string): Promise<boolean> {
 }
 
 // 🖼️ OpenAI Image + Text Moderation
-async function moderateTextAndImages(
+async function moderateTextAndImage(
   text: string,
-  images: Array<File>,
+  image: File,
 ): Promise<boolean> {
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    const imageInputs: Array<ModerationMultiModalInput> = await Promise.all(
-      images.map(async (image) => {
-        const base64 = await fileToBase64(image);
-
-        return { type: "image_url", image_url: { url: base64 } };
-      }),
-    );
+    const base64 = await fileToBase64(image);
 
     const moderationInputs: Array<ModerationMultiModalInput> = [
       { type: "text", text },
-      ...imageInputs,
+      { type: "image_url", image_url: { url: base64 } },
     ];
 
     const moderation = await openai.moderations.create({
@@ -166,6 +166,44 @@ async function moderateTextAndImages(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     console.log(_);
+
+    return true;
+  }
+}
+
+// 🖼️ OpenAI Image + Text Moderation
+async function moderateTextAndImages(
+  text: string,
+  imagesAsBase64String: string,
+): Promise<boolean> {
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    console.log("moderateTextAndImages", imagesAsBase64String.length);
+    const base64Cleaned = cleanDataUrlBase64(imagesAsBase64String);
+
+    const moderationInputs: ModerationMultiModalInput[] = [
+      { type: "text", text },
+      {
+        type: "image_url",
+        image_url: {
+          url: `data:image/png;base64,${base64Cleaned}`,
+        },
+      },
+    ];
+
+    const moderation = await openai.moderations.create({
+      model: "omni-moderation-latest",
+      input: moderationInputs,
+    });
+
+    console.log(moderation);
+
+    return moderation.results.some((r) => r.flagged);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_) {
+    console.log(_);
+
     return true;
   }
 }
@@ -190,6 +228,41 @@ async function fileToBase64(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
 
   return `data:${file.type};base64,${buffer.toString("base64")}`;
+}
+
+function extractBase64(dataUrl: string): string {
+  return dataUrl.replace(/^data:image\/\w+;base64,/, "");
+}
+
+function cleanDataUrlBase64(dataUrl: string): string {
+  const base64 = dataUrl.split(",")[1]?.trim();
+
+  if (!base64) {
+    console.error("No base64 content found in data URL.");
+    return "";
+  }
+
+  try {
+    let cleaned = base64
+      .replace(/\s/g, "") // remove whitespace
+      .replace(/[^A-Za-z0-9+/=]/g, ""); // strip non-base64 chars
+
+    // Ensure base64 padding
+    while (cleaned.length % 4 !== 0) {
+      cleaned += "=";
+    }
+
+    const binary = Buffer.from(cleaned, "base64");
+
+    if (binary.length < 10_000) {
+      console.warn("Decoded image seems too small:", binary.length);
+    }
+
+    return binary.toString("base64");
+  } catch (err) {
+    console.error("Base64 cleanup failed:", err);
+    return "";
+  }
 }
 
 function errorResponse(message: string, status = 400) {

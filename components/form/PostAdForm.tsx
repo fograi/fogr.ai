@@ -27,6 +27,7 @@ import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE,
 } from "@/constants/validations";
+import { mergeImagesToDataURL } from "@/lib/mergeImagesToDataUrl";
 
 interface PostAdFormProps {
   user: User;
@@ -61,7 +62,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
     }
   }
 
-  const handleSubmit = (_e: PressEvent) => {
+  const handleSubmit = async (_e: PressEvent) => {
     setError(null);
     setSuccess(null);
     setTitleError(null);
@@ -167,7 +168,28 @@ export default function PostAdForm({ user }: PostAdFormProps) {
     formData.append("title", title);
     formData.append("description", description);
     price && formData.append("price", price.toString());
-    imageFiles && imageFiles.forEach((file) => formData.append("images", file));
+    if (imageFiles) {
+      if (imageFiles.length > 32) {
+        return setError("You can only upload up to 32 images.");
+      }
+      if (imageFiles.length === 1) {
+        formData.append("images", imageFiles[0]);
+      } else {
+        const combinedImage = await mergeImagesToDataURL(imageFiles as File[]);
+
+        window.open(combinedImage, "_blank");
+        const img = document.createElement("img");
+
+        img.src = combinedImage;
+        img.style.maxWidth = "100%";
+        img.style.border = "2px solid red";
+        document.body.appendChild(img);
+
+        formData.append("combinedImage", combinedImage);
+      }
+      // If more than one image, append each image separately
+      imageFiles.forEach((file) => formData.append("images", file));
+    }
 
     setLoading(true);
     fetch("/api/submit", {
