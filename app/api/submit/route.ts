@@ -5,6 +5,7 @@ import {
   englishDataset,
   englishRecommendedTransformers,
 } from "obscenity";
+import { ModerationMultiModalInput } from "openai/resources";
 
 import {
   MIN_TITLE_LENGTH,
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
     const title = formData.get("title")?.toString() || "";
     const description = formData.get("description")?.toString() || "";
     const price = formData.get("price") as string | null;
-    const image = formData.get("image") as File | null;
+    const images = formData.getAll("images") as File[];
 
     if (!category) {
       return errorResponse("Category is required.");
@@ -66,15 +67,30 @@ export async function POST(req: Request) {
     }
 
     // 🔍 OpenAI Moderation (Last Check)
-    if (image) {
-      if (!ALLOWED_IMAGE_TYPES.includes(image.type)) {
-        return errorResponse(`Invalid image type.`, 415);
+    if (images) {
+      const validImageTypes = images.filter((image) => {
+        if (!ALLOWED_IMAGE_TYPES.includes(image.type)) {
+          return false;
+        }
+
+        return true;
+      });
+      const validImageSizes = images.filter((image) => {
+        if (image.size > MAX_IMAGE_SIZE) {
+          return false;
+        }
+
+        return true;
+      });
+
+      if (!validImageTypes.length) {
+        return errorResponse(`Invalid image type(s).`, 415);
       }
-      if (image.size > MAX_IMAGE_SIZE) {
-        return errorResponse("Image is too large.", 413);
+      if (!validImageSizes.length) {
+        return errorResponse("Image(s) too large.", 413);
       }
 
-      const failed = await moderateTextAndImage(combinedText, image);
+      const failed = await moderateTextAndImages(combinedText, images);
 
       if (failed) {
         return errorResponse("Failed AI moderation.");
@@ -109,6 +125,8 @@ async function moderateText(text: string): Promise<boolean> {
       input: text,
     });
 
+    console.log(moderation);
+
     return moderation.results.some((r) => r.flagged);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
@@ -117,24 +135,52 @@ async function moderateText(text: string): Promise<boolean> {
 }
 
 // 🖼️ OpenAI Image + Text Moderation
-async function moderateTextAndImage(
+async function moderateTextAndImages(
   text: string,
-  image: File,
+  images: Array<File>,
 ): Promise<boolean> {
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const base64Image = await fileToBase64(image);
+
+    const imageInputs: Array<ModerationMultiModalInput> = await Promise.all(
+      images.map(async (image) => {
+        const base64 = await fileToBase64(image);
+
+        return { type: "image_url", image_url: { url: base64 } };
+      }),
+    );
+
+    const moderationInputs: Array<ModerationMultiModalInput> = [
+      { type: "text", text },
+      ...imageInputs,
+    ];
 
     const moderation = await openai.moderations.create({
       model: "omni-moderation-latest",
-      input: [
-        { type: "text", text: text },
-        { type: "image_url", image_url: { url: base64Image } },
-      ],
+      input: moderationInputs,
     });
+
+    console.log(moderation);
 
     return moderation.results.some((r) => r.flagged);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_) {
+    console.log(_);
+    return true;
+  }
+}
+
+async function moderateSingleImage(image: File): Promise<boolean> {
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const base64 = await fileToBase64(image);
+
+    const moderation = await openai.moderations.create({
+      model: "omni-moderation-latest",
+      input: [{ type: "image_url", image_url: { url: base64 } }],
+    });
+
+    return moderation.results.some((r) => r.flagged);
   } catch (_) {
     return true;
   }

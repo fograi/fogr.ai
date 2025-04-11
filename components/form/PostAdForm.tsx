@@ -40,9 +40,10 @@ export default function PostAdForm({ user }: PostAdFormProps) {
   const [titleError, setTitleError] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
-  const [image, setImage] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<Blob | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<Blob[]>([]);
   const [price, setPrice] = useState<number | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [noPrice, setNoPrice] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -51,6 +52,11 @@ export default function PostAdForm({ user }: PostAdFormProps) {
 
   function shouldEdit(item: string, callback: (n: null) => void) {
     if (window.confirm(`Are you sure you want to edit the ${item}?`)) {
+      callback(null);
+    }
+  }
+  function shouldDelete(item: string, callback: (n: null) => void) {
+    if (window.confirm(`Are you sure you want to delete this ${item}?`)) {
       callback(null);
     }
   }
@@ -67,15 +73,15 @@ export default function PostAdForm({ user }: PostAdFormProps) {
       return;
     }
 
-    if (imageFile) {
-      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+    for (const file of imageFiles) {
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
         return alert(
-          `Invalid image type. Only ${ALLOWED_IMAGE_TYPES.map((ait) => ait.substring(6)).join(" or ")} are allowed.`,
+          `Invalid image type for ${file.name}. Only ${ALLOWED_IMAGE_TYPES.map((ait) => ait.substring(6)).join(" or ")} are allowed.`,
         );
       }
-      if (imageFile.size > MAX_IMAGE_SIZE) {
+      if (file.size > MAX_IMAGE_SIZE) {
         return alert(
-          `Image is too large. Maximum size is ${(MAX_IMAGE_SIZE / 1_000_000).toFixed(0)}MB.`,
+          `Image ${file.name} is too large. Maximum size is ${(MAX_IMAGE_SIZE / 1_000_000).toFixed(0)}MB.`,
         );
       }
     }
@@ -161,7 +167,7 @@ export default function PostAdForm({ user }: PostAdFormProps) {
     formData.append("title", title);
     formData.append("description", description);
     price && formData.append("price", price.toString());
-    imageFile && formData.append("image", imageFile);
+    imageFiles && imageFiles.forEach((file) => formData.append("images", file));
 
     setLoading(true);
     fetch("/api/submit", {
@@ -219,25 +225,67 @@ export default function PostAdForm({ user }: PostAdFormProps) {
               <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
             </>
           )}
-          {image ? (
-            <Image
-              alt={title ?? "Ad Image"}
-              className="dark:grayscale"
-              radius="none"
-              src={image}
-              width={400}
-              onClick={() => shouldEdit("picture", () => setImage(null))}
-            />
+          {images.length ? (
+            // Display uploaded images in a carousel
+            <div className="relative w-full overflow-hidden">
+              <div
+                className="flex transition-transform ease-out duration-300"
+                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+              >
+                {images.map((img, index) => (
+                  <div key={index} className="w-full flex-shrink-0">
+                    <Image
+                      alt={`Ad Image ${index + 1}`}
+                      className="w-full h-64 object-cover dark:grayscale cursor-pointer"
+                      radius="none"
+                      src={img}
+                      onClick={() =>
+                        shouldDelete(`image`, () => {
+                          setImages(images.filter((_, i) => i !== index));
+                          setImageFiles(
+                            imageFiles.filter((_, i) => i !== index),
+                          );
+                        })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-sm px-3 py-1 rounded-full">
+                {currentIndex + 1} of {images.length}
+              </div>
+              <button
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full"
+                onClick={() =>
+                  setCurrentIndex(
+                    (currentIndex - 1 + images.length) % images.length,
+                  )
+                }
+              >
+                &#8592;
+              </button>
+              <button
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full"
+                onClick={() =>
+                  setCurrentIndex((currentIndex + 1) % images.length)
+                }
+              >
+                &#8594;
+              </button>
+            </div>
           ) : (
             <>
               <Input
+                multiple
                 accept="image/*"
-                label={`Image (Max ${(MAX_IMAGE_SIZE / 1_000_000).toFixed(0)}MB, ${ALLOWED_IMAGE_TYPES.map((ait) => ait.substring(6)).join(" or ")})`}
+                label={`Images (Up to 32, Max ${(MAX_IMAGE_SIZE / 1_000_000).toFixed(0)}MB each, ${ALLOWED_IMAGE_TYPES.map((ait) => ait.substring(6)).join(" or ")})`}
                 labelPlacement="outside"
                 type="file"
                 onChange={(e) => {
-                  setImage(URL.createObjectURL(e.target.files?.[0]!));
-                  setImageFile(e.target.files?.[0]!);
+                  const files = Array.from(e.target.files || []).slice(0, 32);
+
+                  setImages(files.map((file) => URL.createObjectURL(file)));
+                  setImageFiles(files);
                 }}
               />
               <hr className="my-2 border-zinc-300 dark:border-zinc-600" />
