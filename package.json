@@ -1,5 +1,7 @@
 {
   "name": "fogr.ai",
+  "description": "AI-moderated classified ads",
+  "type": "module",
   "version": "0.0.1",
   "private": true,
   "scripts": {
