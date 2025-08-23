@@ -19,14 +19,21 @@
 					maximumFractionDigits: 0
 				}).format(price)
 			: null;
+
+	let isPortrait = false;
+
+	function onImgLoad(e: Event) {
+		const img = e.currentTarget as HTMLImageElement;
+		isPortrait = img.naturalHeight > img.naturalWidth;
+	}
 </script>
 
 <li class="card">
 	<a class="link-wrap" {href} aria-label={`View ad: ${title}`}>
 		<div class="card__inner">
-			<div class="media">
+			<div class="media" class:portrait={isPortrait}>
 				{#if img}
-					<img src={img} alt={title} loading="lazy" decoding="async" />
+					<img src={img} alt={title} loading="lazy" decoding="async" on:load={onImgLoad} />
 				{:else}
 					<div class="placeholder" aria-hidden="true"></div>
 				{/if}
@@ -87,17 +94,26 @@
 
 	.media {
 		position: relative;
-		aspect-ratio: 16/9; /* prevents layout shift */
+		aspect-ratio: 16/9; /* default for landscape */
 		border-radius: 8px;
 		overflow: hidden;
 		background: color-mix(in srgb, var(--fg) 6%, transparent);
 		margin-bottom: 10px;
 	}
+
+	.media.portrait {
+		aspect-ratio: 3/4;
+	} /* room for tall images */
+
 	.media img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		display: block;
+		display: block; /* fill for landscape */
+	}
+	.media.portrait img {
+		object-fit: contain; /* show full portrait image */
+		background: color-mix(in srgb, var(--bg) 85%, transparent); /* subtle letterbox */
 	}
 	.media .placeholder {
 		width: 100%;
@@ -124,6 +140,7 @@
 		font-weight: 700;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
+		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
@@ -138,6 +155,7 @@
 		color: color-mix(in srgb, var(--fg) 80%, transparent);
 		display: -webkit-box;
 		-webkit-line-clamp: 3;
+		line-clamp: 3;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}

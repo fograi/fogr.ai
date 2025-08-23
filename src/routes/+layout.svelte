@@ -12,4 +12,12 @@
 
 <Navbar title="fogr.ai" />
 
-{@render children()}
+<main>
+	{@render children()}
+</main>
+
+<style>
+	main {
+		padding-top: 4rem;
+	}
+</style>

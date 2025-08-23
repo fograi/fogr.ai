@@ -1,12 +1,10 @@
 <script lang="ts">
-	export let data: {
-		ad: { id: string; title: string; description: string } | null;
-	};
+	import AdCard from '$lib/AdCard.svelte';
+	let { data } = $props();
 </script>
 
 {#if data.ad}
-	<h1>{data.ad.title}</h1>
-	<p>{data.ad.description}</p>
+	<ul><AdCard {...data.ad} /></ul>
 {:else}
 	<p>Ad not found.</p>
 {/if}

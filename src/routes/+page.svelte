@@ -40,18 +40,13 @@
 	});
 </script>
 
-<main>
-	<ul bind:this={container} class="masonry-grid">
-		{#each data.ads as ad}
-			<AdCard {...ad} />
-		{/each}
-	</ul>
-</main>
+<ul bind:this={container} class="masonry-grid">
+	{#each data.ads as ad}
+		<AdCard {...ad} />
+	{/each}
+</ul>
 
 <style>
-	main {
-		padding-top: 4rem;
-	}
 	.masonry-grid {
 		list-style: none;
 		padding: 0;
