@@ -26,14 +26,24 @@
 
 	function onScroll(y: number) {
 		const dy = y - lastY;
+		console.info('scroll', { y, dy, hidden });
 		lastY = y;
 		if (y < 10) {
 			hidden = false;
-			return;
+			console.info('< 10 → show');
 		}
-		if (dy > 6)
+		else if (dy < 0) {
+			hidden = false; // up → show
+			console.info('scroll up 0 → show');
+		}
+		else if (dy > 6) {
 			hidden = true; // down → hide
-		else if (dy < -6) hidden = false; // up → show
+			console.info('scroll down → hide');
+		}
+		else if (dy < -6) {
+			hidden = false; // up → show
+			console.info('scroll up 6 → show');
+		}
 	}
 
 	afterNavigate(() => closeMenu(false)); // close on route change
@@ -115,16 +125,18 @@
 
 <style>
 	.nav {
-		position: sticky;
-		top: 0;
+		position: fixed;
+		top: 0; left: 0; right: 0;
 		z-index: 50;
 		background: var(--surface);
 		border-bottom: 1px solid var(--hairline);
 		transform: translateY(0);
 		transition: transform 0.25s ease;
+		will-change: transform;
 	}
 	.nav.hidden {
 		transform: translateY(-100%);
+		pointer-events: none;
 	}
 
 	.wrap {

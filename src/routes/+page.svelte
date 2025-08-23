@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import AdCard from '$lib/AdCard.svelte';
+
 	let { data } = $props();
 
 	let container: HTMLUListElement;
@@ -38,22 +40,18 @@
 	});
 </script>
 
-<h1>home</h1>
-<p>this is the home page.</p>
-
-<ul bind:this={container} class="masonry-grid">
-	{#each data.ads as { id, title, price, img, description }}
-		<li class="card">
-			<div class="card__inner">
-				<a href="/ad/{id}"><strong>{title}</strong> — {price}</a>
-				{#if img}<img src={img} alt={title} />{/if}
-				{#if description}<p>{description}</p>{/if}
-			</div>
-		</li>
-	{/each}
-</ul>
+<main>
+	<ul bind:this={container} class="masonry-grid">
+		{#each data.ads as ad}
+			<AdCard {...ad} />
+		{/each}
+	</ul>
+</main>
 
 <style>
+	main {
+		padding-top: 4rem;
+	}
 	.masonry-grid {
 		list-style: none;
 		padding: 0;
@@ -62,39 +60,5 @@
 		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 		gap: 16px;
 		grid-auto-rows: 8px; /* ← pair with JS 'row' */
-	}
-
-	.card {
-		border: 1px solid #e5e7eb;
-		border-radius: 8px;
-		background: white;
-		overflow: hidden;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-		transition: transform 0.2s;
-	}
-	.card:hover {
-		transform: translateY(-6px);
-	}
-
-	.card__inner {
-		padding: 12px;
-	}
-	.card a {
-		text-decoration: none;
-		color: inherit;
-		display: block;
-	}
-	.card img {
-		width: 100%;
-		height: auto;
-		display: block;
-	}
-
-	@media (prefers-color-scheme: dark) {
-		.card {
-			background: #111;
-			border-color: #2a2a2a;
-			color: #e5e7eb
-		}
 	}
 </style>
