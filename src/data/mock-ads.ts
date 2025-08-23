@@ -7,7 +7,7 @@ export const mockClassifieds = [
       category: "Furniture",
       price: 300,
       email: "antiques@example.com",
-      img: "https://picsum.photos/400/226",
+      img: "https://picsum.photos/400/200",
     },
     {
       id: 1,
@@ -17,7 +17,7 @@ export const mockClassifieds = [
       category: "Furniture",
       price: 300,
       email: "antiques@example.com",
-      img: "https://picsum.photos/400/225",
+      img: "https://picsum.photos/200/400",
     },
     {
       id: 2,
@@ -27,7 +27,7 @@ export const mockClassifieds = [
       category: "Jobs",
       price: 0,
       email: "jobs@creativeco.com",
-      img: "https://picsum.photos/226/401",
+      img: "https://picsum.photos/300/300",
     },
     {
       id: 3,
@@ -37,7 +37,7 @@ export const mockClassifieds = [
       category: "Pets",
       price: 400,
       email: "pups@puppy.pup",
-      img: "https://picsum.photos/401/226",
+      img: "https://picsum.photos/150/300",
     },
     {
       id: 4,
@@ -46,7 +46,7 @@ export const mockClassifieds = [
       category: "Services",
       price: 25,
       email: "lawncare@local.com",
-      img: "https://picsum.photos/400/400",
+      img: "https://picsum.photos/300/150",
     },
     {
       id: 5,
@@ -56,7 +56,7 @@ export const mockClassifieds = [
       category: "Education",
       price: 30,
       email: "music@example.com",
-      img: "https://picsum.photos/401/401",
+      img: "https://picsum.photos/400/200",
     },
     {
       id: 6,
@@ -66,7 +66,7 @@ export const mockClassifieds = [
       category: "Lost and Found",
       price: 0,
       email: "lostpets@example.com",
-      img: "https://picsum.photos/225/400",
+      img: "https://picsum.photos/200/400",
     },
     {
       id: 7,
@@ -76,7 +76,7 @@ export const mockClassifieds = [
       category: "Furniture",
       price: 300,
       email: "antiques@example.com",
-      img: "https://picsum.photos/402/226",
+      img: "https://picsum.photos/300/300",
     },
     {
       id: 8,
@@ -85,7 +85,7 @@ export const mockClassifieds = [
       category: "Sports",
       price: 50,
       email: "sports@example.com",
-      img: "https://picsum.photos/403/226",
+      img: "https://picsum.photos/150/300",
     },
     {
       id: 9,
@@ -94,7 +94,7 @@ export const mockClassifieds = [
       category: "Books",
       price: 20,
       email: "books@example.com",
-      img: "https://picsum.photos/226/400",
+      img: "https://picsum.photos/200/400",
     },
     {
       id: 10,
@@ -103,7 +103,7 @@ export const mockClassifieds = [
       category: "Household",
       price: 15,
       email: "household@example.com",
-      img: "https://picsum.photos/225/400",
+      img: "https://picsum.photos/400/200",
     },
     {
       id: 11,
@@ -112,7 +112,7 @@ export const mockClassifieds = [
       category: "Furniture",
       price: 75,
       email: "furniture@example.com",
-      img: "https://picsum.photos/401/400",
+      img: "https://picsum.photos/300/300",
     },
     {
       id: 12,
@@ -121,7 +121,7 @@ export const mockClassifieds = [
       category: "Clothing",
       price: 40,
       email: "clothing@example.com",
-      img: "https://picsum.photos/400/401",
+      img: "https://picsum.photos/400/200",
     },
     {
       id: 13,
@@ -130,7 +130,7 @@ export const mockClassifieds = [
       category: "Gardening",
       price: 25,
       email: "gardening@example.com",
-      img: "https://picsum.photos/402/225",
+      img: "https://picsum.photos/200/400",
     },
     {
       id: 14,
@@ -139,7 +139,7 @@ export const mockClassifieds = [
       category: "Electronics",
       price: 200,
       email: "electronics@example.com",
-      img: "https://picsum.photos/403/224",
+      img: "https://picsum.photos/300/150",
     },
     {
       id: 15,
@@ -148,7 +148,7 @@ export const mockClassifieds = [
       category: "Furniture",
       price: 150,
       email: "furniture@example.com",
-      img: "https://picsum.photos/400/225",
+      img: "https://picsum.photos/150/300",
     },
     {
       id: 16,
@@ -157,7 +157,7 @@ export const mockClassifieds = [
       category: "Sports",
       price: 30,
       email: "sports@example.com",
-      img: "https://picsum.photos/406/227",
+      img: "https://picsum.photos/300/300",
     },
     {
       id: 17,
@@ -166,7 +166,7 @@ export const mockClassifieds = [
       category: "Baby",
       price: 100,
       email: "baby@example.com",
-      img: "https://picsum.photos/406/229",
+      img: "https://picsum.photos/400/200",
     },
     {
       id: 18,
@@ -175,7 +175,7 @@ export const mockClassifieds = [
       category: "Electronics",
       price: 150,
       email: "electronics@example.com",
-      img: "https://picsum.photos/404/224",
+      img: "https://picsum.photos/200/400",
     },
     {
       id: 19,
@@ -184,7 +184,7 @@ export const mockClassifieds = [
       category: "Appliances",
       price: 35,
       email: "appliances@example.com",
-      img: "https://picsum.photos/401/223",
+      img: "https://picsum.photos/150/300",
     },
     {
       id: 20,
@@ -193,7 +193,7 @@ export const mockClassifieds = [
       category: "Furniture",
       price: 20,
       email: "furniture@example.com",
-      img: "https://picsum.photos/402/224",
+      img: "https://picsum.photos/300/150",
     },
     {
       id: 21,
@@ -202,7 +202,7 @@ export const mockClassifieds = [
       category: "Sports",
       price: 15,
       email: "sports@example.com",
-      img: "https://picsum.photos/400/225",
+      img: "https://picsum.photos/300/300",
     },
     {
       id: 22,
@@ -211,7 +211,7 @@ export const mockClassifieds = [
       category: "Appliances",
       price: 25,
       email: "appliances@example.com",
-      img: "https://picsum.photos/405/220",
+      img: "https://picsum.photos/400/200",
     },
     {
       id: 23,
@@ -220,7 +220,7 @@ export const mockClassifieds = [
       category: "Pets",
       price: 10,
       email: "pets@example.com",
-      img: "https://picsum.photos/390/230",
+      img: "https://picsum.photos/200/400",
     },
     {
       id: 24,
@@ -229,6 +229,6 @@ export const mockClassifieds = [
       category: "Toys",
       price: 30,
       email: "toys@example.com",
-      img: "https://picsum.photos/410/215",
+      img: "https://picsum.photos/300/300",
     },
   ];

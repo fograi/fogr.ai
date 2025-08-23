@@ -10,6 +10,46 @@
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 
+	const catBase: Record<string, string> = {
+		Furniture: '#D64B8A',
+		Jobs: '#2B76D2',
+		Pets: '#1EAD7B',
+		Services: '#7A5AF8',
+		Education: '#CD5C5C',
+		'Lost and Found': '#EE6600',
+		Sports: '#2A9D4B',
+		Books: '#AD7A50',
+		Household: '#5B7083',
+		Clothing: '#D64B8A',
+		Gardening: '#5A9C3E',
+		Electronics: '#117AB5',
+		Baby: '#5DA9E9',
+		Appliances: '#F2C94C',
+		Toys: '#FF7A59'
+	};
+
+	const catIcon: Record<string, string> = {
+		Furniture: '🪑',
+		Jobs: '💼',
+		Pets: '🐾',
+		Services: '🧰',
+		Education: '🎓',
+		'Lost and Found': '🔎',
+		Sports: '🏅',
+		Books: '📚',
+		Household: '🏠',
+		Clothing: '👕',
+		Gardening: '🪴',
+		Electronics: '💻',
+		Baby: '🍼',
+		Appliances: '🔌',
+		Toys: '🧸'
+	};
+
+	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
+
+	$: bannerBase = catBase[category?.trim?.() ?? ''] ?? '#6B7280';
+
 	const href = `/ad/${id}`;
 	$: formattedPrice =
 		typeof price === 'number'
@@ -31,24 +71,24 @@
 <li class="card">
 	<a class="link-wrap" {href} aria-label={`View ad: ${title}`}>
 		<div class="card__inner">
+			{#if category}
+				<div class="banner" style="--banner-base: {bannerBase}">
+					<span class="icon" aria-hidden="true">{bannerIcon}</span>
+					<span class="label">{category}</span>
+				</div>
+			{/if}
+
 			<div class="media" class:portrait={isPortrait}>
 				{#if img}
 					<img src={img} alt={title} loading="lazy" decoding="async" on:load={onImgLoad} />
 				{:else}
 					<div class="placeholder" aria-hidden="true"></div>
 				{/if}
-				{#if category}<span class="badge">{category}</span>{/if}
 			</div>
 
 			<h3 class="title">{title}</h3>
-
-			{#if formattedPrice}
-				<div class="price">{formattedPrice}</div>
-			{/if}
-
-			{#if description}
-				<p class="desc">{description}</p>
-			{/if}
+			{#if formattedPrice}<div class="price">{formattedPrice}</div>{/if}
+			{#if description}<p class="desc">{description}</p>{/if}
 		</div>
 	</a>
 </li>
@@ -89,7 +129,38 @@
 	}
 
 	.card__inner {
-		padding: 12px;
+		padding: 0 12px 12px;
+	}
+
+	/* full-width strip like classifieds */
+	.banner {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		text-align: center;
+		gap: 0.5rem;
+		margin: 0 -12px 10px; /* bleed to card edges */
+		padding: 8px 12px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
+		border-bottom: 1px solid var(--hairline);
+		/* mix the category color with the page bg so it works in light/dark */
+		background: color-mix(in srgb, var(--banner-base) 20%, var(--bg));
+		color: var(--fg);
+		border-top-left-radius: 12px;
+		border-top-right-radius: 12px;
+	}
+
+	.banner .icon {
+		font-size: 1.05rem; /* tweak as you like */
+		line-height: 1;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.banner {
+			background: color-mix(in srgb, var(--banner-base) 66%, var(--bg));
+		}
 	}
 
 	.media {
@@ -119,19 +190,6 @@
 		width: 100%;
 		height: 100%;
 		background: linear-gradient(135deg, color-mix(in srgb, var(--fg) 8%, transparent), transparent);
-	}
-
-	.badge {
-		position: absolute;
-		top: 8px;
-		right: 8px;
-		font-size: 12px;
-		line-height: 1;
-		padding: 6px 8px;
-		border-radius: 999px;
-		background: color-mix(in srgb, var(--bg) 85%, transparent);
-		border: 1px solid var(--hairline);
-		backdrop-filter: blur(2px);
 	}
 
 	.title {
