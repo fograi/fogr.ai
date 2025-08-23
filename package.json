@@ -41,5 +41,8 @@
 		"vitest": "^3.2.3",
 		"vitest-browser-svelte": "^0.1.0",
 		"wrangler": "^4.32.0"
+	},
+	"engines": {
+		"node": ">=22 <23"
 	}
 }
