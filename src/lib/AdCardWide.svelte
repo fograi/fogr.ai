@@ -1,65 +1,66 @@
 <script lang="ts">
-    export let id: number | string;
-    export let title: string;
-    export let price: number;
-    export let img: string;
-    export let description: string;
-    export let category: string;
-    export let email: string;
-    export let currency = 'EUR';
-    export let locale = 'en-IE';
-  
-    const href = `/ad/${id}`;
-  
-    const catBase: Record<string, string> = {
-      Furniture: '#D64B8A',
-      Jobs: '#2B76D2',
-      Pets: '#1EAD7B',
-      Services: '#7A5AF8',
-      Education: '#CD5C5C',
-      'Lost and Found': '#EE6600',
-      Sports: '#2A9D4B',
-      Books: '#AD7A50',
-      Household: '#5B7083',
-      Clothing: '#D64B8A',
-      Gardening: '#5A9C3E',
-      Electronics: '#117AB5',
-      Baby: '#5DA9E9',
-      Appliances: '#F2C94C',
-      Toys: '#FF7A59'
-    };
-  
-    const catIcon: Record<string, string> = {
-      Furniture: '🪑',
-      Jobs: '💼',
-      Pets: '🐾',
-      Services: '🧰',
-      Education: '🎓',
-      'Lost and Found': '🔎',
-      Sports: '🏅',
-      Books: '📚',
-      Household: '🏠',
-      Clothing: '👕',
-      Gardening: '🪴',
-      Electronics: '💻',
-      Baby: '🍼',
-      Appliances: '🔌',
-      Toys: '🧸'
-    };
-  
-    $: bannerBase = catBase[category?.trim?.() ?? ''] ?? '#6B7280';
-    $: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
-  
-    $: formattedPrice =
-      typeof price === 'number'
-        ? new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 0 }).format(price)
-        : null;
-  
-    let isPortrait = false;
-    function onImgLoad(e: Event) {
-      const i = e.currentTarget as HTMLImageElement;
-      isPortrait = i.naturalHeight > i.naturalWidth;
-    }
+	export let id: number | string;
+	export let title: string;
+	export let price: number;
+	export let img: string;
+	export let description: string;
+	export let category: string;
+	export let currency = 'EUR';
+	export let locale = 'en-IE';
+
+	const catBase: Record<string, string> = {
+		Furniture: '#D64B8A',
+		Jobs: '#2B76D2',
+		Pets: '#1EAD7B',
+		Services: '#7A5AF8',
+		Education: '#CD5C5C',
+		'Lost and Found': '#EE6600',
+		Sports: '#2A9D4B',
+		Books: '#AD7A50',
+		Household: '#5B7083',
+		Clothing: '#D64B8A',
+		Gardening: '#5A9C3E',
+		Electronics: '#117AB5',
+		Baby: '#5DA9E9',
+		Appliances: '#F2C94C',
+		Toys: '#FF7A59'
+	};
+
+	const catIcon: Record<string, string> = {
+		Furniture: '🪑',
+		Jobs: '💼',
+		Pets: '🐾',
+		Services: '🧰',
+		Education: '🎓',
+		'Lost and Found': '🔎',
+		Sports: '🏅',
+		Books: '📚',
+		Household: '🏠',
+		Clothing: '👕',
+		Gardening: '🪴',
+		Electronics: '💻',
+		Baby: '🍼',
+		Appliances: '🔌',
+		Toys: '🧸'
+	};
+
+	$: bannerBase = catBase[category?.trim?.() ?? ''] ?? '#6B7280';
+	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
+
+	$: formattedPrice =
+		typeof price === 'number'
+			? new Intl.NumberFormat(locale, {
+					style: 'currency',
+					currency,
+					maximumFractionDigits: 0
+				}).format(price)
+			: null;
+
+	let isPortrait = false;
+	function onImgLoad(e: Event) {
+		const i = e.currentTarget as HTMLImageElement;
+		isPortrait = i.naturalHeight > i.naturalWidth;
+	}
 </script>
 
 <article class="ad-wide">
@@ -72,28 +73,19 @@
 
 	<div class="content">
 		<!-- LEFT: image -->
-		<a class="media-link" {href} aria-label={`View ad: ${title}`}>
-			<div class="media" class:portrait={isPortrait}>
-				{#if img}
-					<img src={img} alt={title} loading="lazy" decoding="async" on:load={onImgLoad} />
-				{:else}
-					<div class="placeholder" aria-hidden="true"></div>
-				{/if}
-			</div>
-		</a>
+		<div class="media" class:portrait={isPortrait}>
+			{#if img}
+				<img src={img} alt={title} loading="lazy" decoding="async" on:load={onImgLoad} />
+			{:else}
+				<div class="placeholder" aria-hidden="true"></div>
+			{/if}
+		</div>
 
 		<!-- RIGHT: details -->
 		<div class="meta">
-			<h3 class="title"><a class="titlelink" {href}>{title}</a></h3>
+			<h3 class="title">{title}</h3>
 			{#if formattedPrice}<div class="price">{formattedPrice}</div>{/if}
 			{#if description}<p class="desc">{description}</p>{/if}
-
-			{#if email}
-				<div class="contact">
-					<a class="btn" href={'mailto:' + email}>Email seller</a>
-					<span class="addr">{email}</span>
-				</div>
-			{/if}
 		</div>
 	</div>
 </article>
@@ -106,7 +98,7 @@
 		background: var(--surface);
 		color: inherit;
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-        overflow: hidden;
+		overflow: hidden;
 	}
 
 	/* banner */
@@ -146,12 +138,6 @@
 		}
 	}
 
-	/* media */
-	.media-link {
-		display: block;
-		text-decoration: none;
-		color: inherit;
-	}
 	.media {
 		position: relative;
 		aspect-ratio: 16/9;
@@ -184,14 +170,6 @@
 		font-size: 1.05rem;
 		font-weight: 800;
 	}
-	.titlelink {
-		text-decoration: none;
-		color: inherit;
-	}
-	.titlelink:focus-visible {
-		outline: 2px solid var(--link);
-		outline-offset: 2px;
-	}
 
 	.price {
 		font-weight: 700;
@@ -205,30 +183,5 @@
 		line-clamp: 6;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
-	}
-
-	.contact {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		align-items: center;
-		margin-top: 10px;
-	}
-	.btn {
-		display: inline-block;
-		padding: 0.4rem 0.65rem;
-		border-radius: 0.45rem;
-		border: 1px solid var(--hairline);
-		background: color-mix(in srgb, var(--fg) 6%, var(--bg));
-		text-decoration: none;
-		color: inherit;
-		font-weight: 600;
-	}
-	.btn:hover {
-		background: color-mix(in srgb, var(--fg) 10%, var(--bg));
-	}
-	.addr {
-		opacity: 0.85;
-		font-size: 0.92em;
 	}
 </style>

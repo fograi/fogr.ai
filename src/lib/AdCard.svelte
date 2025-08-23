@@ -47,7 +47,6 @@
 	};
 
 	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
-
 	$: bannerBase = catBase[category?.trim?.() ?? ''] ?? '#6B7280';
 
 	const href = `/ad/${id}`;
