@@ -7,7 +7,7 @@ export const mockClassifieds = [
       category: "Furniture",
       price: 300,
       email: "antiques@example.com",
-      img: "https://picsum.photos/400/200",
+      img: "https://picsum.photos/1200/600",
     },
     {
       id: 1,

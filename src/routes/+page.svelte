@@ -49,7 +49,7 @@
 <style>
 	.masonry-grid {
 		list-style: none;
-		padding: 0;
+		padding-left: 16px;
 		margin: 0;
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

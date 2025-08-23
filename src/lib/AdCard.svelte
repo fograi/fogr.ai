@@ -135,7 +135,7 @@
 	/* full-width strip like classifieds */
 	.banner {
 		display: flex;
-		justify-content: center;
+		justify-content: space-between;
 		align-items: center;
 		text-align: center;
 		gap: 0.5rem;
@@ -153,7 +153,7 @@
 	}
 
 	.banner .icon {
-		font-size: 1.05rem; /* tweak as you like */
+		font-size: 1.25rem; /* tweak as you like */
 		line-height: 1;
 	}
 

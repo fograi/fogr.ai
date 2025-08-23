@@ -24,7 +24,7 @@ body,
 }
 html,
 body {
-	margin: 0 2rem;
+	margin: 0 16px 0 0px;
 	background: var(--bg);
 	color: var(--fg);
 	font-family:
