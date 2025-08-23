@@ -1,2 +1,13 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+	let { data } = $props();
+</script>
+
+<h1>home</h1>
+<p>this is the home page.</p>
+<ul>
+	{#each data.ads as { id, title, price }}
+		<li>
+			<a href="/ad/{id}">{title}:{price}</a>
+		</li>
+	{/each}
+</ul>
