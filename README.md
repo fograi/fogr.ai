@@ -1,53 +1,38 @@
-# Next.js & HeroUI Template
+# sv
 
-This is a template for creating applications using Next.js 14 (app directory) and HeroUI (v2).
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/heroui/next-app-template)
+## Creating a project
 
-## Technologies Used
+If you're seeing this, you've probably already done this step. Congrats!
 
-- [Next.js 14](https://nextjs.org/docs/getting-started)
-- [HeroUI v2](https://heroui.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [next-themes](https://github.com/pacocoursey/next-themes)
+```sh
+# create a new project in the current directory
+npx sv create
 
-## How to Use
-
-### Use the template with create-next-app
-
-To create a new project based on this template using `create-next-app`, run the following command:
-
-```bash
-npx create-next-app -e https://github.com/heroui-inc/next-app-template
+# create a new project in my-app
+npx sv create my-app
 ```
 
-### Install dependencies
+## Developing
 
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-```bash
-npm install
-```
-
-### Run the development server
-
-```bash
+```sh
 npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
 ```
 
-### Setup pnpm (optional)
+## Building
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
+To create a production version of your app:
 
-```bash
-public-hoist-pattern[]=*@heroui/*
+```sh
+npm run build
 ```
 
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+You can preview the production build with `npm run preview`.
 
-## License
-
-Licensed under the [MIT license](https://github.com/heroui-inc/next-app-template/blob/main/LICENSE).
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
