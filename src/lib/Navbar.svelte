@@ -26,23 +26,15 @@
 
 	function onScroll(y: number) {
 		const dy = y - lastY;
-		console.info('scroll', { y, dy, hidden });
 		lastY = y;
 		if (y < 10) {
 			hidden = false;
-			console.info('< 10 → show');
 		}
 		else if (dy < 0) {
 			hidden = false; // up → show
-			console.info('scroll up 0 → show');
 		}
 		else if (dy > 6) {
 			hidden = true; // down → hide
-			console.info('scroll down → hide');
-		}
-		else if (dy < -6) {
-			hidden = false; // up → show
-			console.info('scroll up 6 → show');
 		}
 	}
 
