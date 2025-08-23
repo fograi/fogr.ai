@@ -196,11 +196,6 @@
 		margin: 0 0 6px;
 		font-size: 1rem;
 		font-weight: 700;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
 	}
 
 	.price {
@@ -211,10 +206,7 @@
 	.desc {
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 80%, transparent);
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		line-clamp: 3;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
+		display: block;
+		overflow: visible;
 	}
 </style>

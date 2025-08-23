@@ -1,10 +1,10 @@
 <script lang="ts">
-	import AdCard from '$lib/AdCard.svelte';
+	import AdCardWide from '$lib/AdCardWide.svelte';
 	let { data } = $props();
 </script>
 
 {#if data.ad}
-	<ul><AdCard {...data.ad} /></ul>
+	<ul><AdCardWide {...data.ad} /></ul>
 {:else}
 	<p>Ad not found.</p>
 {/if}
