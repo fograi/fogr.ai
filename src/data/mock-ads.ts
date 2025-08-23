@@ -3,7 +3,7 @@ export const mockClassifieds = [
       id: 0,
       title: "Vintage Wooden Desk - Perfect Condition!",
       description:
-        "BSelling a beautiful vintage wooden desk in excellent condition. Crafted from solid oak, this desk features four drawers, a smooth writing surface, and classic brass handles. Ideal for home offices, students, or collectors. No scratches or damage. Dimensions: 120cm x 60cm x 75cm. Pickup in Dublin city centre. €150 or nearest offer. Email for details! 📩",
+        "Selling a beautiful vintage wooden desk in excellent condition. Crafted from solid oak, this desk features four drawers, a smooth writing surface, and classic brass handles. Ideal for home offices, students, or collectors. No scratches or damage. Dimensions: 120cm x 60cm x 75cm. Pickup in Dublin city centre. €150 or nearest offer. Email for details! 📩",
       category: "Furniture",
       price: 300,
       email: "antiques@example.com",
