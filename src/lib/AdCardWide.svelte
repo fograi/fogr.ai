@@ -106,7 +106,7 @@
 		background: var(--surface);
 		color: inherit;
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-		overflow: clip;
+        overflow: hidden;
 	}
 
 	/* banner */

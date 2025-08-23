@@ -7,6 +7,7 @@
 	let container: HTMLUListElement;
 
 	function layout() {
+		if (!container) return;
 		const row = 8; // must match grid-auto-rows
 		const gap = 16; // must match gap
 		const items = container.querySelectorAll<HTMLElement>('.card');
@@ -23,6 +24,7 @@
 
 	onMount(() => {
 		layout();
+		if (!container) return;
 		const ro = new ResizeObserver(layout);
 		ro.observe(container);
 		window.addEventListener('resize', layout);
