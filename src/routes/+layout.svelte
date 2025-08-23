@@ -1,5 +1,7 @@
 <script lang="ts">
+	import '../app.css';
 	import favicon from '$lib/assets/favicon.ico';
+	import Navbar from '$lib/Navbar.svelte';
 
 	let { children } = $props();
 </script>
@@ -8,9 +10,6 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<nav>
-	<a href="/">home</a>
-	<a href="/about">about</a>
-</nav>
+<Navbar title="fogr.ai" />
 
 {@render children()}
