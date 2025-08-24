@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { catBase, catIcon } from '$lib/constants';
 
 	// Props
 	export let title: string;
@@ -10,30 +11,6 @@
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 	export let email: string = '';
-
-	// Categories
-	const catBase: Record<string, string> = {
-		'Home & Garden': '#5A9C3E',
-		Electronics: '#117AB5',
-		'Baby & Kids': '#5DA9E9',
-		'Sports & Bikes': '#2A9D4B',
-		'Clothing & Accessories': '#D64B8A',
-		'Services & Gigs': '#7A5AF8',
-		'Lessons & Tutoring': '#CD5C5C',
-		'Lost and Found': '#EE6600',
-		'Free / Giveaway': '#1EAD7B'
-	};
-	const catIcon: Record<string, string> = {
-		'Home & Garden': '🏠',
-		Electronics: '💻',
-		'Baby & Kids': '🧸',
-		'Sports & Bikes': '🚲',
-		'Clothing & Accessories': '👕',
-		'Services & Gigs': '🧰',
-		'Lessons & Tutoring': '🎓',
-		'Lost and Found': '🔎',
-		'Free / Giveaway': '🆓'
-	};
 
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() ?? ''] ?? '#6B7280';
@@ -282,7 +259,6 @@
 		font-weight: 800;
 		line-height: 1.25;
 		display: -webkit-box;
-		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
@@ -327,7 +303,6 @@
 		color: var(--fg);
 		margin: 0 0 4px;
 		display: -webkit-box;
-		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}

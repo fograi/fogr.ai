@@ -1,46 +1,22 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-
-	// ---- Config ----
-	const CATEGORIES = [
-		'Home & Garden',
-		'Electronics',
-		'Baby & Kids',
-		'Sports & Bikes',
-		'Clothing & Accessories',
-		'Services & Gigs',
-		'Lessons & Tutoring',
-		'Lost and Found',
-		'Free / Giveaway'
-	] as const;
-
-	const catBase: Record<string, string> = {
-		'Home & Garden': '#5A9C3E',
-		Electronics: '#117AB5',
-		'Baby & Kids': '#5DA9E9',
-		'Sports & Bikes': '#2A9D4B',
-		'Clothing & Accessories': '#D64B8A',
-		'Services & Gigs': '#7A5AF8',
-		'Lessons & Tutoring': '#CD5C5C',
-		'Lost and Found': '#EE6600',
-		'Free / Giveaway': '#1EAD7B'
-	};
-	const catIcon: Record<string, string> = {
-		'Home & Garden': '🏠',
-		Electronics: '💻',
-		'Baby & Kids': '🧸',
-		'Sports & Bikes': '🚲',
-		'Clothing & Accessories': '👕',
-		'Services & Gigs': '🧰',
-		'Lessons & Tutoring': '🎓',
-		'Lost and Found': '🔎',
-		'Free / Giveaway': '🆓'
-	};
+	import {
+		CATEGORIES,
+		type Category,
+		catBase,
+		catIcon,
+		MIN_TITLE_LENGTH,
+		MAX_TITLE_LENGTH,
+		MIN_DESC_LENGTH,
+		MAX_DESC_LENGTH,
+		ALLOWED_IMAGE_TYPES,
+		MAX_IMAGE_SIZE
+	} from '$lib/constants';
 
 	// ---- Form state ----
 	let title = '';
 	let description = '';
-	let category: (typeof CATEGORIES)[number] | '' = '';
+	let category: Category | '' = '';
 	let price: number | '' = '';
 	let email = '';
 	let currency = 'EUR';
@@ -54,8 +30,8 @@
 
 	// derived
 	$: isFree = category === 'Free / Giveaway';
-	$: bannerBase = catBase[category ?? ''] ?? '#6B7280';
-	$: bannerIcon = catIcon[category ?? ''] ?? '🗂️';
+	$: bannerBase = category ? catBase[category] : '#6B7280';
+	$: bannerIcon = category ? catIcon[category] : '🗂️';
 	$: descCount = description.length;
 	$: displayedPrice =
 		category === 'Free / Giveaway'
@@ -75,8 +51,13 @@
 		const input = e.currentTarget as HTMLInputElement;
 		const f = input.files?.[0];
 		if (!f) return clearFile();
-		if (!f.type.startsWith('image/')) return ((err = 'Please choose an image file.'), clearFile());
-		if (f.size > 4 * 1024 * 1024) return ((err = 'Image must be ≤ 4MB.'), clearFile());
+		if (!ALLOWED_IMAGE_TYPES.includes(f.type))
+			return ((err = 'Only JPEG or PNG allowed.'), clearFile());
+		if (f.size > MAX_IMAGE_SIZE)
+			return (
+				(err = `Image must be ≤ ${Math.floor(MAX_IMAGE_SIZE / 1024 / 1024)}MB.`),
+				clearFile()
+			);
 		err = '';
 		file = f;
 		setPreview(f);
@@ -86,8 +67,13 @@
 		e.preventDefault();
 		const f = e.dataTransfer?.files?.[0];
 		if (!f) return;
-		if (!f.type.startsWith('image/')) return ((err = 'Please drop an image file.'), clearFile());
-		if (f.size > 4 * 1024 * 1024) return ((err = 'Image must be ≤ 4MB.'), clearFile());
+		if (!ALLOWED_IMAGE_TYPES.includes(f.type))
+			return ((err = 'Only JPEG or PNG allowed.'), clearFile());
+		if (f.size > MAX_IMAGE_SIZE)
+			return (
+				(err = `Image must be ≤ ${Math.floor(MAX_IMAGE_SIZE / 1024 / 1024)}MB.`),
+				clearFile()
+			);
 		err = '';
 		file = f;
 		setPreview(f);
@@ -110,14 +96,18 @@
 
 	// ---- Validation + submit ----
 	let err = '';
+	let ok = '';
 	let loading = false;
 
 	function validate() {
 		if (!title.trim()) return 'Title is required.';
-		if (title.length > TITLE_MAX) return `Title max ${TITLE_MAX} chars.`;
+		if (title.trim().length < MIN_TITLE_LENGTH) return `Title must be ≥ ${MIN_TITLE_LENGTH} chars.`;
+		if (title.length > MAX_TITLE_LENGTH) return `Title ≤ ${MAX_TITLE_LENGTH} chars.`;
 		if (!category) return 'Choose a category.';
 		if (!description.trim()) return 'Description is required.';
-		if (description.length > DESC_MAX) return `Description max ${DESC_MAX} chars.`;
+		if (description.trim().length < MIN_DESC_LENGTH)
+			return `Description must be ≥ ${MIN_DESC_LENGTH} chars.`;
+		if (description.length > MAX_DESC_LENGTH) return `Description ≤ ${MAX_DESC_LENGTH} chars.`;
 		if (!email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'Valid email required.';
 		if (!isFree) {
 			const n = Number(price);
@@ -127,11 +117,16 @@
 	}
 
 	async function handleSubmit() {
-		err = validate();
-		if (err) return;
+		err = '';
+		ok = '';
+		const v = validate();
+		if (v) {
+			err = v;
+			return;
+		}
+
 		loading = true;
 
-		// Build payload; swap this for your actual API/SDK call.
 		const form = new FormData();
 		form.append('title', title.trim());
 		form.append('description', description.trim());
@@ -140,14 +135,36 @@
 		form.append('email', email.trim());
 		form.append('currency', currency);
 		form.append('locale', locale);
-		if (file) form.append('image', file);
+		if (file) form.append('image', file); // endpoint supports `image` or `images`
 
 		try {
 			const res = await fetch('/api/ads', { method: 'POST', body: form });
-			if (!res.ok) throw new Error(await res.text());
-			const data = await res.json(); // expect { id: ... }
-			// redirect
-			window.location.href = `/ad/${data.id}`;
+			const raw = await res.text();
+			let data: any = null;
+			try {
+				data = JSON.parse(raw);
+			} catch {
+				data = { message: raw };
+			}
+
+			if (!res.ok || data?.success === false) {
+				throw new Error(data?.message || 'Failed to post.');
+			}
+
+			// Success: redirect if id returned, else show message + reset
+			if (data?.id) {
+				window.location.href = `/ad/${data.id}`;
+				return;
+			}
+
+			ok = data?.message || 'Ad submitted successfully!';
+			// clear the form
+			title = '';
+			description = '';
+			category = '';
+			price = '';
+			email = '';
+			clearFile();
 		} catch (e: any) {
 			err = e?.message || 'Failed to post. Try again.';
 		} finally {
@@ -156,7 +173,7 @@
 	}
 </script>
 
-<form class="post" on:submit|preventDefault={handleSubmit}>
+<form class="post" on:submit|preventDefault={handleSubmit} aria-busy={loading}>
 	<header class="head">
 		<h1>Post an ad</h1>
 		<p class="sub">Simply online classifieds. One image max. Ads auto-delete after 32 days.</p>
@@ -175,7 +192,7 @@
 				tabindex="0"
 			>
 				{#if previewUrl}
-					<div>
+					<div class="media">
 						<img
 							bind:this={imgEl}
 							src={previewUrl}
@@ -200,17 +217,17 @@
 								</span>
 							{/if}
 						</div>
-						<div class="overlay">
-							<h3 class="title">{title || 'Your catchy title'}</h3>
-						</div>
+						<div class="overlay"><h3 class="title">{title || 'Your catchy title'}</h3></div>
 					</div>
 					<div class="row actions">
-						<button type="button" class="btn ghost" on:click={clearFile}>Remove image</button>
-						<label class="btn"
-							>Replace
+						<button type="button" class="btn ghost" on:click={clearFile} disabled={loading}
+							>Remove image</button
+						>
+						<label class="btn">
+							Replace
 							<input
 								type="file"
-								accept="image/*"
+								accept={ALLOWED_IMAGE_TYPES.join(',')}
 								capture="environment"
 								on:change={onFileChange}
 								hidden
@@ -221,11 +238,11 @@
 					<div class="empty">
 						<div class="icon">🖼️</div>
 						<p>Drag & drop an image, or</p>
-						<label class="btn"
-							>Choose file <!-- replace your file inputs (both places) -->
+						<label class="btn">
+							Choose file
 							<input
 								type="file"
-								accept="image/*"
+								accept={ALLOWED_IMAGE_TYPES.join(',')}
 								capture="environment"
 								on:change={onFileChange}
 								hidden
@@ -238,10 +255,10 @@
 		</section>
 
 		<!-- RIGHT: fields -->
-		<section class="right">
+		<section class="right" class:disabled={loading}>
 			<div class="field">
 				<label for="category">Category</label>
-				<select id="category" bind:value={category}>
+				<select id="category" bind:value={category} disabled={loading}>
 					<option value="" disabled selected hidden>Choose…</option>
 					{#each CATEGORIES as c}
 						<option value={c}>{c}</option>
@@ -258,6 +275,7 @@
 					maxlength={TITLE_MAX}
 					placeholder="e.g., IKEA MALM desk — great condition"
 					required
+					disabled={loading}
 				/>
 			</div>
 
@@ -272,6 +290,7 @@
 					rows="6"
 					placeholder="Key details, pickup area, condition…"
 					required
+					disabled={loading}
 				></textarea>
 			</div>
 
@@ -289,11 +308,12 @@
 						inputmode="numeric"
 						pattern="[0-9]*"
 						bind:value={price}
-						disabled={isFree}
+						disabled={isFree || loading}
 						placeholder={isFree ? '0' : 'e.g., 50'}
 					/>
 				</div>
 			</div>
+
 			<div class="row">
 				<div class="field">
 					<label for="email">Contact email</label>
@@ -303,13 +323,15 @@
 						bind:value={email}
 						placeholder="you@example.com"
 						required
+						disabled={loading}
 					/>
 				</div>
 			</div>
 
-			{#if err}<p class="error">{err}</p>{/if}
+			{#if err}<p class="error" role="alert">{err}</p>{/if}
+			{#if ok}<p class="ok" role="status">{ok}</p>{/if}
 
-			<div class="row actions">
+			<div class="row actions desktop">
 				<button type="submit" class="btn primary" disabled={loading}
 					>{loading ? 'Posting…' : 'Post ad'}</button
 				>
@@ -317,6 +339,7 @@
 			</div>
 		</section>
 	</div>
+
 	<!-- MOBILE STICKY CTA -->
 	<div class="sticky-cta" aria-live="polite">
 		<div class="sticky-cta__price">{displayedPrice || (isFree ? 'Free' : '')}</div>
@@ -329,7 +352,7 @@
 <style>
 	.post {
 		padding-bottom: calc(72px + env(safe-area-inset-bottom));
-        padding-left: 12px;
+		padding-left: 12px;
 	}
 	.head h1 {
 		margin: 0 0 4px;
@@ -350,10 +373,11 @@
 			grid-template-columns: 1.1fr 1fr;
 		}
 	}
+
 	@media (hover: none) {
 		.chip {
 			backdrop-filter: none;
-		} /* perf */
+		}
 	}
 
 	/* LEFT */
@@ -371,6 +395,29 @@
 	}
 	.empty .icon {
 		font-size: 2rem;
+	}
+
+	.media {
+		position: relative;
+		aspect-ratio: 3/2;
+		border-radius: 14px;
+		overflow: hidden;
+		background: color-mix(in srgb, var(--fg) 6%, transparent);
+	}
+	.media img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		opacity: 0;
+		transition:
+			opacity 0.2s ease,
+			transform 0.25s ease;
+	}
+	.media img.loaded {
+		opacity: 1;
+	}
+	.post:hover .media img {
+		transform: scale(1.02);
 	}
 
 	.chip-row {
@@ -496,17 +543,25 @@
 		gap: 10px;
 		align-items: center;
 	}
+
 	.error {
 		color: #b91c1c;
 		font-weight: 700;
 		margin: 4px 0;
 	}
+	.ok {
+		color: #0a7f3f;
+		font-weight: 700;
+		margin: 4px 0;
+	}
+
+	/* Sticky CTA */
 	.sticky-cta {
 		position: fixed;
 		left: 0;
 		right: 0;
 		bottom: 0;
-		display: none; /* hidden on desktop */
+		display: none;
 		align-items: center;
 		gap: 10px;
 		padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
@@ -522,16 +577,18 @@
 	.btn--cta {
 		flex: 1;
 	}
+
+	/* Mobile */
 	@media (max-width: 640px), (orientation: portrait) {
 		.sticky-cta {
 			display: flex;
 		}
 		.empty {
 			padding: 24px 12px;
-		} /* tighter empty state */
+		}
 		.overlay {
 			padding: 10px;
-		} /* reduce overlay height */
+		}
 		.title {
 			font-size: 1rem;
 		}
@@ -540,8 +597,6 @@
 		textarea {
 			padding: 12px 14px;
 			font-size: 16px;
-
-        max-width: min-content;
 		} /* avoid iOS zoom */
 		.btn,
 		.btn.primary {
@@ -549,20 +604,9 @@
 			font-size: 16px;
 		}
 	}
+
 	select {
 		-webkit-tap-highlight-color: transparent;
 		touch-action: manipulation;
-        max-width: min-content;
 	}
-	@media (max-width: 640px), (orientation: portrait) {
-		.chip-row {
-			inset: 8px 8px auto 8px;
-		}
-		.chip {
-			background: color-mix(in srgb, var(--bg) 70%, transparent);
-		}
-	}
-    img {
-        max-width: 88vw;
-    }
 </style>
