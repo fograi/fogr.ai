@@ -110,8 +110,7 @@
 				await initModeration();
 				if (!modWorker) return;
 				modLoading = true;
-				// SEND A STRING, not an object
-				modWorker.postMessage(text);
+				modWorker.postMessage({ id: 'live', text });
 			}, 250);
 		}
 	}
@@ -279,86 +278,11 @@
 <form class="post" on:submit|preventDefault={handleSubmit} aria-busy={loading}>
 	<header class="head">
 		<h1>Post an ad</h1>
-		<p class="sub">Simply online classifieds. One image max. Ads auto-delete after 32 days.</p>
 	</header>
 
 	<div class="grid">
 		<!-- LEFT: media/preview -->
-		<section class="left">
-			<div
-				class="drop"
-				style="--chip:{bannerBase}"
-				on:dragover|preventDefault
-				on:drop={onDrop}
-				role="button"
-				aria-label="Drop image here"
-				tabindex="0"
-			>
-				{#if previewUrl}
-					<div class="media">
-						<img
-							bind:this={imgEl}
-							src={previewUrl}
-							alt=""
-							class:loaded={imgLoaded}
-							on:load={() => (imgLoaded = true)}
-						/>
-						<div class="chip-row">
-							{#if category}
-								<span class="chip chip--cat">
-									<span aria-hidden="true">{bannerIcon}</span>
-									<span class="chip__label">{category}</span>
-								</span>
-							{/if}
-							{#if !isFree && price !== ''}
-								<span class="chip chip--price">
-									{new Intl.NumberFormat(locale, {
-										style: 'currency',
-										currency,
-										maximumFractionDigits: 0
-									}).format(Number(price))}
-								</span>
-							{/if}
-						</div>
-						<div class="overlay"><h3 class="title">{title || 'Your catchy title'}</h3></div>
-					</div>
-					<div class="row actions">
-						<button type="button" class="btn ghost" on:click={clearFile} disabled={loading}
-							>Remove image</button
-						>
-						<label class="btn">
-							Replace
-							<input
-								type="file"
-								accept={ALLOWED_IMAGE_TYPES.join(',')}
-								capture="environment"
-								on:change={onFileChange}
-								hidden
-							/>
-						</label>
-					</div>
-				{:else}
-					<div class="empty">
-						<div class="icon">🖼️</div>
-						<p>Drag & drop an image, or</p>
-						<label class="btn">
-							Choose file
-							<input
-								type="file"
-								accept={ALLOWED_IMAGE_TYPES.join(',')}
-								capture="environment"
-								on:change={onFileChange}
-								hidden
-							/>
-						</label>
-						<small>Max 4MB • JPG/PNG/WebP • 1 image</small>
-					</div>
-				{/if}
-			</div>
-		</section>
-
-		<!-- RIGHT: fields -->
-		<section class="right" class:disabled={loading}>
+		<section class="left" class:disabled={loading}>
 			<div class="field">
 				<label for="category">Category</label>
 				<select id="category" bind:value={category} disabled={loading}>
@@ -433,12 +357,79 @@
 
 			{#if err}<p class="error" role="alert">{err}</p>{/if}
 			{#if ok}<p class="ok" role="status">{ok}</p>{/if}
+		</section>
 
-			<div class="row actions desktop">
-				<button type="submit" class="btn primary" disabled={loading}
-					>{loading ? 'Posting…' : 'Post ad'}</button
-				>
-				<span class="muted small">AI + rules review before publishing.</span>
+		<!-- RIGHT: fields -->
+		<section class="right">
+			<div
+				class="drop"
+				style="--chip:{bannerBase}"
+				on:dragover|preventDefault
+				on:drop={onDrop}
+				role="button"
+				aria-label="Drop image here"
+				tabindex="0"
+			>
+				{#if previewUrl}
+					<div class="media">
+						<img
+							bind:this={imgEl}
+							src={previewUrl}
+							alt=""
+							class:loaded={imgLoaded}
+							on:load={() => (imgLoaded = true)}
+						/>
+						<div class="chip-row">
+							{#if category}
+								<span class="chip chip--cat">
+									<span aria-hidden="true">{bannerIcon}</span>
+									<span class="chip__label">{category}</span>
+								</span>
+							{/if}
+							{#if !isFree && price !== ''}
+								<span class="chip chip--price">
+									{new Intl.NumberFormat(locale, {
+										style: 'currency',
+										currency,
+										maximumFractionDigits: 0
+									}).format(Number(price))}
+								</span>
+							{/if}
+						</div>
+						<div class="overlay"><h3 class="title">{title || 'Your catchy title'}</h3></div>
+					</div>
+					<div class="row actions">
+						<button type="button" class="btn ghost" on:click={clearFile} disabled={loading}
+							>Remove image</button
+						>
+						<label class="btn">
+							Replace
+							<input
+								type="file"
+								accept={ALLOWED_IMAGE_TYPES.join(',')}
+								capture="environment"
+								on:change={onFileChange}
+								hidden
+							/>
+						</label>
+					</div>
+				{:else}
+					<div class="empty">
+						<div class="icon">🖼️</div>
+						<p>Drag & drop an image, or</p>
+						<label class="btn">
+							Choose file
+							<input
+								type="file"
+								accept={ALLOWED_IMAGE_TYPES.join(',')}
+								capture="environment"
+								on:change={onFileChange}
+								hidden
+							/>
+						</label>
+						<small>Max 4MB • JPG/PNG/WebP • 1 image</small>
+					</div>
+				{/if}
 			</div>
 		</section>
 	</div>
@@ -461,20 +452,37 @@
 		margin: 0 0 4px;
 		font-size: 1.5rem;
 		font-weight: 800;
+		text-align: center;
 	}
-	.sub {
-		margin: 0;
-		color: color-mix(in srgb, var(--fg) 70%, transparent);
-	}
+
 	.grid {
 		display: grid;
 		gap: 16px;
 		margin-top: 16px;
+
+		/* Mobile/portrait: fields first (left), then image (right) */
+		grid-template-areas:
+			'left'
+			'right';
 	}
+
+	.left {
+		grid-area: left;
+	}
+	.right {
+		grid-area: right;
+	}
+
+	/* Desktop: side-by-side, image on the right */
 	@media (min-width: 820px) {
 		.grid {
 			grid-template-columns: 1.1fr 1fr;
+			grid-template-areas: 'left right';
 		}
+	}
+
+	.right .drop {
+		min-height: 220px;
 	}
 
 	@media (hover: none) {
@@ -617,9 +625,7 @@
 	.muted {
 		color: color-mix(in srgb, var(--fg) 55%, transparent);
 	}
-	.small {
-		font-size: 0.85rem;
-	}
+
 	.btn {
 		display: inline-grid;
 		place-items: center;
@@ -660,32 +666,45 @@
 
 	/* Sticky CTA */
 	.sticky-cta {
+		display: flex;
 		position: fixed;
 		left: 0;
 		right: 0;
 		bottom: 0;
-		display: none;
 		align-items: center;
+		justify-content: center;
 		gap: 10px;
 		padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
 		border-top: 1px solid var(--hairline);
 		background: var(--surface);
 		z-index: 50;
 	}
-	.sticky-cta__price {
-		min-width: 84px;
-		font-weight: 800;
-		font-size: 0.95rem;
-	}
-	.btn--cta {
-		flex: 1;
+
+	/* desktop: center a compact pill */
+	@media (min-width: 820px) {
+		.sticky-cta {
+			left: 50%;
+			right: auto;
+			transform: translateX(-50%);
+			bottom: 16px;
+			padding: 8px 10px;
+			gap: 8px;
+			width: auto;
+		}
+		.btn--cta {
+			flex: 0 0 auto; /* don’t stretch */
+			padding: 10px 14px;
+			font-size: 14px;
+		}
+		.sticky-cta__price {
+			font-size: 0.9rem;
+			font-weight: 700;
+			min-width: 0; /* allow natural width */
+		}
 	}
 
 	/* Mobile */
 	@media (max-width: 640px), (orientation: portrait) {
-		.sticky-cta {
-			display: flex;
-		}
 		.empty {
 			padding: 24px 12px;
 		}
