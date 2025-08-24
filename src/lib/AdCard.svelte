@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	export let id: number | string;
 	export let title: string;
 	export let price: number;
@@ -48,41 +50,88 @@
 			: null;
 
 	let isPortrait = false;
+	let hasImageError = false;
+	let showImg = !!img;
+	let imgLoaded = false;
+	let imgEl: HTMLImageElement | null = null;
+
+	$: showImg = !!img; // if the src prop changes
+
+	function onImgError() {
+		showImg = false;
+		isPortrait = false;
+		imgLoaded = false;
+		hasImageError = true;
+	}
 
 	function onImgLoad(e: Event) {
-		const img = e.currentTarget as HTMLImageElement;
-		isPortrait = img.naturalHeight > img.naturalWidth;
+		const i = e.currentTarget as HTMLImageElement;
+		isPortrait = i.naturalHeight > i.naturalWidth;
+		imgLoaded = true;
+	}
+
+	// ensure cached images become visible
+	onMount(() => {
+		if (imgEl && imgEl.complete) {
+			if (imgEl.naturalWidth > 0) {
+				imgLoaded = true;
+				isPortrait = imgEl.naturalHeight > imgEl.naturalWidth;
+			} else {
+				// broken src in cache
+				onImgError();
+			}
+		}
+	});
+
+	// when the src changes, reset loaded state
+	$: if (imgEl && img) {
+		imgLoaded = false;
 	}
 </script>
 
 <li class="card">
 	<a class="link-wrap" {href} aria-label={`View ad: ${title}`}>
 		<div class="card__inner">
-			<div class="media" class:portrait={isPortrait}>
-				{#if img}
-					<img src={img} alt={title} loading="lazy" decoding="async" on:load={onImgLoad} />
-				{:else}
-					<div class="placeholder" aria-hidden="true"></div>
-				{/if}
-
-				<!-- NEW: chips over image -->
-				<div class="chip-row">
-					{#if category}
-						<span class="chip chip--cat" style="--chip:{bannerBase}">
-							<span aria-hidden="true">{bannerIcon}</span>
-							<span class="chip__label">{category}</span>
-						</span>
-					{/if}
-					{#if formattedPrice}<span class="chip chip--price">{formattedPrice}</span>{/if}
+			{#if showImg}
+				<div class="media" class:portrait={isPortrait} style="--media-tint:{bannerBase}">
+					<img
+						bind:this={imgEl}
+						src={img}
+						alt={title}
+						loading="lazy"
+						decoding="async"
+						on:load={onImgLoad}
+						on:error={onImgError}
+						class:loaded={imgLoaded}
+					/>
+					<div class="chip-row">
+						{#if category}
+							<span class="chip chip--cat" style="--chip:{bannerBase}">
+								<span aria-hidden="true">{bannerIcon}</span>
+								<span class="chip__label">{category}</span>
+							</span>
+						{/if}
+						{#if formattedPrice}<span class="chip chip--price">{formattedPrice}</span>{/if}
+					</div>
+					<div class="overlay"><h3 class="title">{title}</h3></div>
 				</div>
-
-				<!-- NEW: title over image -->
-				<div class="overlay">
-					<h3 class="title">{title}</h3>
+				{#if description }<p class="desc">{description}</p>{/if}
+			{:else}
+				<!-- TEXT-ONLY FALLBACK -->
+				<div class="text-body">
+					<div class="chip-row chip-row--text">
+						{#if category}
+							<span class="chip chip--cat" style="--chip:{bannerBase}">
+								<span aria-hidden="true">{bannerIcon}</span>
+								<span class="chip__label">{category}</span>
+							</span>
+						{/if}
+						{#if formattedPrice}<span class="chip chip--price">{formattedPrice}</span>{/if}
+					</div>
+					<h3 class="title title--text">{title}</h3>
+					{#if description}<p class="desc">{description}</p>{/if}
 				</div>
-			</div>
-
-			{#if description}<p class="desc">{description}</p>{/if}
+			{/if}
 		</div>
 	</a>
 </li>
@@ -140,8 +189,29 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform 0.25s ease;
+		transition:
+			opacity 0.2s ease,
+			transform 0.25s ease;
+		opacity: 1;
 	}
+	.media img:not(.loaded) {
+		opacity: 0;
+	}
+
+	/* (optional) keep your hover zoom */
+	.card:hover .media img {
+		transform: scale(1.03);
+	}
+
+	@keyframes shimmer {
+		0% {
+			background-position: 0% 0%;
+		}
+		100% {
+			background-position: -200% 0%;
+		}
+	}
+
 	.card:hover .media img {
 		transform: scale(1.03);
 	}
@@ -184,6 +254,60 @@
 	.chip--price {
 		background: color-mix(in srgb, #0ea5e9 22%, var(--bg));
 	} /* calm blue */
+
+	/* text-only container */
+	.text-body {
+		border-radius: 14px;
+		background: linear-gradient(
+			135deg,
+			color-mix(in srgb, var(--bg) 96%, transparent),
+			color-mix(in srgb, var(--fg) 4%, transparent)
+		);
+		padding: 10px 12px;
+	}
+
+	/* static chips row for text-only (not absolute) */
+	.chip-row--text {
+		position: static;
+		inset: auto;
+		margin: 2px 0 8px;
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+	}
+
+	/* title color when not overlaid on a photo */
+	.title--text {
+		color: var(--fg);
+		margin: 0 0 4px;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	/* full-page: collapse to single column when no image */
+	.content.no-media {
+		display: block; /* simpler flow for long text */
+	}
+	@container (min-width: 640px) {
+		.content.no-media {
+			display: grid; /* keep nice rhythm on wide screens */
+			grid-template-columns: 1fr;
+		}
+	}
+
+	/* optional: tint text-only background by category */
+	.text-body {
+		--tint: color-mix(in srgb, var(--chip, #6b7280) 10%, transparent);
+		background:
+			linear-gradient(180deg, var(--tint), transparent 60%),
+			linear-gradient(
+				135deg,
+				color-mix(in srgb, var(--bg) 96%, transparent),
+				color-mix(in srgb, var(--fg) 4%, transparent)
+			);
+	}
 
 	/* TITLE overlay on the image bottom */
 	.overlay {
