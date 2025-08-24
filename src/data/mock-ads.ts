@@ -17,7 +17,7 @@ export const mockClassifieds = [
 		category: 'Home & Garden',
 		price: 300,
 		email: 'antiques@example.com',
-		img: 'https://picsum',
+		img: 'https://picsum.photos/100/400',
 		postedAt: '2011-10-10T14:48:00'
 	},
 	{
@@ -58,7 +58,7 @@ export const mockClassifieds = [
 		category: 'Lost and Found',
 		price: 0,
 		email: 'lostpets@example.com',
-		img: 'https://picsum.photos/200/400',
+		img: 'https://picsum.photos/200/4000',
 		postedAt: '2025-08-10T14:48:00'
 	},
 	{
