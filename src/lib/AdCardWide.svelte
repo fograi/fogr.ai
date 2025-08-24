@@ -1,5 +1,4 @@
 <script lang="ts">
-	export let id: number | string;
 	export let title: string;
 	export let price: number;
 	export let img: string;

@@ -6,44 +6,32 @@
 	export let description: string;
 	export let category: string;
 
-	// optional formatting; adjust to your market
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 
-	const catBase: Record<string, string> = {
-		Furniture: '#D64B8A',
-		Jobs: '#2B76D2',
-		Pets: '#1EAD7B',
-		Services: '#7A5AF8',
-		Education: '#CD5C5C',
-		'Lost and Found': '#EE6600',
-		Sports: '#2A9D4B',
-		Books: '#AD7A50',
-		Household: '#5B7083',
-		Clothing: '#D64B8A',
-		Gardening: '#5A9C3E',
+	export const catBase: Record<string, string> = {
+		'Home & Garden': '#5A9C3E', // merged Furniture/Appliances/Household/Gardening
 		Electronics: '#117AB5',
-		Baby: '#5DA9E9',
-		Appliances: '#F2C94C',
-		Toys: '#FF7A59'
+		'Baby & Kids': '#5DA9E9', // merged Baby/Toys/Books
+		'Sports & Bikes': '#2A9D4B',
+		'Clothing & Accessories': '#D64B8A',
+		'Services & Gigs': '#7A5AF8',
+		'Lessons & Tutoring': '#CD5C5C', // was Education
+		'Lost and Found': '#EE6600',
+		'Free / Giveaway': '#1EAD7B' // growth lever
+		// (Defer) Jobs, Pets
 	};
 
-	const catIcon: Record<string, string> = {
-		Furniture: '🪑',
-		Jobs: '💼',
-		Pets: '🐾',
-		Services: '🧰',
-		Education: '🎓',
-		'Lost and Found': '🔎',
-		Sports: '🏅',
-		Books: '📚',
-		Household: '🏠',
-		Clothing: '👕',
-		Gardening: '🪴',
+	export const catIcon: Record<string, string> = {
+		'Home & Garden': '🏠',
 		Electronics: '💻',
-		Baby: '🍼',
-		Appliances: '🔌',
-		Toys: '🧸'
+		'Baby & Kids': '🧸',
+		'Sports & Bikes': '🚲',
+		'Clothing & Accessories': '👕',
+		'Services & Gigs': '🧰',
+		'Lessons & Tutoring': '🎓',
+		'Lost and Found': '🔎',
+		'Free / Giveaway': '🆓'
 	};
 
 	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
@@ -86,8 +74,8 @@
 			</div>
 
 			<h3 class="title">{title}</h3>
-			{#if formattedPrice}<div class="price">{formattedPrice}</div>{/if}
 			{#if description}<p class="desc">{description}</p>{/if}
+			{#if formattedPrice}<p class="price">{formattedPrice}</p>{/if}
 		</div>
 	</a>
 </li>
@@ -128,7 +116,10 @@
 	}
 
 	.card__inner {
-		padding: 0 12px 12px;
+		padding: 0px 12px;
+		overflow: visible;
+		position: relative;
+		padding-bottom: 32px;
 	}
 
 	/* full-width strip like classifieds */
@@ -138,8 +129,8 @@
 		align-items: center;
 		text-align: center;
 		gap: 0.5rem;
-		margin: 0 -12px 10px; /* bleed to card edges */
-		padding: 8px 12px;
+		margin: 0 -14px 6px; /* bleed to card edges */
+		padding: 6px 12px;
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.02em;
@@ -149,11 +140,18 @@
 		color: var(--fg);
 		border-top-left-radius: 12px;
 		border-top-right-radius: 12px;
+		white-space: nowrap;
+		overflow: hidden;
 	}
 
 	.banner .icon {
 		font-size: 1.25rem; /* tweak as you like */
 		line-height: 1;
+	}
+
+	.banner .label {
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	@media (prefers-color-scheme: dark) {
@@ -168,7 +166,7 @@
 		border-radius: 8px;
 		overflow: hidden;
 		background: color-mix(in srgb, var(--fg) 6%, transparent);
-		margin-bottom: 10px;
+		margin-bottom: 8px;
 	}
 
 	.media.portrait {
@@ -192,20 +190,37 @@
 	}
 
 	.title {
-		margin: 0 0 6px;
-		font-size: 1rem;
+		font-size: 0.95rem;
+		line-height: 1.25;
+		display: -webkit-box;
+		margin: 4px 0 4px;
 		font-weight: 700;
-	}
-
-	.price {
-		font-weight: 700;
-		margin: 0 0 6px;
 	}
 
 	.desc {
+		font-size: 0.9rem;
+		line-height: 1.35;
+		margin: 0 0 2px;
+	}
+
+	.price {
+		position: absolute;
+		right: 12px;
+		bottom: 8px; /* was -12px; keep it inside */
+		font-weight: 700;
 		margin: 0;
-		color: color-mix(in srgb, var(--fg) 80%, transparent);
-		display: block;
-		overflow: visible;
+	}
+
+	@media (max-width: 420px) {
+		.meta {
+			font-size: 0.78rem;
+		}
+		.pill {
+			font-weight: 600;
+		}
+		.media {
+			max-height: 180px;
+			aspect-ratio: 3/2;
+		}
 	}
 </style>
