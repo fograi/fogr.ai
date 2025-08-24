@@ -58,46 +58,60 @@
 <li class="card">
 	<a class="link-wrap" {href} aria-label={`View ad: ${title}`}>
 		<div class="card__inner">
-			{#if category}
-				<div class="banner" style="--banner-base: {bannerBase}">
-					<span class="icon" aria-hidden="true">{bannerIcon}</span>
-					<span class="label">{category}</span>
-				</div>
-			{/if}
-
 			<div class="media" class:portrait={isPortrait}>
 				{#if img}
 					<img src={img} alt={title} loading="lazy" decoding="async" on:load={onImgLoad} />
 				{:else}
 					<div class="placeholder" aria-hidden="true"></div>
 				{/if}
+
+				<!-- NEW: chips over image -->
+				<div class="chip-row">
+					{#if category}
+						<span class="chip chip--cat" style="--chip:{bannerBase}">
+							<span aria-hidden="true">{bannerIcon}</span>
+							<span class="chip__label">{category}</span>
+						</span>
+					{/if}
+					{#if formattedPrice}<span class="chip chip--price">{formattedPrice}</span>{/if}
+				</div>
+
+				<!-- NEW: title over image -->
+				<div class="overlay">
+					<h3 class="title">{title}</h3>
+				</div>
 			</div>
 
-			<h3 class="title">{title}</h3>
 			{#if description}<p class="desc">{description}</p>{/if}
-			{#if formattedPrice}<p class="price">{formattedPrice}</p>{/if}
 		</div>
 	</a>
 </li>
 
 <style>
 	.card {
-		border: 1px solid var(--hairline);
-		border-radius: 12px;
-		background: var(--surface);
-		color: inherit;
-		overflow: hidden;
+		border: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
+		border-radius: 16px; /* slightly larger radius */
+		background: linear-gradient(
+			180deg,
+			color-mix(in srgb, var(--surface) 94%, transparent),
+			var(--surface)
+		);
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 		transition:
 			transform 0.18s ease,
 			box-shadow 0.18s ease,
 			border-color 0.18s ease;
-		will-change: transform;
 	}
 	.card:hover {
-		transform: translateY(-6px);
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+		transform: translateY(-4px);
+		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
 	}
+
+	.card__inner {
+		padding: 8px 12px 12px;
+		position: relative;
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.card,
 		.card:hover {
@@ -114,107 +128,98 @@
 		outline: 2px solid var(--link);
 		outline-offset: 2px;
 	}
-
-	.card__inner {
-		padding: 0px 12px;
-		overflow: visible;
-		position: relative;
-		padding-bottom: 32px;
-	}
-
-	/* full-width strip like classifieds */
-	.banner {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		text-align: center;
-		gap: 0.5rem;
-		margin: 0 -14px 6px; /* bleed to card edges */
-		padding: 6px 12px;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.02em;
-		border-bottom: 1px solid var(--hairline);
-		/* mix the category color with the page bg so it works in light/dark */
-		background: color-mix(in srgb, var(--banner-base) 20%, var(--bg));
-		color: var(--fg);
-		border-top-left-radius: 12px;
-		border-top-right-radius: 12px;
-		white-space: nowrap;
-		overflow: hidden;
-	}
-
-	.banner .icon {
-		font-size: 1.25rem; /* tweak as you like */
-		line-height: 1;
-	}
-
-	.banner .label {
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	@media (prefers-color-scheme: dark) {
-		.banner {
-			background: color-mix(in srgb, var(--banner-base) 66%, var(--bg));
-		}
-	}
-
+	/* MEDIA becomes the hero; modern zoom */
 	.media {
 		position: relative;
-		aspect-ratio: 16/9; /* default for landscape */
-		border-radius: 8px;
+		aspect-ratio: 3/2; /* a touch taller than 16/9 feels more editorial */
 		overflow: hidden;
-		background: color-mix(in srgb, var(--fg) 6%, transparent);
-		margin-bottom: 8px;
+		margin-bottom: 10px;
+		isolation: isolate; /* chips/overlay stack cleanly */
 	}
-
-	.media.portrait {
-		aspect-ratio: 3/4;
-	} /* room for tall images */
-
 	.media img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		display: block; /* fill for landscape */
+		transition: transform 0.25s ease;
+	}
+	.card:hover .media img {
+		transform: scale(1.03);
+	}
+	.media.portrait {
+		aspect-ratio: 3/4;
 	}
 	.media.portrait img {
-		object-fit: contain; /* show full portrait image */
-		background: color-mix(in srgb, var(--bg) 85%, transparent); /* subtle letterbox */
-	}
-	.media .placeholder {
-		width: 100%;
-		height: 100%;
-		background: linear-gradient(135deg, color-mix(in srgb, var(--fg) 8%, transparent), transparent);
+		object-fit: contain;
+		background: color-mix(in srgb, var(--bg) 85%, transparent);
 	}
 
+	/* CHIPS over image */
+	.chip-row {
+		position: absolute;
+		inset: 8px 8px auto 8px; /* top area */
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 8px;
+		pointer-events: none; /* non-interactive label look */
+		z-index: 2;
+	}
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 10px;
+		border-radius: 999px;
+		font-size: 0.78rem;
+		font-weight: 700;
+		line-height: 1;
+		border: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+		background: color-mix(in srgb, var(--bg) 55%, transparent);
+		backdrop-filter: saturate(1.2) blur(6px); /* contemporary, still subtle */
+		color: color-mix(in srgb, var(--fg) 86%, transparent);
+	}
+	.chip--cat {
+		background: color-mix(in srgb, var(--chip) 22%, var(--bg));
+	}
+	.chip--price {
+		background: color-mix(in srgb, #0ea5e9 22%, var(--bg));
+	} /* calm blue */
+
+	/* TITLE overlay on the image bottom */
+	.overlay {
+		position: absolute;
+		inset: auto 0 0 0;
+		z-index: 1;
+		padding: 10px 12px 12px;
+		background: linear-gradient(to top, color-mix(in srgb, #000 52%, transparent), transparent 70%);
+		color: #fff;
+	}
 	.title {
-		font-size: 0.95rem;
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 800;
 		line-height: 1.25;
 		display: -webkit-box;
-		margin: 4px 0 4px;
-		font-weight: 700;
+		-webkit-box-orient: vertical;
 	}
 
+	/* DESC stays below, lighter */
 	.desc {
-		font-size: 0.9rem;
+		font-size: 0.92rem;
 		line-height: 1.35;
-		margin: 0 0 2px;
+		margin: 2px 0 0;
+		color: color-mix(in srgb, var(--fg) 75%, transparent);
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
 	}
-
-	.price {
-		position: absolute;
-		right: 12px;
-		bottom: 8px; /* was -12px; keep it inside */
-		font-weight: 700;
-		margin: 0;
-	}
-
-	@media (max-width: 420px) {
-		.media {
-			max-height: 180px;
-			aspect-ratio: 3/2;
+	/* Dark mode tuning */
+	@media (prefers-color-scheme: dark) {
+		.chip {
+			border-color: color-mix(in srgb, #fff 10%, transparent);
+		}
+		.chip--price {
+			background: color-mix(in srgb, #38bdf8 24%, var(--bg));
 		}
 	}
 </style>
