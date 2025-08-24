@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
+	// Props
 	export let title: string;
 	export let price: number;
 	export let img: string;
@@ -8,8 +9,9 @@
 	export let category: string;
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
+	export let email: string = '';
 
-	// REPLACE your catBase / catIcon with:
+	// Categories
 	const catBase: Record<string, string> = {
 		'Home & Garden': '#5A9C3E',
 		Electronics: '#117AB5',
@@ -33,9 +35,9 @@
 		'Free / Giveaway': '🆓'
 	};
 
+	// Derived
 	$: bannerBase = catBase[category?.trim?.() ?? ''] ?? '#6B7280';
 	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
-
 	$: formattedPrice =
 		typeof price === 'number'
 			? new Intl.NumberFormat(locale, {
@@ -45,41 +47,53 @@
 				}).format(price)
 			: null;
 
+	$: displayedPrice =
+		category === 'Free / Giveaway'
+			? 'Free'
+			: typeof price === 'number'
+				? new Intl.NumberFormat(locale, {
+						style: 'currency',
+						currency,
+						maximumFractionDigits: 0
+					}).format(price)
+				: '';
+
+	$: mailtoHref = email ? `mailto:${email}?subject=${encodeURIComponent('Enquiry: ' + title)}` : '';
+
+	// Image handling
 	let isPortrait = false;
 	let showImg = !!img;
 	let imgLoaded = false;
 	let imgEl: HTMLImageElement | null = null;
-
-	$: showImg = !!img; // if the src prop changes
+	$: showImg = !!img;
 
 	function onImgError() {
 		showImg = false;
 		isPortrait = false;
 		imgLoaded = false;
 	}
-
 	function onImgLoad(e: Event) {
 		const i = e.currentTarget as HTMLImageElement;
 		isPortrait = i.naturalHeight > i.naturalWidth;
 		imgLoaded = true;
 	}
-
-	// ensure cached images become visible
 	onMount(() => {
 		if (imgEl && imgEl.complete) {
 			if (imgEl.naturalWidth > 0) {
 				imgLoaded = true;
 				isPortrait = imgEl.naturalHeight > imgEl.naturalWidth;
-			} else {
-				// broken src in cache
-				onImgError();
-			}
+			} else onImgError();
 		}
 	});
-
-	// when the src changes, reset loaded state
 	$: if (imgEl && img) {
 		imgLoaded = false;
+	}
+
+	async function share() {
+		try {
+			if (navigator.share) await navigator.share({ title, text: title, url: location.href });
+			else await navigator.clipboard?.writeText(location.href);
+		} catch (_) {}
 	}
 </script>
 
@@ -113,6 +127,12 @@
 			<!-- RIGHT: details -->
 			<div class="meta">
 				{#if description}<p class="desc">{description}</p>{/if}
+
+				<!-- Desktop actions -->
+				<div class="actions desktop">
+					{#if email}<a class="btn primary" href={mailtoHref}>Contact</a>{/if}
+					<button type="button" class="btn" on:click={share}>Share</button>
+				</div>
 			</div>
 		{:else}
 			<!-- TEXT-ONLY FULL-WIDTH -->
@@ -128,8 +148,21 @@
 				</div>
 				<h3 class="title title--text">{title}</h3>
 				{#if description}<p class="desc">{description}</p>{/if}
+
+				<!-- Desktop actions (text-only) -->
+				<div class="actions desktop">
+					{#if email}<a class="btn primary" href={mailtoHref}>Contact</a>{/if}
+					<button type="button" class="btn" on:click={share}>Share</button>
+				</div>
 			</div>
 		{/if}
+	</div>
+
+	<!-- Mobile sticky CTA -->
+	<div class="sticky-cta" role="region" aria-label="Ad actions">
+		<div class="sticky-cta__price">{displayedPrice}</div>
+		{#if email}<a class="btn primary btn--cta" href={mailtoHref}>Contact</a>{/if}
+		<button type="button" class="btn" on:click={share}>Share</button>
 	</div>
 </article>
 
@@ -145,6 +178,7 @@
 		);
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 		overflow: hidden;
+		padding-bottom: calc(80px + env(safe-area-inset-bottom)); /* room for mobile CTA */
 	}
 	.content {
 		display: grid;
@@ -159,13 +193,15 @@
 		}
 	}
 
+	/* Media */
 	.media {
 		position: relative;
-		aspect-ratio: 3/2; /* more editorial than 16/9 */
+		aspect-ratio: 3/2;
 		border-radius: 14px;
 		overflow: hidden;
 		background: color-mix(in srgb, var(--fg) 6%, transparent);
 		isolation: isolate;
+		max-height: 70vh;
 	}
 	.media img {
 		width: 100%;
@@ -179,33 +215,19 @@
 	.media img:not(.loaded) {
 		opacity: 0;
 	}
-
-	/* (optional) keep your hover zoom */
-	.media img.loaded {
-		opacity: 1;
-	}
-
-	@keyframes shimmer {
-		0% {
-			background-position: 0% 0%;
-		}
-		100% {
-			background-position: -200% 0%;
-		}
-	}
-
 	.ad-wide:hover .media img {
 		transform: scale(1.03);
 	}
 	.media.portrait {
 		aspect-ratio: 3/4;
+		max-height: 80vh;
 	}
 	.media.portrait img {
 		object-fit: contain;
 		background: color-mix(in srgb, var(--bg) 85%, transparent);
 	}
 
-
+	/* Chips */
 	.chip-row {
 		position: absolute;
 		inset: 8px 8px auto 8px;
@@ -245,60 +267,7 @@
 		}
 	}
 
-	/* chips already exist from the contemporary style; keep them */
-
-	/* text-only container */
-	.text-body {
-		border-radius: 14px;
-		background: linear-gradient(
-			135deg,
-			color-mix(in srgb, var(--bg) 96%, transparent),
-			color-mix(in srgb, var(--fg) 4%, transparent)
-		);
-		padding: 10px 12px;
-	}
-
-	/* static chips row for text-only (not absolute) */
-	.chip-row--text {
-		position: static;
-		inset: auto;
-		margin: 2px 0 8px;
-		display: flex;
-		justify-content: space-between;
-		gap: 8px;
-	}
-
-	/* title color when not overlaid on a photo */
-	.title--text {
-		color: var(--fg);
-		margin: 0 0 4px;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-
-	/* full-page: collapse to single column when no image */
-	.content.no-media {
-		display: block; /* simpler flow for long text */
-	}
-	@container (min-width: 640px) {
-		.content.no-media {
-			display: grid; /* keep nice rhythm on wide screens */
-			grid-template-columns: 1fr;
-		}
-	}
-
-	/* optional: tint text-only background by category */
-	.text-body {
-		--tint: color-mix(in srgb, var(--chip, #6b7280) 10%, transparent);
-		background:
-			linear-gradient(180deg, var(--tint), transparent 60%),
-			linear-gradient(
-				135deg,
-				color-mix(in srgb, var(--bg) 96%, transparent),
-				color-mix(in srgb, var(--fg) 4%, transparent)
-			);
-	}
+	/* Overlay title */
 	.overlay {
 		position: absolute;
 		inset: auto 0 0 0;
@@ -313,7 +282,15 @@
 		font-weight: 800;
 		line-height: 1.25;
 		display: -webkit-box;
+		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	/* Meta/description */
+	.meta {
+		display: grid;
+		gap: 10px;
 	}
 	.desc {
 		margin: 0;
@@ -322,5 +299,128 @@
 		line-height: 1.5;
 		display: -webkit-box;
 		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	/* Text-only */
+	.text-body {
+		border-radius: 14px;
+		--tint: color-mix(in srgb, var(--chip, #6b7280) 10%, transparent);
+		background:
+			linear-gradient(180deg, var(--tint), transparent 60%),
+			linear-gradient(
+				135deg,
+				color-mix(in srgb, var(--bg) 96%, transparent),
+				color-mix(in srgb, var(--fg) 4%, transparent)
+			);
+		padding: 10px 12px;
+	}
+	.chip-row--text {
+		position: static;
+		inset: auto;
+		margin: 2px 0 8px;
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+	}
+	.title--text {
+		color: var(--fg);
+		margin: 0 0 4px;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.content.no-media {
+		display: block;
+	}
+	@container (min-width: 640px) {
+		.content.no-media {
+			display: grid;
+			grid-template-columns: 1fr;
+		}
+	}
+
+	/* Actions */
+	.actions.desktop {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+	}
+	.btn {
+		display: inline-grid;
+		place-items: center;
+		padding: 8px 12px;
+		border-radius: 10px;
+		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+		background: var(--surface);
+		color: inherit;
+		cursor: pointer;
+	}
+	.btn.primary {
+		background: #000;
+		color: #fff;
+		border-color: #000;
+	}
+
+	/* Sticky CTA (mobile) */
+	.sticky-cta {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		display: none;
+		gap: 10px;
+		align-items: center;
+		padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+		border-top: 1px solid var(--hairline);
+		background: var(--surface);
+		z-index: 60;
+	}
+	.sticky-cta__price {
+		min-width: 84px;
+		font-weight: 800;
+		font-size: 0.95rem;
+	}
+	.btn--cta {
+		flex: 1;
+	}
+
+	/* Mobile/portrait tuning */
+	@media (max-width: 768px), (orientation: portrait) {
+		.sticky-cta {
+			display: flex;
+		}
+		.actions.desktop {
+			display: none;
+		}
+		.media {
+			aspect-ratio: 4/3;
+		}
+		.media.portrait {
+			aspect-ratio: 3/4;
+		}
+		.overlay {
+			padding: 10px;
+		}
+		.title {
+			font-size: 1.05rem;
+			-webkit-line-clamp: 2;
+		}
+		.btn,
+		.btn.primary {
+			padding: 12px 14px;
+			font-size: 16px;
+		} /* avoid iOS zoom */
+	}
+
+	/* Reduce heavy effects on touch devices */
+	@media (hover: none) {
+		.ad-wide:hover .media img {
+			transform: none;
+		}
+		.chip {
+			backdrop-filter: none;
+		}
 	}
 </style>
