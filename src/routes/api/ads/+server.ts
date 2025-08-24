@@ -3,8 +3,6 @@ import type { RequestHandler } from '@sveltejs/kit';
 import OpenAI from 'openai';
 const { default: filter } = await import('leo-profanity');
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = await import('obscenity');
-
-// adjust these imports to your project structure
 import {
 	MIN_TITLE_LENGTH,
 	MAX_TITLE_LENGTH,
@@ -17,14 +15,12 @@ import { bannedWords } from '$lib/banned-words';
 
 import { OPENAI_API_KEY } from '$env/static/private';
 
-// ---- one-time setup (safe on Cloudflare Workers) ----
 filter.add(bannedWords);
 const obscenity = new RegExpMatcher({
 	...englishDataset.build(),
 	...englishRecommendedTransformers
 });
 
-// ----------------- utils -----------------
 function json(status: number, body: unknown) {
 	return new Response(JSON.stringify(body), {
 		status,
@@ -33,7 +29,6 @@ function json(status: number, body: unknown) {
 }
 const errorResponse = (message: string, status = 400) => json(status, { success: false, message });
 
-// ArrayBuffer -> base64 (Worker-safe, no Node Buffer)
 function arrayBufferToBase64(buf: ArrayBuffer): string {
 	const bytes = new Uint8Array(buf);
 	const chunk = 0x8000;
@@ -41,23 +36,20 @@ function arrayBufferToBase64(buf: ArrayBuffer): string {
 	for (let i = 0; i < bytes.length; i += chunk) {
 		binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
 	}
-	// btoa is available in Workers
 	return btoa(binary);
 }
 
-// File -> data URL (Worker-safe)
 async function fileToDataUrl(file: File): Promise<string> {
 	const base64 = arrayBufferToBase64(await file.arrayBuffer());
 	return `data:${file.type};base64,${base64}`;
 }
 
-// Clean a data URL’s base64 payload without Node Buffer
 function cleanDataUrlBase64(dataUrl: string): string {
 	const base64 = dataUrl.split(',')[1]?.trim() || '';
 	// strip whitespace and invalid chars, ensure padding
 	let cleaned = base64.replace(/\s/g, '').replace(/[^A-Za-z0-9+/=]/g, '');
 	while (cleaned.length % 4 !== 0) cleaned += '=';
-	// quick sanity check (length only — no Node decode here)
+	// quick sanity check
 	if (cleaned.length < 1000) {
 		// ~very small image; not fatal, just a warning if you log server-side
 		console.warn('Decoded image seems small');
@@ -116,7 +108,6 @@ async function moderateSingleImage(openai: OpenAI, imageDataUrl: string): Promis
 	}
 }
 
-// ----------------- SvelteKit handler -----------------
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const apiKey = OPENAI_API_KEY;

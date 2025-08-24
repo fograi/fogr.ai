@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import {
 		CATEGORIES,
 		type Category,
@@ -28,7 +28,93 @@
 	let imgEl: HTMLImageElement | null = null;
 	let imgLoaded = false;
 
+	let modWorker: Worker | null = null;
+	let modReady = false;
+	let modFlagged = false;
+	let modLoading = false;
+
+	async function initModeration() {
+		if (modWorker || typeof window === 'undefined') return;
+		modWorker = new Worker(new URL('$lib/workers/moderation.worker.ts', import.meta.url), {
+			type: 'module'
+		});
+
+		modWorker.onmessage = (ev: MessageEvent<{ id: string; flagged: boolean }>) => {
+			const { id, flagged } = ev.data || { id: '', flagged: false };
+
+			if (id === 'live') {
+				modFlagged = flagged;
+				modLoading = false;
+				return;
+			}
+
+			const resolve = pending.get(id);
+			if (resolve) {
+				pending.delete(id);
+				resolve(flagged);
+			} else {
+				// dev aid
+				console.debug('[mod-worker] no pending resolver for id:', id);
+			}
+		};
+
+		modWorker.onerror = (e) => {
+			console.error('[mod-worker] error', e);
+			modWorker?.terminate();
+			modWorker = null;
+			modReady = false;
+		};
+
+		modReady = true;
+	}
+
+	let debounce: number | undefined;
+
+	// Track pending request -> resolver for submit-time checks
+	const pending = new Map<string, (flagged: boolean) => void>();
+
+	function nextId() {
+		// Works in all modern browsers
+		return (crypto as any)?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+	}
+
+	async function checkWithWorker(text: string, timeoutMs = 1500): Promise<boolean> {
+		await initModeration();
+		if (!modWorker) return false; // fail-open to server
+
+		const id = nextId();
+		return await new Promise<boolean>((resolve) => {
+			const timer = setTimeout(() => {
+				pending.delete(id);
+				console.warn('[mod-worker] timeout; continuing to server');
+				resolve(false); // don’t block submit
+			}, timeoutMs);
+
+			pending.set(id, (flagged) => {
+				clearTimeout(timer);
+				resolve(flagged);
+			});
+
+			modWorker!.postMessage({ id, text });
+		});
+	}
+
 	// derived
+	$: {
+		const text = `${title ?? ''} ${description ?? ''}`.trim();
+		clearTimeout(debounce);
+		if (!text) {
+			modFlagged = false;
+		} else {
+			debounce = window.setTimeout(async () => {
+				await initModeration();
+				if (!modWorker) return;
+				modLoading = true;
+				// SEND A STRING, not an object
+				modWorker.postMessage(text);
+			}, 250);
+		}
+	}
 	$: isFree = category === 'Free / Giveaway';
 	$: bannerBase = category ? catBase[category] : '#6B7280';
 	$: bannerIcon = category ? catIcon[category] : '🗂️';
@@ -94,6 +180,12 @@
 		if (imgEl && imgEl.complete && imgEl.naturalWidth > 0) imgLoaded = true;
 	});
 
+	onDestroy(() => {
+		modWorker?.terminate();
+		modWorker = null;
+		pending.clear();
+	});
+
 	// ---- Validation + submit ----
 	let err = '';
 	let ok = '';
@@ -119,25 +211,38 @@
 	async function handleSubmit() {
 		err = '';
 		ok = '';
+
 		const v = validate();
 		if (v) {
 			err = v;
 			return;
 		}
 
+		// Show UI feedback immediately
 		loading = true;
-
-		const form = new FormData();
-		form.append('title', title.trim());
-		form.append('description', description.trim());
-		form.append('category', category as string);
-		form.append('price', String(isFree ? 0 : price || 0));
-		form.append('email', email.trim());
-		form.append('currency', currency);
-		form.append('locale', locale);
-		if (file) form.append('image', file); // endpoint supports `image` or `images`
-
 		try {
+			// client-side moderation preflight (never blocks indefinitely)
+			const text = `${title ?? ''} ${description ?? ''}`.trim();
+			modLoading = true;
+			const flagged = await checkWithWorker(text);
+			modLoading = false;
+
+			if (flagged) {
+				err = 'Your ad likely violates our language rules. Please edit and resubmit.';
+				return;
+			}
+
+			// proceed to server
+			const form = new FormData();
+			form.append('title', title.trim());
+			form.append('description', description.trim());
+			form.append('category', category as string);
+			form.append('price', String(isFree ? 0 : price || 0));
+			form.append('email', email.trim());
+			form.append('currency', currency);
+			form.append('locale', locale);
+			if (file) form.append('image', file);
+
 			const res = await fetch('/api/ads', { method: 'POST', body: form });
 			const raw = await res.text();
 			let data: any = null;
@@ -151,14 +256,12 @@
 				throw new Error(data?.message || 'Failed to post.');
 			}
 
-			// Success: redirect if id returned, else show message + reset
 			if (data?.id) {
 				window.location.href = `/ad/${data.id}`;
 				return;
 			}
 
 			ok = data?.message || 'Ad submitted successfully!';
-			// clear the form
 			title = '';
 			description = '';
 			category = '';
