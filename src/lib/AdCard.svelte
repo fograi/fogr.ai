@@ -212,12 +212,6 @@
 	}
 
 	@media (max-width: 420px) {
-		.meta {
-			font-size: 0.78rem;
-		}
-		.pill {
-			font-weight: 600;
-		}
 		.media {
 			max-height: 180px;
 			aspect-ratio: 3/2;
