@@ -1,10 +1,11 @@
 <script lang="ts">
 	import AdCardWide from '$lib/components/AdCardWide.svelte';
-	let { data } = $props();
+	import type { AdCard } from './+page.server';
+	export let data: { ad: AdCard };
 </script>
 
-{#if data.ad}
-	<ul><AdCardWide {...data.ad} /></ul>
+{#if data?.ad}
+	<AdCardWide {...data.ad} />
 {:else}
 	<p>Ad not found.</p>
 {/if}

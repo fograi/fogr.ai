@@ -1,6 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import type { R2Bucket } from '@cloudflare/workers-types';
-import { error } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import OpenAI from 'openai';
 const { default: filter } = await import('leo-profanity');
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = await import('obscenity');
@@ -20,13 +20,8 @@ const obscenity = new RegExpMatcher({
 	...englishRecommendedTransformers
 });
 
-function json(status: number, body: unknown) {
-	return new Response(JSON.stringify(body), {
-		status,
-		headers: { 'Content-Type': 'application/json' }
-	});
-}
-const errorResponse = (message: string, status = 400) => json(status, { success: false, message });
+const errorResponse = (message: string, status = 400) =>
+	json({ success: false, message }, { status });
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
 	const bytes = new Uint8Array(buf);
@@ -54,14 +49,6 @@ function cleanDataUrlBase64(dataUrl: string): string {
 		console.warn('Decoded image seems small');
 	}
 	return cleaned;
-}
-
-// === NEW === small helper for R2 key extension
-function extFromMime(type: string) {
-	if (type === 'image/jpeg') return 'jpg';
-	if (type === 'image/png') return 'png';
-	if (type === 'image/webp') return 'webp';
-	return 'bin';
 }
 
 // ----------------- OpenAI moderation helpers -----------------
@@ -303,14 +290,79 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		}
 
 		// === NEW === 4) Return the id so the client can redirect
-		return json(200, {
-			success: true,
-			id: adId,
-			message: 'Ad submitted successfully!',
-			image_urls
-		});
+		return json(
+			{
+				success: true,
+				id: adId,
+				message: 'Ad submitted successfully!',
+				image_urls
+			},
+			{ status: 200 }
+		);
 	} catch (err: unknown) {
 		const msg = err instanceof Error ? err.message : 'Internal error';
 		return errorResponse(msg, 500);
 	}
+};
+
+export const GET: RequestHandler = async ({ params, locals, url }) => {
+	const id = params.slug;
+
+	// Cloudflare edge cache if available (safe no-op locally)
+	const cfCache = globalThis.caches?.default;
+	const cacheKey = cfCache
+		? new Request(new URL(`/api/ads/${id}`, url.origin), { method: 'GET' })
+		: undefined;
+
+	// 1) Try cache
+	if (cfCache && cacheKey) {
+		const hit = await cfCache.match(cacheKey);
+		if (hit) return hit;
+	}
+
+	// 2) DB lookup
+	const { data, error } = await locals.supabase
+		.from('ads')
+		.select(
+			'id, user_id, title, description, category, price, currency, image_urls, created_at, updated_at'
+		)
+		.eq('id', id)
+		.maybeSingle();
+
+	if (error) {
+		return json(
+			{ error: 'DB error' },
+			{
+				status: 500,
+				headers: { 'Cache-Control': 'public, max-age=30' }
+			}
+		);
+	}
+	if (!data) {
+		return json(
+			{ error: 'Not found' },
+			{
+				status: 404,
+				headers: { 'Cache-Control': 'public, max-age=60' }
+			}
+		);
+	}
+
+	const resp = json(
+		{ ad: data },
+		{
+			status: 200,
+			headers: {
+				'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+				ETag: `W/"ad-${data.id}-${data.updated_at ?? data.created_at}"`
+			}
+		}
+	);
+
+	// 3) Populate cache
+	if (cfCache && cacheKey) {
+		await cfCache.put(cacheKey, resp.clone());
+	}
+
+	return resp;
 };
