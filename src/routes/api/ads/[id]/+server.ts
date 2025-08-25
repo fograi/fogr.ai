@@ -2,7 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ params, locals, url }) => {
-	const id = params.slug;
+	const id = params.id;
 	
 	// Cloudflare edge cache if available (safe no-op locally)
 	const cfCache = globalThis.caches?.default;
@@ -28,20 +28,26 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 	if (error) {
 		return json(
 			{ error: 'DB error' },
-			{ status: 500, headers: { 'Cache-Control': 'public, max-age=30' } }
+			{
+				status: 500,
+				headers: { 'Cache-Control': 'public, max-age=30' }
+			}
 		);
 	}
 	if (!data) {
 		return json(
 			{ error: 'Not found' },
-			{ status: 404, headers: { 'Cache-Control': 'public, max-age=60' } }
+			{
+				status: 404,
+				headers: { 'Cache-Control': 'public, max-age=60' }
+			}
 		);
 	}
 
 	const resp = json(
 		{ ad: data },
 		{
-			status: 404,
+			status: 200,
 			headers: {
 				'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
 				ETag: `W/"ad-${data.id}-${data.updated_at ?? data.created_at}"`
