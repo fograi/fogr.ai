@@ -263,7 +263,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 								? 'webp'
 								: 'bin';
 
-				const key = `ads/${user.id}/${adId}/${String(idx).padStart(2, '0')}.${ext}`;
+				const key = `${user.id}/${adId}/${String(idx).padStart(2, '0')}.${ext}`;
 
 				// ✅ Pass File (Blob) directly
 				await bucket.put(key, await file.arrayBuffer(), {
