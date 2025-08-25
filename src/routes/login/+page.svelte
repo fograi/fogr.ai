@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { goto, invalidate, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { createClient } from '@supabase/supabase-js';
@@ -24,8 +24,7 @@
 		}
 		sending = true;
 
-		// We land back on /login so this page can bridge the session then
-		// push you on to the original destination.
+		// Land back on /login so this page can bridge session & redirect onward
 		const emailRedirectTo = `${window.location.origin}/login?redirectTo=${encodeURIComponent(
 			redirectTo
 		)}`;
@@ -34,7 +33,7 @@
 			email,
 			options: {
 				emailRedirectTo
-				// shouldCreateUser: true, // uncomment if you want “sign up” via magic link
+				// shouldCreateUser: true, // enable if you want signup via magic link
 			}
 		});
 
@@ -43,50 +42,58 @@
 		sending = false;
 	}
 
-	// Send tokens to the server so server-side guards (locals.supabase) see you
+	// Send tokens to the server so SSR (locals.supabase) sees the session
 	async function bridgeSession(access_token: string, refresh_token: string) {
 		try {
 			await fetch('/auth/set-cookie', {
 				method: 'POST',
-				credentials: 'same-origin', // ensure Set-Cookie is applied
+				credentials: 'same-origin',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ access_token, refresh_token })
 			});
 		} catch {
-			// If this fails, client is still logged in; server guards will redirect if needed.
+			// If this fails, client is still logged in; server guards may still pass on next nav.
 		}
 	}
 
 	let redirected = false;
+
+	async function finishLoginAndGo() {
+		// Make layout re-run so navbar updates immediately
+		await invalidate('supabase:auth');
+		// If redirecting to the same route, also refresh all data to force UI update
+		if (redirectTo === window.location.pathname) {
+			await invalidateAll();
+		}
+		redirected = true;
+		await goto(redirectTo, { replaceState: true });
+	}
+
 	async function maybeRedirect() {
 		if (!browser || redirected) return;
 
-		// Use verified user, not plain session object
+		// Use getUser() (verifies with Supabase) instead of trusting local session
 		const { data: userData } = await supabase.auth.getUser();
 		const user = userData?.user;
 		if (user) {
-			// also bridge session cookies for SSR
 			const { data: sessData } = await supabase.auth.getSession();
 			const sess = sessData?.session;
 			if (sess) await bridgeSession(sess.access_token, sess.refresh_token);
-
-			redirected = true;
-			await goto(redirectTo, { replaceState: true });
+			await finishLoginAndGo();
 		}
 	}
 
 	onMount(() => {
-		// 1) If we already have a session (coming back from the link), redirect.
+		// 1) If we already have a session (coming back from email), redirect.
 		maybeRedirect();
 
-		// 2) Otherwise wait for auth state to change, then redirect.
+		// 2) Or wait for the auth state callback and then redirect.
 		const {
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange(async (event, sess) => {
 			if (event === 'SIGNED_IN' && sess && !redirected) {
 				await bridgeSession(sess.access_token, sess.refresh_token);
-				redirected = true;
-				await goto(redirectTo, { replaceState: true });
+				await finishLoginAndGo();
 			}
 		});
 
@@ -101,5 +108,5 @@
 	<button type="submit" disabled={sending}>{sending ? 'Sending…' : 'Send magic link'}</button>
 </form>
 
-{#if msg}<p>{msg}</p>{/if}
-{#if err}<p style="color:#b91c1c">{err}</p>{/if}
+{#if msg}<p aria-live="polite">{msg}</p>{/if}
+{#if err}<p style="color:#b91c1c" aria-live="assertive">{err}</p>{/if}

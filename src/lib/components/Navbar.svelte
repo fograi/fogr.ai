@@ -1,15 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto, invalidate } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
+	import { createClient } from '@supabase/supabase-js';
+	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
 	export let title = 'fogr.ai';
-	export let links: { href: string; label: string }[] = [
+	// base links that are always shown
+	const baseLinks = [
 		{ href: '/about', label: 'About' },
-		{ href: '/', label: 'Ads' },
-		{ href: '/post', label: 'Post ad' },
-		{ href: '/logout', label: 'Logout' }
+		{ href: '/', label: 'Ads' }
 	];
 
+	// UI state (unchanged)
 	let open = false;
 	let hidden = false;
 	let lastY = 0;
@@ -18,28 +22,40 @@
 	let menu: HTMLElement;
 	let burgerEl: HTMLButtonElement;
 
+	// supabase client (only needed for client-side signout UX)
+	const supabase = browser
+		? createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY)
+		: (null as any);
+
+	$: user = $page.data.user as { id: string; email?: string | null } | null;
+
 	function closeMenu(focusBurger = false) {
 		if (!open) return;
 		open = false;
 		if (focusBurger) burgerEl?.focus();
 	}
 
+	async function logout() {
+		// sign out on client so next navigation has no client session…
+		if (supabase) await supabase.auth.signOut().catch(() => {});
+		// …and clear server cookies too if you have this endpoint
+		await fetch('/auth/logout', { method: 'POST' }).catch(() => {});
+		await invalidate('supabase:auth');
+		await goto('/', { replaceState: true });
+	}
+
 	function onScroll(y: number) {
 		const dy = y - lastY;
 		lastY = y;
-		if (y < 10) {
-			hidden = false;
-		} else if (dy < 0) {
+		if (y < 10) hidden = false;
+		else if (dy < 0)
 			hidden = false; // up → show
-		} else if (dy > 6) {
-			hidden = true; // down → hide
-		}
+		else if (dy > 6) hidden = true; // down → hide
 	}
 
-	afterNavigate(() => closeMenu(false)); // close on route change
+	afterNavigate(() => closeMenu(false));
 
 	onMount(() => {
-		// hide-on-scroll
 		lastY = window.scrollY;
 		const onWinScroll = () => {
 			if (!ticking) {
@@ -52,7 +68,6 @@
 		};
 		addEventListener('scroll', onWinScroll, { passive: true });
 
-		// outside click
 		const onDocPointer = (e: PointerEvent) => {
 			if (!open) return;
 			const t = e.target as Node;
@@ -60,7 +75,6 @@
 		};
 		document.addEventListener('pointerdown', onDocPointer, { passive: true });
 
-		// ESC to close
 		const onDocKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
 				e.stopPropagation();
@@ -69,7 +83,6 @@
 		};
 		document.addEventListener('keydown', onDocKey);
 
-		// focus leaving menu closes it
 		const onFocusIn = (e: FocusEvent) => {
 			if (!open) return;
 			const t = e.target as Node;
@@ -87,6 +100,9 @@
 
 	// focus first link on open
 	$: if (open) queueMicrotask(() => menu?.querySelector<HTMLAnchorElement>('a')?.focus());
+
+	// Build the final nav items based on auth
+	$: authedLinks = user ? [...baseLinks, { href: '/post', label: 'Post ad' }] : baseLinks;
 </script>
 
 <header class="nav" class:hidden>
@@ -106,9 +122,22 @@
 		</button>
 
 		<nav id="site-menu" bind:this={menu} class:open aria-hidden={!open}>
-			{#each links as { href, label }}
+			{#each authedLinks as { href, label }}
 				<a {href} on:click={() => closeMenu(false)}>{label}</a>
 			{/each}
+
+			{#if user}
+				<!-- Show Logout as a button that looks like a link -->
+				<button class="as-link" type="button" on:click={() => (closeMenu(false), logout())}>
+					Logout
+				</button>
+			{:else}
+				<!-- Login link with redirect back to current page -->
+				<a
+					href={'/login?redirectTo=' + encodeURIComponent($page.url.pathname + $page.url.search)}
+					on:click={() => closeMenu(false)}>Login</a
+				>
+			{/if}
 		</nav>
 	</div>
 </header>
@@ -220,5 +249,19 @@
 	nav a:focus-visible {
 		outline: 2px solid var(--link);
 		outline-offset: 2px;
+	}
+
+	nav .as-link {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		color: inherit;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.4rem;
+		cursor: pointer;
+		text-align: left;
+	}
+	nav .as-link:hover {
+		background: var(--hover);
 	}
 </style>
