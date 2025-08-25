@@ -172,7 +172,7 @@
 		</section>
 	</div>
 
-	<StickyCTA label="Post ad" priceLabel={displayedPrice || (isFree ? 'Free' : '')} {loading} />
+	<StickyCTA label="Post ad" {loading} />
 </form>
 
 <style>

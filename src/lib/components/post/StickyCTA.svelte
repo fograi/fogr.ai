@@ -1,11 +1,9 @@
 <script lang="ts">
 	export let label = 'Post ad';
-	export let priceLabel = '';
 	export let loading = false;
 </script>
 
 <div class="sticky-cta" aria-live="polite">
-	{#if priceLabel}<div class="sticky-cta__price">{priceLabel}</div>{/if}
 	<button type="submit" class="btn primary btn--cta" disabled={loading}>
 		{loading ? 'Posting…' : label}
 	</button>
