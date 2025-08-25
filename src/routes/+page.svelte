@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import AdCard from '$lib/AdCard.svelte';
+	import AdCard from '../lib/components/AdCard.svelte';
 
 	let { data } = $props();
 

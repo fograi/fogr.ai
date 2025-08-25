@@ -7,6 +7,7 @@ export const mockClassifieds = [
 		category: 'Home & Garden',
 		price: 300,
 		email: 'antiques@example.com',
+		img: '',
 		postedAt: '2025-08-10T14:48:00'
 	},
 	{

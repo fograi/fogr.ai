@@ -47,6 +47,8 @@
 		"node": ">=20 <21"
 	},
 	"dependencies": {
+		"@supabase/auth-helpers-sveltekit": "^0.13.0",
+		"@supabase/supabase-js": "^2.56.0",
 		"leo-profanity": "^1.8.0",
 		"obscenity": "^0.4.4",
 		"openai": "^5.15.0"

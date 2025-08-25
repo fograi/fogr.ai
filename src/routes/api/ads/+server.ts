@@ -1,5 +1,6 @@
 // src/routes/api/ads/+server.ts
 import type { RequestHandler } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import OpenAI from 'openai';
 const { default: filter } = await import('leo-profanity');
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = await import('obscenity');
@@ -12,8 +13,6 @@ import {
 	MAX_IMAGE_SIZE
 } from '$lib/constants';
 import { bannedWords } from '$lib/banned-words';
-
-import { OPENAI_API_KEY } from '$env/static/private';
 
 filter.add(bannedWords);
 const obscenity = new RegExpMatcher({
@@ -64,7 +63,7 @@ async function moderateText(openai: OpenAI, text: string): Promise<boolean> {
 			model: 'omni-moderation-latest',
 			input: text
 		});
-        console.info(res);
+		console.info(res);
 		return res.results.some((r) => r.flagged);
 	} catch {
 		return true; // fail closed
@@ -108,9 +107,14 @@ async function moderateSingleImage(openai: OpenAI, imageDataUrl: string): Promis
 	}
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals, platform }) => {
+	const {
+		data: { user }
+	} = await locals.supabase.auth.getUser();
+
+	if (!user) throw error(401, 'Auth required');
 	try {
-		const apiKey = OPENAI_API_KEY;
+		const apiKey = platform?.env?.OPENAI_API_KEY;
 		if (!apiKey) return errorResponse('Missing OPENAI_API_KEY', 500);
 
 		const openai = new OpenAI({ apiKey });

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import AdCardWide from '$lib/AdCardWide.svelte';
+	import AdCardWide from '$lib/components/AdCardWide.svelte';
 	let { data } = $props();
 </script>
 

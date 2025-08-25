@@ -5,7 +5,7 @@
 	export let id: number | string;
 	export let title: string;
 	export let price: number;
-	export let img: string;
+	export let img: string | undefined;
 	export let description: string;
 	export let category: string;
 
