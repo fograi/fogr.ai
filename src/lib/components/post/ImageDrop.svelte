@@ -4,8 +4,8 @@
 	// two-way bind from parent
 	export let file: File | null = null;
 	export let previewUrl: string | null = null;
-
-	// display data from parent
+	export let imgLoaded = false;
+	export let title: string = '';
 	export let category: keyof typeof catBase | '' = '';
 	export let isFree = false;
 	export let price: number | '' = '';
@@ -14,7 +14,6 @@
 
 	// state
 	let imgEl: HTMLImageElement | null = null;
-	let imgLoaded = false;
 	let err = '';
 
 	$: bannerBase = category ? catBase[category] : '#6B7280';
@@ -108,7 +107,7 @@
 				{/if}
 				{#if formatted}<span class="chip chip--price">{formatted}</span>{/if}
 			</div>
-			<div class="overlay"><h3 class="title">{$$props?.title || 'Your catchy title'}</h3></div>
+			<div class="overlay"><h3 class="title">{title || 'Your catchy title'}</h3></div>
 		</div>
 		<div class="row actions">
 			<button type="button" class="btn ghost" on:click={clearFile}>Remove image</button>

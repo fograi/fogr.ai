@@ -168,7 +168,7 @@
 
 		<!-- RIGHT: image -->
 		<section class="right">
-			<ImageDrop bind:file bind:previewUrl {category} {isFree} {price} {currency} {locale} />
+			<ImageDrop bind:file bind:previewUrl {title} {category} {isFree} {price} {currency} {locale} />
 		</section>
 	</div>
 
