@@ -24,11 +24,6 @@
 		background: var(--surface);
 		z-index: 50;
 	}
-	.sticky-cta__price {
-		min-width: 84px;
-		font-weight: 800;
-		font-size: 0.95rem;
-	}
 	.btn {
 		display: inline-grid;
 		place-items: center;
@@ -58,11 +53,6 @@
 			flex: 0 0 auto;
 			padding: 10px 14px;
 			font-size: 14px;
-		}
-		.sticky-cta__price {
-			font-size: 0.9rem;
-			font-weight: 700;
-			min-width: 0;
 		}
 	}
 </style>
