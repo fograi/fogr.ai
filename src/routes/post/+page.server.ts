@@ -1,11 +1,8 @@
 import { redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
 
-export const load = async ({ locals, url }) => {
-    console.error('Loading post page');
-  const session = await locals.getSession();
-  console.log('Session:', session);
-  if (!session) {
-    throw redirect(303, `/login?redirectTo=${encodeURIComponent(url.pathname + url.search)}`);
-  }
-  return {};
+export const load: PageServerLoad = async ({ locals, url }) => {
+	const user = await locals.getUser(); // verified with Supabase
+	if (!user) throw redirect(303, `/login?redirectTo=${encodeURIComponent(url.pathname)}`);
+	return { user: { id: user.id, email: user.email } };
 };

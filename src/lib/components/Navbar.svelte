@@ -4,10 +4,10 @@
 
 	export let title = 'fogr.ai';
 	export let links: { href: string; label: string }[] = [
-		{ href: '/', label: 'Home' },
-		{ href: '/browse', label: 'Browse' },
+		{ href: '/about', label: 'About' },
+		{ href: '/', label: 'Ads' },
 		{ href: '/post', label: 'Post ad' },
-		{ href: '/about', label: 'About' }
+		{ href: '/logout', label: 'Logout' }
 	];
 
 	let open = false;
@@ -29,11 +29,9 @@
 		lastY = y;
 		if (y < 10) {
 			hidden = false;
-		}
-		else if (dy < 0) {
+		} else if (dy < 0) {
 			hidden = false; // up → show
-		}
-		else if (dy > 6) {
+		} else if (dy > 6) {
 			hidden = true; // down → hide
 		}
 	}
@@ -118,7 +116,9 @@
 <style>
 	.nav {
 		position: fixed;
-		top: 0; left: 0; right: 0;
+		top: 0;
+		left: 0;
+		right: 0;
 		z-index: 50;
 		background: var(--surface);
 		border-bottom: 1px solid var(--hairline);
