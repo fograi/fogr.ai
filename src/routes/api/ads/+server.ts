@@ -1,4 +1,3 @@
-// src/routes/api/ads/+server.ts
 import type { RequestHandler } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import OpenAI from 'openai';
@@ -57,14 +56,30 @@ function cleanDataUrlBase64(dataUrl: string): string {
 }
 
 // ----------------- OpenAI moderation helpers -----------------
+function shouldFlag(
+	res: OpenAI.Moderations.ModerationCreateResponse & {
+		_request_id?: string | null;
+	}
+): boolean {
+	if (res.results.some((r) => r.flagged)) return true;
+	const scores = res.results[0]?.category_scores ?? {};
+
+	if ((scores['sexual/minors'] ?? 0) > 0.005) return true;
+	if ((scores['sexual'] ?? 0) >= 0.35) return true;
+	if ((scores['violence/graphic'] ?? 0) >= 0.4) return true;
+	if ((scores['hate/threatening'] ?? 0) >= 0.4) return true;
+	if ((scores['harassment/threatening'] ?? 0) >= 0.4) return true;
+
+	return false;
+}
+
 async function moderateText(openai: OpenAI, text: string): Promise<boolean> {
 	try {
 		const res = await openai.moderations.create({
 			model: 'omni-moderation-latest',
 			input: text
 		});
-		console.info(res);
-		return res.results.some((r) => r.flagged);
+		return shouldFlag(res);
 	} catch {
 		return true; // fail closed
 	}
@@ -88,7 +103,7 @@ async function moderateTextAndImage(
 			model: 'omni-moderation-latest',
 			input
 		});
-		return res.results.some((r) => r.flagged);
+		return shouldFlag(res);
 	} catch {
 		return true;
 	}
@@ -101,7 +116,7 @@ async function moderateSingleImage(openai: OpenAI, imageDataUrl: string): Promis
 			model: 'omni-moderation-latest',
 			input
 		});
-		return res.results.some((r) => r.flagged);
+		return shouldFlag(res);
 	} catch {
 		return true;
 	}
@@ -183,12 +198,14 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		} else {
 			// multiple images
 			if (combinedImage) {
+				// special case: if the user provided a combined image
 				// client provided a collage/combined PNG
 				const cleaned = cleanDataUrlBase64(combinedImage);
 				const dataUrl = `data:image/png;base64,${cleaned}`;
 				const flagged = await moderateTextAndImage(openai, combinedText, dataUrl);
 				if (flagged) return errorResponse('Failed AI moderation.');
 			} else {
+				// no combined image, check each file individually
 				// fallback: check first N images individually (cheap + simple)
 				const MAX_CHECK = Math.min(files.length, 3);
 				for (let i = 0; i < MAX_CHECK; i++) {

@@ -1,4 +1,3 @@
-// src/lib/clients/moderationClient.ts
 export type ModerationClient = {
     flagged: boolean;
     loading: boolean;
