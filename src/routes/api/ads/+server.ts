@@ -69,6 +69,14 @@ function shouldFlag(
 	if ((scores['violence/graphic'] ?? 0) >= 0.4) return true;
 	if ((scores['hate/threatening'] ?? 0) >= 0.4) return true;
 	if ((scores['harassment/threatening'] ?? 0) >= 0.4) return true;
+	if ((scores['violence'] ?? 0) >= 0.5) return true;
+	if ((scores['hate'] ?? 0) >= 0.4) return true;
+	if ((scores['harassment'] ?? 0) >= 0.6) return true;
+	if ((scores['illicit/violent'] ?? 0) >= 0.3) return true;
+	if ((scores['illicit'] ?? 0) >= 0.35) return true;
+	if ((scores['self-harm/instructions'] ?? 0) >= 0.15) return true;
+	if ((scores['self-harm/intent'] ?? 0) >= 0.15) return true;
+	if ((scores['self-harm'] ?? 0) >= 0.2) return true;
 
 	return false;
 }
