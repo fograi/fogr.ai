@@ -13,7 +13,6 @@
 	export let title = '';
 	export let description = '';
 	export let price: number | '' = '';
-	export let email = '';
 	export let isFree = false;
 
 	// validation messages from parent (optional)
@@ -79,20 +78,6 @@
 				bind:value={price}
 				disabled={isFree || loading}
 				placeholder={isFree ? '0' : 'e.g., 50'}
-			/>
-		</div>
-	</div>
-
-	<div class="row">
-		<div class="field">
-			<label for="email">Contact email</label>
-			<input
-				id="email"
-				type="email"
-				bind:value={email}
-				placeholder="you@example.com"
-				required
-				disabled={loading}
 			/>
 		</div>
 	</div>

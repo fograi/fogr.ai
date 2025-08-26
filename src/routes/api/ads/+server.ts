@@ -134,6 +134,8 @@ export const POST: RequestHandler = async (event) => {
 	} = await locals.supabase.auth.getUser();
 	if (!user) throw error(401, 'Auth required');
 
+	const email = user.email ?? null;
+
 	try {
 		const env = platform?.env as {
 			ADS_BUCKET?: R2Bucket;
@@ -240,7 +242,8 @@ export const POST: RequestHandler = async (event) => {
 				category,
 				price: priceStr ? Number(priceStr) : 0,
 				currency,
-				image_urls: [] // fill after uploads (if any)
+				image_urls: [],
+				email
 			})
 			.select('id')
 			.single();

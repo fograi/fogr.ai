@@ -7,7 +7,6 @@ export interface AdCard {
     category: string;
     currency?: string;
     locale?: string;
-    email?: string;
   }
   
   export type ApiAdRow = {

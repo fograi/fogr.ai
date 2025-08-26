@@ -13,7 +13,6 @@
 	let description = '';
 	let category: Category | '' = '';
 	let price: number | '' = '';
-	let email = '';
 	let currency = 'EUR';
 	let locale = 'en-IE';
 
@@ -70,7 +69,6 @@
 		if (description.trim().length < MIN_DESC_LENGTH)
 			return `Description must be ≥ ${MIN_DESC_LENGTH} chars.`;
 		if (description.length > MAX_DESC_LENGTH) return `Description ≤ ${MAX_DESC_LENGTH} chars.`;
-		if (!email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'Valid email required.';
 		if (!isFree) {
 			const n = Number(price);
 			if (Number.isNaN(n) || n < 0) return 'Price must be 0 or more.';
@@ -102,7 +100,6 @@
 			form.append('description', description.trim());
 			form.append('category', category as string);
 			form.append('price', String(isFree ? 0 : price || 0));
-			form.append('email', email.trim());
 			form.append('currency', currency);
 			form.append('locale', locale);
 			if (file) form.append('image', file);
@@ -128,7 +125,6 @@
 			description = '';
 			category = '';
 			price = '';
-			email = '';
 			// clear image
 			if (previewUrl) URL.revokeObjectURL(previewUrl);
 			previewUrl = null;
@@ -156,19 +152,25 @@
 				bind:title
 				bind:description
 				bind:price
-				bind:email
 				{isFree}
 				{err}
 				{ok}
 				{loading}
-				titleMax={80}
-				descMax={256}
 			/>
 		</section>
 
 		<!-- RIGHT: image -->
 		<section class="right">
-			<ImageDrop bind:file bind:previewUrl {title} {category} {isFree} {price} {currency} {locale} />
+			<ImageDrop
+				bind:file
+				bind:previewUrl
+				{title}
+				{category}
+				{isFree}
+				{price}
+				{currency}
+				{locale}
+			/>
 		</section>
 	</div>
 
