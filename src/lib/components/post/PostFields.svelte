@@ -15,8 +15,6 @@
 	export let price: number | '' = '';
 	export let email = '';
 	export let isFree = false;
-	export let titleMax = 80; // UI counters (your current values)
-	export let descMax = 256;
 
 	// validation messages from parent (optional)
 	export let err = '';
@@ -39,12 +37,12 @@
 	</div>
 
 	<div class="field">
-		<label for="title">Title <span class="muted">({titleLen}/{titleMax})</span></label>
+		<label for="title">Title <span class="muted">({titleLen}/{MAX_TITLE_LENGTH})</span></label>
 		<input
 			id="title"
 			type="text"
 			bind:value={title}
-			maxlength={titleMax}
+			maxlength={MAX_TITLE_LENGTH}
 			placeholder="e.g., IKEA MALM desk — great condition"
 			required
 			disabled={loading}
@@ -53,11 +51,11 @@
 	</div>
 
 	<div class="field">
-		<label for="description">Description <span class="muted">({descLen}/{descMax})</span></label>
+		<label for="description">Description <span class="muted">({descLen}/{MAX_DESC_LENGTH})</span></label>
 		<textarea
 			id="description"
 			bind:value={description}
-			maxlength={descMax}
+			maxlength={MAX_DESC_LENGTH}
 			rows="6"
 			placeholder="Key details, pickup area, condition…"
 			required
