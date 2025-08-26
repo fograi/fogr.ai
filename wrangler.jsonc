@@ -25,7 +25,7 @@
 	// ✅ R2 bucket binding available at platform.env.ADS_BUCKET
 	"r2_buckets": [
 	  {
-		"binding": "R2_BUCKET",
+		"binding": "ADS_BUCKET",
 		"bucket_name": "fograi" // <-- your bucket name
 	  }
 	],
