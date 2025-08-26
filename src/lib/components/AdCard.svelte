@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { catBase, catIcon } from '$lib/constants';
 
 	export let id: number | string;
 	export let title: string;
@@ -12,12 +11,9 @@
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 
-	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
-	$: bannerBase = catBase[category?.trim?.() ?? ''] ?? '#6B7280';
-
 	const href = `/ad/${id}`;
 	$: formattedPrice =
-		typeof price === 'number'
+		typeof price === 'number' && price > -1
 			? new Intl.NumberFormat(locale, {
 					style: 'currency',
 					currency,
