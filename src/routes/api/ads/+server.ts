@@ -135,7 +135,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 
 	try {
 		const env = platform?.env as {
-			R2_BUCKET?: R2Bucket;
+			ADS_BUCKET?: R2Bucket;
 			R2_PUBLIC_BASE?: string;
 			OPENAI_API_KEY?: string;
 		};
@@ -144,12 +144,12 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		if (!openAiApiKey) return errorResponse('Missing OPENAI_API_KEY', 500);
 
 		// R2 + public base from CF env
-		const bucket = env?.R2_BUCKET;
+		const bucket = env?.ADS_BUCKET;
 		if (!bucket || typeof bucket.put !== 'function') {
 			console.warn('R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.');
 			return errorResponse('Storage temporarily unavailable', 503);
 		}
-		const publicBase = (env?.R2_PUBLIC_BASE ?? '').replace(/\/+$/, '');
+		const publicBase = env?.R2_PUBLIC_BASE?.replace(/\/$/, '');
 		if (!publicBase) return errorResponse('Missing R2_PUBLIC_BASE', 500);
 
 		const openai = new OpenAI({ apiKey: openAiApiKey });
@@ -243,7 +243,6 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 			})
 			.select('id')
 			.single();
-		console.error('inserted', inserted, 'insErr', insErr);
 		if (insErr || !inserted) {
 			return errorResponse('Failed to save ad (insert).', 500);
 		}
