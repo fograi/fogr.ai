@@ -1,4 +1,5 @@
 export interface AdCard {
+    id: string;
     title: string;
     price: number;
     img: string;

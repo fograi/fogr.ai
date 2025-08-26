@@ -53,23 +53,28 @@
 				imgLoaded = true;
 				isPortrait = imgEl.naturalHeight > imgEl.naturalWidth;
 			} else {
-				// broken src in cache
 				onImgError();
 			}
 		}
 	});
 
 	// when the src changes, reset loaded state
-	$: if (imgEl && img) {
+	let lastSrc: string | undefined;
+	$: if (img && img !== lastSrc) {
 		imgLoaded = false;
+		lastSrc = img;
 	}
 </script>
 
 <li class="card">
 	<a class="link-wrap" {href} aria-label={`View ad: ${title}`}>
 		<div class="card__inner">
+			<div class="hdr">
+				<span class="hdr__cat">{category || 'Classifieds'}</span>
+			</div>
+
 			{#if showImg}
-				<div class="media" class:portrait={isPortrait} style="--media-tint:{bannerBase}">
+				<div class="media">
 					<img
 						bind:this={imgEl}
 						src={img}
@@ -78,63 +83,67 @@
 						decoding="async"
 						on:load={onImgLoad}
 						on:error={onImgError}
-						class:loaded={imgLoaded}
+						class:loading={!imgLoaded}
 					/>
-					<div class="chip-row">
-						{#if category}
-							<span class="chip chip--cat" style="--chip:{bannerBase}">
-								<span aria-hidden="true">{bannerIcon}</span>
-								<span class="chip__label">{category}</span>
-							</span>
-						{/if}
-						{#if formattedPrice}<span class="chip chip--price">{formattedPrice}</span>{/if}
-					</div>
-					<div class="overlay"><h3 class="title">{title}</h3></div>
 				</div>
-				{#if description }<p class="desc">{description}</p>{/if}
-			{:else}
-				<!-- TEXT-ONLY FALLBACK -->
-				<div class="text-body">
-					<div class="chip-row chip-row--text">
-						{#if category}
-							<span class="chip chip--cat" style="--chip:{bannerBase}">
-								<span aria-hidden="true">{bannerIcon}</span>
-								<span class="chip__label">{category}</span>
-							</span>
-						{/if}
-						{#if formattedPrice}<span class="chip chip--price">{formattedPrice}</span>{/if}
-					</div>
-					<h3 class="title title--text">{title}</h3>
-					{#if description}<p class="desc">{description}</p>{/if}
-				</div>
+			{/if}
+
+			<h3 class="title title--text">{title}</h3>
+			{#if description}<p class="desc">{description}</p>{/if}
+
+			<!-- Price pinned to bottom-right -->
+			{#if formattedPrice}
+				<span class="price">{formattedPrice}</span>
 			{/if}
 		</div>
 	</a>
 </li>
 
 <style>
+	/* Base paper card */
 	.card {
-		border: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
-		border-radius: 16px; /* slightly larger radius */
-		background: linear-gradient(
-			180deg,
-			color-mix(in srgb, var(--surface) 94%, transparent),
-			var(--surface)
-		);
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-		transition:
-			transform 0.18s ease,
-			box-shadow 0.18s ease,
-			border-color 0.18s ease;
-	}
-	.card:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+		background: #fffdf6; /* warm off-white */
+		border: 1px solid #1112; /* hairline ink */
+		border-radius: 0; /* square */
+		box-shadow:
+			inset 0 0 0 1px #0000000f,
+			/* plate edge */ 0 1px 0 #0001; /* slight lift */
+		color: #111;
 	}
 
+	/* Headlines feel printed */
+	.card .title {
+		font-weight: 800;
+		letter-spacing: 0.01em;
+		text-align: center;
+	}
+	
+	.card:hover {
+		transform: none;
+		box-shadow: none;
+	} /* no floaty hover */
+
 	.card__inner {
-		padding: 8px 12px 12px;
+		padding: 0 12px 44px; /* leave space for bottom-right price */
 		position: relative;
+	}
+
+	/* Full-width black header */
+	.hdr {
+		margin: 0 -12px; /* bleed to card edges */
+		background: #000; /* B&W header */
+		color: #fff;
+		border-bottom: 1px solid #000;
+		text-align: center; /* center contents */
+	}
+
+	.hdr__cat {
+		display: inline-block; /* shrink to text width */
+		padding: 8px 12px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
+		font-size: 0.82rem;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -153,25 +162,23 @@
 		outline: 2px solid var(--link);
 		outline-offset: 2px;
 	}
-	/* MEDIA becomes the hero; modern zoom */
+	/* Image: full width, no cropping, square corners */
 	.media {
-		position: relative;
-		aspect-ratio: 3/2; /* a touch taller than 16/9 feels more editorial */
-		overflow: hidden;
-		margin-bottom: 10px;
-		isolation: isolate; /* chips/overlay stack cleanly */
+		margin: 8px 0 6px;
 	}
 	.media img {
+		display: block;
 		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transition:
-			opacity 0.2s ease,
-			transform 0.25s ease;
-		opacity: 1;
+		height: auto;
+		object-fit: contain; /* never crop */
+		filter: none; /* keep colour; set grayscale(100%) if you want */
+		transition: opacity 0.2s;
 	}
-	.media img:not(.loaded) {
+	.media img.loading {
 		opacity: 0;
+	}
+	.card:hover .media img {
+		transform: scale(1.03);
 	}
 
 	/* (optional) keep your hover zoom */
@@ -191,134 +198,72 @@
 	.card:hover .media img {
 		transform: scale(1.03);
 	}
-	.media.portrait {
-		aspect-ratio: 3/4;
-	}
-	.media.portrait img {
-		object-fit: contain;
-		background: color-mix(in srgb, var(--bg) 85%, transparent);
-	}
 
-	/* CHIPS over image */
-	.chip-row {
-		position: absolute;
-		inset: 8px 8px auto 8px; /* top area */
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 8px;
-		pointer-events: none; /* non-interactive label look */
-		z-index: 2;
-	}
-	.chip {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 4px 10px;
-		border-radius: 999px;
-		font-size: 0.78rem;
-		font-weight: 700;
-		line-height: 1;
-		border: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
-		background: color-mix(in srgb, var(--bg) 55%, transparent);
-		backdrop-filter: saturate(1.2) blur(6px); /* contemporary, still subtle */
-		color: color-mix(in srgb, var(--fg) 86%, transparent);
-	}
-	.chip--cat {
-		background: color-mix(in srgb, var(--chip) 22%, var(--bg));
-	}
-	.chip--price {
-		background: color-mix(in srgb, #0ea5e9 22%, var(--bg));
-	} /* calm blue */
-
-	/* text-only container */
-	.text-body {
-		border-radius: 14px;
-		background: linear-gradient(
-			135deg,
-			color-mix(in srgb, var(--bg) 96%, transparent),
-			color-mix(in srgb, var(--fg) 4%, transparent)
-		);
-		padding: 10px 12px;
-	}
-
-	/* static chips row for text-only (not absolute) */
-	.chip-row--text {
-		position: static;
-		inset: auto;
-		margin: 2px 0 8px;
-		display: flex;
-		justify-content: space-between;
-		gap: 8px;
-	}
-
-	/* title color when not overlaid on a photo */
-	.title--text {
-		color: var(--fg);
-		margin: 0 0 4px;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-
-	/* full-page: collapse to single column when no image */
-	.content.no-media {
-		display: block; /* simpler flow for long text */
-	}
-	@container (min-width: 640px) {
-		.content.no-media {
-			display: grid; /* keep nice rhythm on wide screens */
-			grid-template-columns: 1fr;
-		}
-	}
-
-	/* optional: tint text-only background by category */
-	.text-body {
-		--tint: color-mix(in srgb, var(--chip, #6b7280) 10%, transparent);
-		background:
-			linear-gradient(180deg, var(--tint), transparent 60%),
-			linear-gradient(
-				135deg,
-				color-mix(in srgb, var(--bg) 96%, transparent),
-				color-mix(in srgb, var(--fg) 4%, transparent)
-			);
-	}
-
-	/* TITLE overlay on the image bottom */
-	.overlay {
-		position: absolute;
-		inset: auto 0 0 0;
-		z-index: 1;
-		padding: 10px 12px 12px;
-		background: linear-gradient(to top, color-mix(in srgb, #000 52%, transparent), transparent 70%);
-		color: #fff;
-	}
 	.title {
-		margin: 0;
+		margin: 4px 0 2px;
 		font-size: 1rem;
 		font-weight: 800;
 		line-height: 1.25;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
 	}
-
-	/* DESC stays below, lighter */
 	.desc {
+		margin: 0 0 0;
 		font-size: 0.92rem;
 		line-height: 1.35;
-		margin: 2px 0 0;
-		color: color-mix(in srgb, var(--fg) 75%, transparent);
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
 		display: -webkit-box;
 		-webkit-box-orient: vertical;
-		overflow: hidden;
+		overflow: visible;
+		word-break: break-word;
 	}
-	/* Dark mode tuning */
+	/* Price badge: bottom-right, monochrome */
+	.price {
+		position: absolute;
+		right: 8px;
+		bottom: 8px;
+		padding: 4px 8px;
+		background: #000;
+		color: #fff;
+		font-weight: 800;
+		font-size: 0.85rem;
+		border: 1px solid #000;
+		line-height: 1;
+	}
 	@media (prefers-color-scheme: dark) {
-		.chip {
-			border-color: color-mix(in srgb, #fff 10%, transparent);
+		.card {
+			background: #191b20; /* deep charcoal */
+			border-color: #e5e9ee; /* subtle hairline */
+			box-shadow:
+				inset 0 0 0 1px #0000003a,
+				0 1px 0 #0000;
 		}
-		.chip--price {
-			background: color-mix(in srgb, #38bdf8 24%, var(--bg));
+
+		.hdr {
+			background: #e5e9ee;
+			color: #121418;
+			border-bottom-color: #000;
+		}
+
+		.title {
+			color: #e5e9ee;
+		} /* strong headline */
+		.desc {
+			color: #e5e9ee;
+		} /* softer body ink */
+
+		.price {
+			background: #e5e9ee;
+			color: #121418;
+			border-color: #e5e9ee;
+		}
+
+		/* tame bright photos in dark mode (keeps color) */
+		.media img {
+			filter: brightness(0.96) contrast(1.05) saturate(0.98);
+		}
+
+		/* focus ring that’s visible on dark */
+		.link-wrap:focus-visible {
+			outline-color: #8ab4ff;
 		}
 	}
 </style>

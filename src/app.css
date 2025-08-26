@@ -1,6 +1,6 @@
 :root {
 	color-scheme: light dark; /* hint UA for form controls, etc. */
-	--bg: #ececf3; /* light grey */
+	--bg: #fffdf6; /* light grey */
 	--fg: #111; /* near-black text */
 	--link: #0a58ca;
 	/* derived tokens so components don't need their own dark-mode blocks */
