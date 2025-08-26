@@ -126,7 +126,7 @@ async function moderateSingleImage(openai: OpenAI, imageDataUrl: string): Promis
 	}
 }
 
-export const POST: RequestHandler = async ({ request, locals, platform }) => {
+export const POST: RequestHandler = async ({ event, request, locals, platform }) => {
 	// Auth
 	const {
 		data: { user }
@@ -144,7 +144,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		if (!openAiApiKey) return errorResponse('Missing OPENAI_API_KEY', 500);
 
 		// R2 + public base from CF env
-		const bucket = env?.ADS_BUCKET;
+		const bucket = event.env?.ADS_BUCKET;
 		if (!bucket || typeof bucket.put !== 'function') {
 			console.warn('R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.');
 			return errorResponse('Storage temporarily unavailable', 503);
