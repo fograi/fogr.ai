@@ -1,4 +1,4 @@
-import type { RequestHandler } from '@sveltejs/kit';
+import type { RequestHandler } from './$types'; 
 import type { R2Bucket } from '@cloudflare/workers-types';
 import { error, json } from '@sveltejs/kit';
 import OpenAI from 'openai';
@@ -126,7 +126,8 @@ async function moderateSingleImage(openai: OpenAI, imageDataUrl: string): Promis
 	}
 }
 
-export const POST: RequestHandler = async ({ event, request, locals, platform }) => {
+export const POST: RequestHandler = async (event) => {
+	const { request, locals, platform } = event;
 	// Auth
 	const {
 		data: { user }
@@ -144,7 +145,7 @@ export const POST: RequestHandler = async ({ event, request, locals, platform })
 		if (!openAiApiKey) return errorResponse('Missing OPENAI_API_KEY', 500);
 
 		// R2 + public base from CF env
-		const bucket = event.env?.ADS_BUCKET;
+		const bucket = env?.ADS_BUCKET;
 		if (!bucket || typeof bucket.put !== 'function') {
 			console.warn('R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.');
 			return errorResponse('Storage temporarily unavailable', 503);
