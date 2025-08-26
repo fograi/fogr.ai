@@ -3,12 +3,10 @@ import { json } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ params, locals, url }) => {
 	const id = params.slug;
-	
+
 	// Cloudflare edge cache if available (safe no-op locally)
 	const cfCache = globalThis.caches?.default;
-	const cacheKey = cfCache
-		? new Request(new URL(`/api/ads/${id}`, url.origin), { method: 'GET' })
-		: undefined;
+	const cacheKey = cfCache ? new Request(url.href, { method: 'GET' }) : undefined;
 
 	// 1) Try cache
 	if (cfCache && cacheKey) {
@@ -41,7 +39,7 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 	const resp = json(
 		{ ad: data },
 		{
-			status: 404,
+			status: 200,
 			headers: {
 				'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
 				ETag: `W/"ad-${data.id}-${data.updated_at ?? data.created_at}"`
