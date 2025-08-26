@@ -304,3 +304,39 @@ export const POST: RequestHandler = async (event) => {
 		return errorResponse(msg, 500);
 	}
 };
+
+// === add GET handler for listing ads ===
+export const GET: RequestHandler = async (event) => {
+	const { locals, url } = event;
+  
+	// Cloudflare edge cache
+	const cfCache = globalThis.caches?.default;
+	const cacheKey = new Request(url.toString(), { headers: { accept: 'application/json' } });
+  
+	if (cfCache) {
+	  const cached = await cfCache.match(cacheKey);
+	  if (cached) return cached;
+	}
+  
+	const { data, error } = await locals.supabase
+	  .from('ads')
+	  .select('id,title,description,price,currency,category,image_urls,created_at')
+	  .order('created_at', { ascending: false })
+	  .limit(100);
+  
+	if (error) {
+	  return json({ success: false, message: 'DB error' }, { status: 500 });
+	}
+  
+	const res = json(
+	  { success: true, ads: data ?? [] },
+	  {
+		headers: {
+		  'cache-control': 'public, s-maxage=300, max-age=0, stale-while-revalidate=86400'
+		}
+	  }
+	);
+  
+	if (cfCache) await cfCache.put(cacheKey, res.clone());
+	return res;
+  };

@@ -1,29 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-
-export interface AdCard {
-  title: string;
-  price: number;
-  img: string;
-  description: string;
-  category: string;
-  currency?: string;
-  locale?: string;
-  email?: string;
-}
-
-type ApiAdRow = {
-  id: string;
-  user_id: string;
-  title: string;
-  description: string;
-  category: string;
-  price: number;
-  currency: string | null;
-  image_urls: string[] | null;
-  created_at: string;
-  updated_at: string | null;
-};
+import type { ApiAdRow, AdCard } from '../../../types/ad-types';
 
 export const load: PageServerLoad = async ({ params, fetch, setHeaders }) => {
   const res = await fetch(`/api/ads/${params.slug}`);
