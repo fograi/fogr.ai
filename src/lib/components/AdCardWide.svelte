@@ -14,7 +14,7 @@
 	export let email: string = '';
 
 	// Derived
-	$: bannerBase = catBase[category?.trim?.() ?? ''] ?? '#6B7280';
+	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
 	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
 	$: formattedPrice =
 		typeof price === 'number'
@@ -68,14 +68,14 @@
 	}
 </script>
 
-<article class="ad-wide">
+<article class="listing-wide">
 	<div class="content" class:no-media={!showImg}>
 		{#if showImg}
 			<!-- LEFT: image -->
 			<div class="media" class:portrait={isPortrait} style="--media-tint:{bannerBase}">
 				<img
 					bind:this={imgEl}
-					src={PUBLIC_R2_BASE}{img}
+					src="{PUBLIC_R2_BASE}{img}"
 					alt={title}
 					loading="lazy"
 					decoding="async"
@@ -129,7 +129,7 @@
 	</div>
 
 	<!-- Mobile sticky CTA -->
-	<div class="sticky-cta" role="region" aria-label="Ad actions">
+	<div class="sticky-cta" role="region" aria-label="Listing actions">
 		<div class="sticky-cta__price">{displayedPrice}</div>
 		{#if email}<a class="btn primary btn--cta" href={mailtoHref}>Contact</a>{/if}
 		<button type="button" class="btn" on:click={share}>Share</button>
@@ -137,7 +137,7 @@
 </article>
 
 <style>
-	.ad-wide {
+	.listing-wide {
 		container-type: inline-size;
 		border: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
 		border-radius: 16px;
@@ -149,6 +149,10 @@
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 		overflow: hidden;
 		padding-bottom: calc(80px + env(safe-area-inset-bottom)); /* room for mobile CTA */
+	}
+
+	.listing-wide:hover .media img {
+		transform: scale(1.03);
 	}
 	.content {
 		display: grid;
@@ -181,10 +185,6 @@
 			opacity 0.2s ease,
 			transform 0.25s ease;
 		opacity: 1;
-	}
-
-	.ad-wide:hover .media img {
-		transform: scale(1.03);
 	}
 	.media.portrait {
 		aspect-ratio: 3/4;
