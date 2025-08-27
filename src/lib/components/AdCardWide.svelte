@@ -41,31 +41,24 @@
 	// Image handling
 	let isPortrait = false;
 	let showImg = !!img;
-	let imgLoaded = false;
 	let imgEl: HTMLImageElement | null = null;
 	$: showImg = !!img;
 
 	function onImgError() {
 		showImg = false;
 		isPortrait = false;
-		imgLoaded = false;
 	}
 	function onImgLoad(e: Event) {
 		const i = e.currentTarget as HTMLImageElement;
 		isPortrait = i.naturalHeight > i.naturalWidth;
-		imgLoaded = true;
 	}
 	onMount(() => {
 		if (imgEl && imgEl.complete) {
 			if (imgEl.naturalWidth > 0) {
-				imgLoaded = true;
 				isPortrait = imgEl.naturalHeight > imgEl.naturalWidth;
 			} else onImgError();
 		}
 	});
-	$: if (imgEl && img) {
-		imgLoaded = false;
-	}
 
 	async function share() {
 		try {
@@ -88,7 +81,6 @@
 					decoding="async"
 					on:load={onImgLoad}
 					on:error={onImgError}
-					class:loaded={imgLoaded}
 				/>
 				<div class="chip-row">
 					{#if category}
@@ -190,7 +182,7 @@
 			transform 0.25s ease;
 		opacity: 1;
 	}
-	
+
 	.ad-wide:hover .media img {
 		transform: scale(1.03);
 	}
