@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { PUBLIC_R2_BASE } from '$env/static/public';
 
 	export let id: number | string;
 	export let title: string;
@@ -7,7 +8,6 @@
 	export let img: string | undefined;
 	export let description: string;
 	export let category: string;
-
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 
@@ -73,7 +73,7 @@
 				<div class="media">
 					<img
 						bind:this={imgEl}
-						src={img}
+						src={PUBLIC_R2_BASE}{img}
 						alt={title}
 						loading="lazy"
 						decoding="async"
