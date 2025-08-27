@@ -139,7 +139,7 @@ export const POST: RequestHandler = async (event) => {
 	try {
 		const env = platform?.env as {
 			ADS_BUCKET?: R2Bucket;
-			R2_PUBLIC_BASE?: string;
+			PUBLIC_R2_BASE?: string;
 			OPENAI_API_KEY?: string;
 		};
 		// OpenAI key from CF env (you already used platform.env — keep that)
@@ -152,8 +152,8 @@ export const POST: RequestHandler = async (event) => {
 			console.warn('R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.');
 			return errorResponse('Storage temporarily unavailable', 503);
 		}
-		const publicBase = env?.R2_PUBLIC_BASE?.replace(/\/$/, '');
-		if (!publicBase) return errorResponse('Missing R2_PUBLIC_BASE', 500);
+		const publicBase = env?.PUBLIC_R2_BASE?.replace(/\/$/, '');
+		if (!publicBase) return errorResponse('Missing PUBLIC_R2_BASE', 500);
 
 		const openai = new OpenAI({ apiKey: openAiApiKey });
 
@@ -242,7 +242,7 @@ export const POST: RequestHandler = async (event) => {
 				category,
 				price: priceStr ? Number(priceStr) : 0,
 				currency,
-				image_urls: [],
+				image_keys: [],
 				email
 			})
 			.select('id')
@@ -254,7 +254,7 @@ export const POST: RequestHandler = async (event) => {
 		const adId: string = inserted.id;
 
 		// === NEW === 2) Upload to R2 and collect public URLs
-		let image_urls: string[] = [];
+		let image_keys: string[] = [];
 		if (files.length > 0) {
 			const uploads = files.map(async (file, idx) => {
 				const ext =
@@ -276,15 +276,15 @@ export const POST: RequestHandler = async (event) => {
 					}
 				});
 
-				return `${publicBase}/${key}`;
+				return key;
 			});
 
-			image_urls = await Promise.all(uploads);
+			image_keys = await Promise.all(uploads);
 
-			// === NEW === 3) Update row with image URLs
+			// === NEW === 3) Update row with image keys
 			const { error: updErr } = await locals.supabase
 				.from('ads')
-				.update({ image_urls })
+				.update({ image_keys })
 				.eq('id', adId);
 
 			if (updErr) {
@@ -298,7 +298,7 @@ export const POST: RequestHandler = async (event) => {
 				success: true,
 				id: adId,
 				message: 'Ad submitted successfully!',
-				image_urls
+				image_keys
 			},
 			{ status: 200 }
 		);
@@ -323,7 +323,7 @@ export const GET: RequestHandler = async (event) => {
   
 	const { data, error } = await locals.supabase
 	  .from('ads')
-	  .select('id,title,description,price,currency,category,image_urls,created_at')
+	  .select('id,title,description,price,currency,category,image_keys,created_at')
 	  .order('created_at', { ascending: false })
 	  .limit(100);
   

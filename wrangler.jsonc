@@ -19,7 +19,7 @@
 	"vars": {
 	  // Make sure you included a trailing slash and this domain is attached
 	  // to the same R2 bucket with public access enabled
-	  "R2_PUBLIC_BASE": "https://cdn.fogr.ai/"
+	  "PUBLIC_R2_BASE": "https://cdn.fogr.ai/"
 	},
   
 	// ✅ R2 bucket binding available at platform.env.ADS_BUCKET

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { catBase, catIcon } from '$lib/constants';
+	import { PUBLIC_R2_BASE } from '$env/static/public';
 
 	// Props
 	export let title: string;
@@ -81,7 +82,7 @@
 			<div class="media" class:portrait={isPortrait} style="--media-tint:{bannerBase}">
 				<img
 					bind:this={imgEl}
-					src={img}
+					src={PUBLIC_R2_BASE}{img}
 					alt={title}
 					loading="lazy"
 					decoding="async"

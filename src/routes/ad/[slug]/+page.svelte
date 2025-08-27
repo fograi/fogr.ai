@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AdCardWide from '$lib/components/AdCardWide.svelte';
-	import type { AdCard } from './+page.server';
+	import type { AdCard } from '../../../types/ad-types';
 	export let data: { ad: AdCard };
 </script>
 

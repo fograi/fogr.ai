@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		id: ad.id,
 		title: ad.title,
 		price: Number(ad.price ?? -1),
-		img: ad.image_urls?.[0] ?? '',
+		img: ad.image_keys?.[0] ?? '',
 		description: ad.description ?? '',
 		category: ad.category ?? '',
 		currency: ad.currency ?? undefined

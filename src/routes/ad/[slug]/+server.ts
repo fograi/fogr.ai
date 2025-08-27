@@ -18,7 +18,7 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 	const { data, error } = await locals.supabase
 		.from('ads')
 		.select(
-			'id, user_id, title, description, category, price, currency, image_urls, created_at, updated_at'
+			'id, user_id, title, description, category, price, currency, image_keys, created_at, updated_at'
 		)
 		.eq('id', id)
 		.maybeSingle();

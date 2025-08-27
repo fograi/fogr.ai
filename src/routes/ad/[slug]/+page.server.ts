@@ -11,9 +11,10 @@ export const load: PageServerLoad = async ({ params, fetch, setHeaders }) => {
   const { ad } = (await res.json()) as { ad: ApiAdRow };
 
   const mapped: AdCard = {
+    id: ad.id,
     title: ad.title,
     price: ad.price,
-    img: ad.image_urls?.[0] ?? '',
+    img: ad.image_keys?.[0] ?? '',
     description: ad.description,
     category: ad.category,
     currency: ad.currency ?? undefined

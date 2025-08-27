@@ -17,7 +17,7 @@ export interface AdCard {
     category: string;
     price: number;
     currency: string | null;
-    image_urls: string[] | null;
+    image_keys: string[] | null;
     created_at: string;
     updated_at: string | null;
   };
