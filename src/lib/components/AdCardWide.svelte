@@ -190,9 +190,7 @@
 			transform 0.25s ease;
 		opacity: 1;
 	}
-	.media img:not(.loaded) {
-		opacity: 0;
-	}
+	
 	.ad-wide:hover .media img {
 		transform: scale(1.03);
 	}
