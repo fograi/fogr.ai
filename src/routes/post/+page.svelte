@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { catBase, catIcon } from '$lib/constants';
 	import { type Category } from '$lib/constants';
 
 	import PostFields from '$lib/components/post/PostFields.svelte';
