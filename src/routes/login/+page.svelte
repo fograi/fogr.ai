@@ -69,12 +69,167 @@
 	});
 </script>
 
-<h1>Sign in</h1>
+<!-- replace markup below your </script> -->
+<section class="auth-wrap">
+	<div class="card">
+		<header class="header">
+			<h1>Sign in</h1>
+			<p class="sub">We’ll email you a magic link to sign in.</p>
+		</header>
 
-<form on:submit|preventDefault={sendLink} aria-busy={sending}>
-	<input type="email" bind:value={email} placeholder="you@example.com" required />
-	<button type="submit" disabled={sending}>{sending ? 'Sending…' : 'Send magic link'}</button>
-</form>
+		<form on:submit|preventDefault={sendLink} aria-busy={sending} class="form">
+			<label for="email">Email</label>
+			<input
+				id="email"
+				type="email"
+				bind:value={email}
+				placeholder="you@example.com"
+				required
+				autocomplete="email"
+				inputmode="email"
+				autofocus
+				aria-invalid={!!err}
+			/>
 
-{#if msg}<p aria-live="polite">{msg}</p>{/if}
-{#if err}<p style="color:#b91c1c" aria-live="assertive">{err}</p>{/if}
+			<button type="submit" disabled={sending || !email}>
+				{sending ? 'Sending…' : 'Send magic link'}
+			</button>
+		</form>
+
+		{#if msg}<p class="msg" aria-live="polite">{msg}</p>{/if}
+		{#if err}<p class="err" aria-live="assertive">{err}</p>{/if}
+
+		<footer class="foot">
+			<small>
+				By continuing you agree to our <a href="/terms">Terms</a> and
+				<a href="/privacy">Privacy</a>.
+			</small>
+		</footer>
+	</div>
+</section>
+
+<style>
+	:root {
+		--bg: hsl(0 0% 98%);
+		--card: #fff;
+		--text: hsl(222 47% 11%);
+		--muted: hsl(215 16% 47%);
+		--border: hsl(214 32% 91%);
+		--brand: hsl(0, 0%, 0%);
+		--brand-pressed: hsl(221 73% 47%);
+		--danger: #b91c1c;
+		--radius: 14px;
+		--shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+	}
+
+	.auth-wrap {
+		display: grid;
+		place-items: center;
+		background: var(--bg);
+		padding: 24px;
+	}
+
+	.card {
+		width: min(480px, 100%);
+		background: var(--card);
+		color: var(--text);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow);
+		padding: 28px;
+	}
+
+	.header {
+		margin-bottom: 18px;
+	}
+	h1 {
+		margin: 0 0 6px 0;
+		font-size: 1.6rem;
+		line-height: 1.2;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+	}
+	.sub {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.95rem;
+	}
+
+	.form {
+		display: grid;
+		gap: 12px;
+		margin-top: 10px;
+	}
+	.form > * {
+		width: 100%;
+	}
+	.form input[type='email'],
+	.form button[type='submit'] {
+		width: 100%;
+		box-sizing: border-box; /* 🔑 ensures borders + padding are included */
+	}
+
+	label {
+		font-size: 0.9rem;
+		color: var(--muted);
+	}
+
+	input[type='email'] {
+		width: 100%;
+		height: 44px;
+		padding: 0 12px;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		font-size: 1rem;
+		outline: none;
+		transition:
+			box-shadow 0.15s,
+			border-color 0.15s;
+	}
+	input[type='email']:focus {
+		border-color: var(--brand);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent);
+	}
+
+	button[type='submit'] {
+		height: 44px;
+		border: 0;
+		border-radius: 10px;
+		background: var(--brand);
+		color: white;
+		font-weight: 600;
+		font-size: 1rem;
+		cursor: pointer;
+		transition:
+			transform 0.02s ease,
+			background 0.15s ease,
+			opacity 0.15s ease;
+	}
+	button[disabled] {
+		opacity: 0.6;
+		cursor: default;
+	}
+	button:not([disabled]):active {
+		transform: translateY(1px);
+		background: var(--brand-pressed);
+	}
+
+	.msg {
+		margin: 12px 0 0;
+		color: var(--muted);
+	}
+	.err {
+		margin: 12px 0 0;
+		color: var(--danger);
+	}
+
+	.foot {
+		margin-top: 16px;
+		color: var(--muted);
+		font-size: 0.85rem;
+	}
+	.foot a {
+		color: inherit;
+		text-decoration: underline;
+	}
+</style>
