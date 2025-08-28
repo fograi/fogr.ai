@@ -313,7 +313,7 @@ export const GET: RequestHandler = async (event) => {
 	const { locals, url } = event;
 
 	// Cloudflare edge cache
-	const cfCache = caches?.default;
+	const cfCache = globalThis.caches?.default as Cache | undefined;
 	const cacheKey = cfCache ? new Request(new URL(url.pathname + url.search, url.origin), { method:'GET' }) : undefined;
   
 	if (cfCache && cacheKey) {
