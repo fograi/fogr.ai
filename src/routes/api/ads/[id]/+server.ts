@@ -1,3 +1,4 @@
+// src/routes/api/ads/[id]/+server.ts
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 

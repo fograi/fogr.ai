@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import type { ApiAdRow, AdCard } from '../../../types/ad-types';
+import type { ApiAdRow, AdCard } from '../../../../types/ad-types';
 
 export const load: PageServerLoad = async ({ params, fetch, }) => {
 	const res = await fetch(`/api/ads/${params.slug}`);
