@@ -9,13 +9,14 @@
 	const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
 	let email = '';
-	let msg = '';
+	let success = false;
 	let err = '';
 	let sending = false;
 	let redirected = false;
 
 	async function sendLink() {
-		msg = err = '';
+		success = false;
+		err = '';
 		if (!email) {
 			err = 'Enter your email';
 			return;
@@ -32,7 +33,7 @@
 		});
 
 		if (error) err = error.message;
-		else msg = 'Check your email for the login link.';
+		else success = true;
 		sending = false;
 	}
 
@@ -73,31 +74,36 @@
 <section class="auth-wrap">
 	<div class="card">
 		<header class="header">
-			<h1>Sign in</h1>
-			<p class="sub">We’ll email you a magic link to sign in.</p>
+			{#if success}
+				<h1>Check your email</h1>
+				<h2>✅</h2>
+			{:else}
+				<h1>Login</h1>
+				<p class="sub">We'll email you a link to login.</p>
+			{/if}
 		</header>
 
-		<form on:submit|preventDefault={sendLink} aria-busy={sending} class="form">
-			<label for="email">Email</label>
-			<input
-				id="email"
-				type="email"
-				bind:value={email}
-				placeholder="you@example.com"
-				required
-				autocomplete="email"
-				inputmode="email"
-				autofocus
-				aria-invalid={!!err}
-			/>
-
-			<button type="submit" disabled={sending || !email}>
-				{sending ? 'Sending…' : 'Send magic link'}
-			</button>
-		</form>
-
-		{#if msg}<p class="msg" aria-live="polite">{msg}</p>{/if}
-		{#if err}<p class="err" aria-live="assertive">{err}</p>{/if}
+		{#if success}
+			<p class="success" aria-live="polite">We've emailed you a link to login.</p>
+		{:else}
+			<form on:submit|preventDefault={sendLink} aria-busy={sending} class="form">
+				<label for="email" class="sr-only">Email</label>
+				<input
+					id="email"
+					type="email"
+					bind:value={email}
+					placeholder="you@example.com"
+					required
+					autocomplete="email"
+					inputmode="email"
+					aria-invalid={!!err}
+				/>
+				{#if err}<p class="err" aria-live="assertive">{err}</p>{/if}
+				<button type="submit" disabled={sending || !email}>
+					{sending ? 'Sending…' : 'Send link'}
+				</button>
+			</form>
+		{/if}
 
 		<footer class="foot">
 			<small>
@@ -122,6 +128,18 @@
 		--shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 	}
 
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
 	.auth-wrap {
 		display: grid;
 		place-items: center;
@@ -137,6 +155,15 @@
 		border-radius: var(--radius);
 		box-shadow: var(--shadow);
 		padding: 28px;
+		text-align: center;
+	}
+
+	.header,
+	.form,
+	.success,
+	.err,
+	.foot {
+		text-align: center; /* ⬅️ Ensure these children are centered */
 	}
 
 	.header {
@@ -170,6 +197,8 @@
 	}
 
 	label {
+		display: block; /* ⬅️ So it doesn’t shrink to left */
+		margin-bottom: 4px;
 		font-size: 0.9rem;
 		color: var(--muted);
 	}
@@ -214,12 +243,12 @@
 		background: var(--brand-pressed);
 	}
 
-	.msg {
+	.success {
 		margin: 12px 0 0;
 		color: var(--muted);
 	}
 	.err {
-		margin: 12px 0 0;
+		margin: 6px 0 0;
 		color: var(--danger);
 	}
 
