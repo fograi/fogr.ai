@@ -90,25 +90,29 @@
 	tabindex="0"
 >
 	{#if previewUrl}
-		<div class="media">
+		<!-- Banner header above image (centered) -->
+		<div class="banner" style="--banner:{bannerBase}">
+			<span class="banner__icon">{bannerIcon}</span>
+			<span class="banner__label">{(category || '').toUpperCase()}</span>
+		</div>
+
+		<!-- Square image, no overlays/chips -->
+		<div class="media square">
 			<img
 				bind:this={imgEl}
 				src={previewUrl}
 				alt=""
 				class:loaded={imgLoaded}
 				on:load={() => (imgLoaded = true)}
+				on:error={() => (imgLoaded = false)}
 			/>
-			<div class="chip-row">
-				{#if category}
-					<span class="chip chip--cat">
-						<span aria-hidden="true">{bannerIcon}</span>
-						<span class="chip__label">{category}</span>
-					</span>
-				{/if}
-				{#if formatted}<span class="chip chip--price">{formatted}</span>{/if}
-			</div>
-			<div class="overlay"><h3 class="title">{title || 'Your catchy title'}</h3></div>
 		</div>
+		<h3 class="title--standalone">{title || 'Your catchy title'}</h3>
+		{#if isFree || formatted}
+			<div class="price-row">
+				<span class="price-badge">{isFree ? 'Free' : formatted}</span>
+			</div>
+		{/if}
 		<div class="row actions">
 			<button type="button" class="btn ghost" on:click={clearFile}>Remove image</button>
 			<label class="btn">
@@ -148,75 +152,68 @@
 		border-radius: 16px;
 		padding: 12px;
 	}
-	.empty {
-		display: grid;
-		place-items: center;
-		gap: 8px;
-		padding: 32px 12px;
+
+	/* Centered banner header, like the ad page */
+	.banner {
+		background: #000;
+		color: #fff;
+		border-radius: 6px;
+		padding: 10px 12px;
+		font-weight: 900;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		display: flex;
+		justify-content: center; /* center content */
+		align-items: center;
+		gap: 10px;
 		text-align: center;
+		margin-bottom: 12px; /* space above image */
 	}
-	.empty .icon {
-		font-size: 2rem;
+	.banner__icon {
+		filter: saturate(1.2);
 	}
+	.banner__label {
+		font-size: 0.95rem;
+	}
+
+	/* Square media (no overlay) */
 	.media {
 		position: relative;
-		aspect-ratio: 3/2;
 		border-radius: 14px;
 		overflow: hidden;
 		background: color-mix(in srgb, var(--fg) 6%, transparent);
 	}
+	.media.square {
+		aspect-ratio: 1 / 1;
+	}
 	.media img {
 		width: 100%;
 		height: 100%;
-		object-fit: cover;
+		object-fit: cover; /* square crop */
 		opacity: 0;
-		transition:
-			opacity 0.2s ease,
-			transform 0.25s ease;
+		transition: opacity 0.2s ease;
 	}
 	.media img.loaded {
 		opacity: 1;
 	}
-	.chip-row {
-		position: absolute;
-		inset: 8px 8px auto 8px;
-		display: flex;
-		justify-content: space-between;
-		gap: 8px;
-		z-index: 2;
-		pointer-events: none;
-	}
-	.chip {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 4px 10px;
-		border-radius: 999px;
-		font-size: 0.78rem;
-		font-weight: 700;
-		line-height: 1;
-		border: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
-		background: color-mix(in srgb, var(--bg) 55%, transparent);
-	}
-	.chip--cat {
-		background: color-mix(in srgb, var(--chip, var(--bg)) 22%, var(--bg));
-	}
-	.chip--price {
-		background: color-mix(in srgb, #0ea5e9 22%, var(--bg));
-	}
-	.overlay {
-		position: absolute;
-		inset: auto 0 0 0;
-		padding: 12px;
-		background: linear-gradient(to top, color-mix(in srgb, #000 52%, transparent), transparent 70%);
-		color: #fff;
-	}
-	.title {
-		margin: 0;
-		font-size: 1.05rem;
+
+	.title--standalone {
+		margin: 12px 0 8px;
+		font-size: 1.2rem;
 		font-weight: 800;
-		line-height: 1.25;
+		line-height: 1.3;
+		color: var(--fg);
+		text-align: center; /* matches banner alignment */
 	}
+	/* Actions row */
+	.row.actions {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		margin-top: 10px;
+	}
+
+	/* Buttons (unchanged) */
 	.btn {
 		display: inline-grid;
 		place-items: center;
@@ -230,6 +227,18 @@
 	.btn.ghost {
 		background: transparent;
 	}
+
+	/* Empty state (unchanged) */
+	.empty {
+		display: grid;
+		place-items: center;
+		gap: 8px;
+		padding: 32px 12px;
+		text-align: center;
+	}
+	.empty .icon {
+		font-size: 2rem;
+	}
 	.error {
 		color: #b91c1c;
 		font-weight: 700;
@@ -239,5 +248,22 @@
 		gap: 10px;
 		align-items: center;
 		margin-top: 8px;
+	}
+	.price-row {
+		display: flex;
+		justify-content: center; /* center to match banner/title */
+		margin: 4px 0 10px;
+	}
+
+	.price-badge {
+		display: inline-block;
+		background: #000;
+		color: #fff;
+		padding: 6px 12px;
+		border-radius: 8px;
+		font-weight: 900;
+		min-width: 64px;
+		text-align: center;
+		line-height: 1;
 	}
 </style>

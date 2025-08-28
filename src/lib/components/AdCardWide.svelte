@@ -104,20 +104,16 @@
 		{:else}
 			<!-- TEXT-ONLY FULL-WIDTH -->
 			<div class="text-body">
-				<div class="chip-row chip-row--text">
-					{#if category}
-						<span class="chip chip--cat" style="--chip:{bannerBase}">
-							<span aria-hidden="true">{bannerIcon}</span>
-							<span class="chip__label">{category}</span>
-						</span>
-					{/if}
-					{#if formattedPrice}<span class="chip chip--price">{formattedPrice}</span>{/if}
+				<div class="banner" style="--banner:{bannerBase}">
+					<span class="banner__icon">{bannerIcon}</span>
+					<span class="banner__label">{(category || '').toUpperCase()}</span>
 				</div>
-				<h3 class="title title--text">{title}</h3>
+
+				<h3 class="title--standalone">{title}</h3>
 				{#if description}<p class="desc">{description}</p>{/if}
 
-				<!-- Desktop actions (text-only) -->
 				<div class="actions desktop">
+					{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
 					{#if email}<a class="btn primary" href={mailtoHref}>Contact</a>{/if}
 					<button type="button" class="btn" on:click={share}>Share</button>
 				</div>
@@ -146,24 +142,20 @@
 	}
 	.content {
 		display: grid;
-		width: min(100%, 960px); /* cap total width */
-		margin-inline: auto; /* center overall block */
 		grid-template-columns: 1fr 1fr; /* equal halves */
 		gap: 24px;
 		align-items: start;
+		max-width: 960px; /* constrain width */
+		margin-inline: auto; /* <-- centers horizontally */
+		width: 100%; /* still flexible */
+
+		text-align: center;
 	}
 
-	.content > .media {
-		justify-self: end; /* push image toward center line */
-	}
-
-	.content > .meta {
-		justify-self: start; /* push text toward center line */
-	}
-
-	@container (min-width: 640px) {
+	@media (max-width: 768px), (orientation: portrait) {
 		.content {
-			grid-template-columns: minmax(320px, 520px) 1fr; /* explicit, stays centered */
+			grid-template-columns: 1fr;
+			text-align: center;
 		}
 	}
 
@@ -191,76 +183,25 @@
 	}
 
 	/* Media */
-	.media {
-		position: relative;
-		aspect-ratio: 3/2;
-		border-radius: 14px;
-		overflow: hidden;
-		background: color-mix(in srgb, var(--fg) 6%, transparent);
-		isolation: isolate;
+	.media,
+	.media.square {
+		width: 100%; /* <-- important: fill the grid column */
 		max-height: 70vh;
-	}
-	.media img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transition:
-			opacity 0.2s ease,
-			transform 0.25s ease;
-		opacity: 1;
 	}
 
 	.media.square {
-		position: relative;
 		aspect-ratio: 1 / 1;
 		border: 8px solid color-mix(in srgb, var(--fg) 8%, transparent);
 		border-radius: 6px;
-		background: color-mix(in srgb, var(--fg) 6%, transparent);
 		overflow: hidden;
-	}
-	.media.square img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover; /* keeps square crop */
-		transform: none; /* no hover zoom */
-	}
-	.chip {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 4px 10px;
-		border-radius: 999px;
-		font-size: 0.78rem;
-		font-weight: 700;
-		line-height: 1;
-		border: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
-		background: color-mix(in srgb, var(--bg) 55%, transparent);
-		backdrop-filter: saturate(1.2) blur(6px);
-		color: color-mix(in srgb, var(--fg) 86%, transparent);
-	}
-	.chip--cat {
-		background: color-mix(in srgb, var(--chip) 22%, var(--bg));
-	}
-	.chip--price {
-		background: color-mix(in srgb, #0ea5e9 22%, var(--bg));
-	}
-	@media (prefers-color-scheme: dark) {
-		.chip {
-			border-color: color-mix(in srgb, #fff 10%, transparent);
-		}
-		.chip--price {
-			background: color-mix(in srgb, #38bdf8 24%, var(--bg));
-		}
+		background: color-mix(in srgb, var(--fg) 6%, transparent);
 	}
 
-	.title {
-		margin: 0;
-		font-size: 1.1rem;
-		font-weight: 800;
-		line-height: 1.25;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
+	.media img {
+		display: block; /* avoid inline gaps */
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 	}
 
 	.title--standalone {
@@ -299,36 +240,14 @@
 				color-mix(in srgb, var(--fg) 4%, transparent)
 			);
 		padding: 10px 12px;
-	}
-	.chip-row--text {
-		position: static;
-		inset: auto;
-		margin: 2px 0 8px;
-		display: flex;
-		justify-content: space-between;
-		gap: 8px;
-	}
-	.title--text {
-		color: var(--fg);
-		margin: 0 0 4px;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
+		justify-content: center;
 	}
 	.content.no-media {
 		display: block;
 	}
-	@container (min-width: 640px) {
-		.content.no-media {
-			display: grid;
-			grid-template-columns: 1fr;
-		}
-	}
 
 	/* Actions */
 	.actions.desktop {
-		display: flex;
-		gap: 10px;
 		align-items: center;
 	}
 	.btn {
@@ -380,21 +299,6 @@
 		min-width: 56px;
 		text-align: center;
 		margin-right: 8px;
-	}
-
-	/* Mobile/portrait tuning */
-	@media (max-width: 768px), (orientation: portrait) {
-		.content {
-			grid-template-columns: 1fr;
-			text-align: center;
-		}
-		.content > .media,
-		.content > .meta {
-			justify-self: center;
-		}
-		.media.square {
-			aspect-ratio: 1 / 1;
-		}
 	}
 
 	/* Reduce heavy effects on touch devices */

@@ -26,18 +26,6 @@
 
 	// derived
 	$: isFree = category === 'Free / Giveaway';
-	$: bannerBase = category ? catBase[category] : '#6B7280';
-	$: bannerIcon = category ? catIcon[category] : '🗂️';
-	$: displayedPrice =
-		category === 'Free / Giveaway'
-			? 'Free'
-			: price === ''
-				? ''
-				: new Intl.NumberFormat(locale, {
-						style: 'currency',
-						currency,
-						maximumFractionDigits: 0
-					}).format(Number(price));
 
 	// live moderation check while typing
 	$: {
