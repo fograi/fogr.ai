@@ -71,35 +71,32 @@
 <article class="listing-wide">
 	<div class="content" class:no-media={!showImg}>
 		{#if showImg}
-			<!-- LEFT: image -->
-			<div class="media" class:portrait={isPortrait} style="--media-tint:{bannerBase}">
+			<!-- Banner header above image -->
+			<div class="banner" style="--banner:{bannerBase}">
+				<span class="banner__icon">{bannerIcon}</span>
+				<span class="banner__label">{(category || '').toUpperCase()}</span>
+			</div>
+
+			<!-- Square image, NO overlays/chips -->
+			<div class="media square">
 				<img
 					bind:this={imgEl}
-					src="{PUBLIC_R2_BASE}{img}"
+					src={`${PUBLIC_R2_BASE.replace(/\/+$/, '')}/${img.replace(/^\/+/, '')}`}
 					alt={title}
 					loading="lazy"
 					decoding="async"
 					on:load={onImgLoad}
 					on:error={onImgError}
 				/>
-				<div class="chip-row">
-					{#if category}
-						<span class="chip chip--cat" style="--chip:{bannerBase}">
-							<span aria-hidden="true">{bannerIcon}</span>
-							<span class="chip__label">{category}</span>
-						</span>
-					{/if}
-					{#if formattedPrice}<span class="chip chip--price">{formattedPrice}</span>{/if}
-				</div>
-				<div class="overlay"><h3 class="title">{title}</h3></div>
 			</div>
 
-			<!-- RIGHT: details -->
+			<!-- Text meta beside/under the image -->
 			<div class="meta">
+				<h3 class="title--standalone">{title}</h3>
 				{#if description}<p class="desc">{description}</p>{/if}
-
-				<!-- Desktop actions -->
 				<div class="actions desktop">
+					<!-- Price badge sits here (not over image) -->
+					{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
 					{#if email}<a class="btn primary" href={mailtoHref}>Contact</a>{/if}
 					<button type="button" class="btn" on:click={share}>Share</button>
 				</div>
@@ -138,17 +135,10 @@
 
 <style>
 	.listing-wide {
+		max-width: none; /* let inner grid control width */
+		margin: 24px auto;
+		padding: 0 16px;
 		container-type: inline-size;
-		border: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
-		border-radius: 16px;
-		background: linear-gradient(
-			180deg,
-			color-mix(in srgb, var(--surface) 94%, transparent),
-			var(--surface)
-		);
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-		overflow: hidden;
-		padding-bottom: calc(80px + env(safe-area-inset-bottom)); /* room for mobile CTA */
 	}
 
 	.listing-wide:hover .media img {
@@ -156,15 +146,48 @@
 	}
 	.content {
 		display: grid;
-		gap: 14px;
-		padding: 12px;
+		width: min(100%, 960px); /* cap total width */
+		margin-inline: auto; /* center overall block */
+		grid-template-columns: 1fr 1fr; /* equal halves */
+		gap: 24px;
+		align-items: start;
 	}
-	@container (min-width:640px) {
+
+	.content > .media {
+		justify-self: end; /* push image toward center line */
+	}
+
+	.content > .meta {
+		justify-self: start; /* push text toward center line */
+	}
+
+	@container (min-width: 640px) {
 		.content {
-			grid-template-columns: 1fr 1.2fr;
-			align-items: start;
-			gap: 16px;
+			grid-template-columns: minmax(320px, 520px) 1fr; /* explicit, stays centered */
 		}
+	}
+
+	.banner {
+		grid-column: 1 / -1;
+		background: #000;
+		color: #fff;
+		border-radius: 6px;
+		padding: 10px 12px;
+		font-weight: 900;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		display: flex; /* full flex */
+		justify-content: center; /* center horizontally */
+		align-items: center; /* center vertically */
+		gap: 10px;
+		text-align: center;
+	}
+
+	.banner__icon {
+		filter: saturate(1.2);
+	}
+	.banner__label {
+		font-size: 0.95rem;
 	}
 
 	/* Media */
@@ -186,25 +209,20 @@
 			transform 0.25s ease;
 		opacity: 1;
 	}
-	.media.portrait {
-		aspect-ratio: 3/4;
-		max-height: 80vh;
-	}
-	.media.portrait img {
-		object-fit: contain;
-		background: color-mix(in srgb, var(--bg) 85%, transparent);
-	}
 
-	/* Chips */
-	.chip-row {
-		position: absolute;
-		inset: 8px 8px auto 8px;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 8px;
-		pointer-events: none;
-		z-index: 2;
+	.media.square {
+		position: relative;
+		aspect-ratio: 1 / 1;
+		border: 8px solid color-mix(in srgb, var(--fg) 8%, transparent);
+		border-radius: 6px;
+		background: color-mix(in srgb, var(--fg) 6%, transparent);
+		overflow: hidden;
+	}
+	.media.square img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover; /* keeps square crop */
+		transform: none; /* no hover zoom */
 	}
 	.chip {
 		display: inline-flex;
@@ -235,15 +253,6 @@
 		}
 	}
 
-	/* Overlay title */
-	.overlay {
-		position: absolute;
-		inset: auto 0 0 0;
-		z-index: 1;
-		padding: 12px;
-		background: linear-gradient(to top, color-mix(in srgb, #000 52%, transparent), transparent 70%);
-		color: #fff;
-	}
 	.title {
 		margin: 0;
 		font-size: 1.1rem;
@@ -254,10 +263,19 @@
 		overflow: hidden;
 	}
 
+	.title--standalone {
+		margin: 8px 0 4px;
+		font-size: 1.4rem;
+		font-weight: 800;
+		line-height: 1.25;
+		color: var(--fg);
+	}
+
 	/* Meta/description */
 	.meta {
 		display: grid;
-		gap: 10px;
+		gap: 8px; /* reduce gap between title/desc/buttons */
+		align-content: start; /* prevent centering in tall column */
 	}
 	.desc {
 		margin: 0;
@@ -352,39 +370,35 @@
 		flex: 1;
 	}
 
+	.price-badge {
+		display: inline-block;
+		background: #000;
+		color: #fff;
+		padding: 6px 10px;
+		border-radius: 4px;
+		font-weight: 900;
+		min-width: 56px;
+		text-align: center;
+		margin-right: 8px;
+	}
+
 	/* Mobile/portrait tuning */
 	@media (max-width: 768px), (orientation: portrait) {
-		.sticky-cta {
-			display: flex;
+		.content {
+			grid-template-columns: 1fr;
+			text-align: center;
 		}
-		.actions.desktop {
-			display: none;
+		.content > .media,
+		.content > .meta {
+			justify-self: center;
 		}
-		.media {
-			aspect-ratio: 4/3;
+		.media.square {
+			aspect-ratio: 1 / 1;
 		}
-		.media.portrait {
-			aspect-ratio: 3/4;
-		}
-		.overlay {
-			padding: 10px;
-		}
-		.title {
-			font-size: 1.05rem;
-			-webkit-line-clamp: 2;
-		}
-		.btn,
-		.btn.primary {
-			padding: 12px 14px;
-			font-size: 16px;
-		} /* avoid iOS zoom */
 	}
 
 	/* Reduce heavy effects on touch devices */
 	@media (hover: none) {
-		.ad-wide:hover .media img {
-			transform: none;
-		}
 		.chip {
 			backdrop-filter: none;
 		}
