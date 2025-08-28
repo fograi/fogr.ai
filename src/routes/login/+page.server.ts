@@ -2,16 +2,18 @@
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 
+export const prerender = false;
+
 export const load: PageServerLoad = async ({ locals, url, setHeaders }) => {
 	setHeaders({ 'cache-control': 'private, no-store' });
 
 	const redirectTo = url.searchParams.get('redirectTo') ?? '/';
 
-	// Server-side auth check (does NOT hit the browser)
-	const {
-		data: { user }
-	} = await locals.supabase.auth.getUser();
-	if (user) throw redirect(302, redirectTo);
+	// be defensive: don't 500 if auth check fails
+	try {
+		const { data, error } = await locals.supabase.auth.getUser();
+		if (!error && data?.user) throw redirect(302, redirectTo);
+	} catch {}
 
-	return { redirectTo }; // use in the page; no user fetch in the browser
+	return { redirectTo };
 };

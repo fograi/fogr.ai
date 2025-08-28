@@ -1,6 +1,8 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { Database } from '$lib/supabase.types';
+
 declare global {
 	namespace App {
 		interface Platform {
@@ -9,7 +11,7 @@ declare global {
 			ctx: ExecutionContext;
 		}
 		interface Locals {
-			supabase: SupabaseClient;
+			supabase: SupabaseClient<Database>;
             getUser: () => Promise<User | null>;
             getSessionMeta?: () => Promise<{ expires_at: number | null } | null>;
 		}
