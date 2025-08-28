@@ -1,4 +1,4 @@
-import type { RequestHandler } from './$types'; 
+import type { RequestHandler } from '@sveltejs/kit';
 import type { R2Bucket } from '@cloudflare/workers-types';
 import { error, json } from '@sveltejs/kit';
 import OpenAI from 'openai';
@@ -311,35 +311,35 @@ export const POST: RequestHandler = async (event) => {
 // === add GET handler for listing ads ===
 export const GET: RequestHandler = async (event) => {
 	const { locals, url } = event;
-  
+
 	// Cloudflare edge cache
-	const cfCache = globalThis.caches?.default;
-	const cacheKey = new Request(url.toString(), { headers: { accept: 'application/json' } });
+	const cfCache = caches?.default;
+	const cacheKey = cfCache ? new Request(new URL(url.pathname + url.search, url.origin), { method:'GET' }) : undefined;
   
-	if (cfCache) {
-	  const cached = await cfCache.match(cacheKey);
-	  if (cached) return cached;
+	if (cfCache && cacheKey) {
+	  const hit = await cfCache.match(cacheKey);
+	  if (hit) return hit;
 	}
-  
+
 	const { data, error } = await locals.supabase
-	  .from('ads')
-	  .select('id,title,description,price,currency,category,image_keys,created_at')
-	  .order('created_at', { ascending: false })
-	  .limit(100);
-  
+		.from('ads')
+		.select('id,title,description,price,currency,category,image_keys,created_at')
+		.order('created_at', { ascending: false })
+		.limit(100);
+
 	if (error) {
-	  return json({ success: false, message: 'DB error' }, { status: 500 });
+		return json({ success: false, message: 'DB error' }, { status: 500 });
 	}
-  
+
 	const res = json(
-	  { success: true, ads: data ?? [] },
-	  {
-		headers: {
-		  'cache-control': 'public, s-maxage=300, max-age=0, stale-while-revalidate=86400'
+		{ success: true, ads: data ?? [] },
+		{
+			headers: {
+				'cache-control': 'public, s-maxage=300, max-age=300, stale-while-revalidate=86400'
+			}
 		}
-	  }
 	);
-  
-	if (cfCache) await cfCache.put(cacheKey, res.clone());
+
+	if (cfCache && cacheKey) await cfCache.put(cacheKey, res.clone());
 	return res;
-  };
+};

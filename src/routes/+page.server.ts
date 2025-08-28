@@ -2,10 +2,10 @@ import type { PageServerLoad } from './$types';
 import type { AdCard, ApiAdRow } from '../types/ad-types';
 
 export const load: PageServerLoad = async ({ fetch }) => {
-	const r = await fetch('/api/ads');
-	if (!r.ok) return { ads: [] };
+	const res = await fetch('/api/ads');
+	if (!res.ok) return { ads: [] };
 
-	const { ads } = (await r.json()) as { ads: ApiAdRow[] };
+	const { ads } = (await res.json()) as { ads: ApiAdRow[] };
 
 	const mapped: AdCard[] = ads.map((ad) => ({
 		id: ad.id,
