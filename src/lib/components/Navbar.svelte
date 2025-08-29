@@ -5,6 +5,7 @@
 	import { browser } from '$app/environment';
 	import { createClient } from '@supabase/supabase-js';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+	import { user$ } from '$lib/stores/user';
 
 	export let title = 'fogr.ai';
 	// base links that are always shown
@@ -27,7 +28,7 @@
 		? createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY)
 		: (null as any);
 
-	$: user = $page.data.user as { id: string; email?: string | null } | null;
+	$: user = ($page.data.user as { id: string; email?: string | null } | null) ?? $user$;
 
 	function closeMenu(focusBurger = false) {
 		if (!open) return;
