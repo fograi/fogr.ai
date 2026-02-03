@@ -1,0 +1,22 @@
+/**
+ * Cron worker config (every 15 minutes)
+ * Docs: https://developers.cloudflare.com/workers/platform/cron-triggers/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "fogr-ai-cron",
+	"main": "src/cron-worker.ts",
+	"compatibility_date": "2025-08-23",
+	"compatibility_flags": ["nodejs_compat", "nodejs_als"],
+	"triggers": {
+		"crons": ["*/15 * * * *"]
+	},
+	// Bindings (set via `wrangler secret put` or dashboard)
+	// "vars": {
+	//   "SUPABASE_URL": "...",
+	//   "SUPABASE_SERVICE_ROLE_KEY": "..."
+	// }
+	"observability": {
+		"enabled": true
+	}
+}
