@@ -10,7 +10,7 @@
 - [x] Expand E2E (login flow, posting, ad detail)
 - [x] Add age gate (18+) at signup/posting
 - [x] Persist age confirmation per user (user_age_confirmations)
-- [ ] Implement self-serve GDPR data export and account deletion
+- [x] Implement self-serve GDPR data export and account deletion
 - [ ] Implement ad expiry automation for selected durations (default 32 days)
 - [ ] Finalize refund/withdrawal flow at checkout (no refunds except required by law)
 - [ ] Capture withdrawal waiver + consent at checkout (EEA digital services)

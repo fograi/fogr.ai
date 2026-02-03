@@ -11,7 +11,7 @@
 
 	export let title = 'fogr.ai';
 	// base links that are always shown
-	type NavHref = '/' | '/(public)/about' | '/(app)/post';
+	type NavHref = '/' | '/(public)/about' | '/(app)/post' | '/(app)/account';
 	const baseLinks: Array<{ href: NavHref; label: string }> = [
 		{ href: '/(public)/about', label: 'About' },
 		{ href: '/', label: 'Ads' }
@@ -117,7 +117,9 @@
 	$: if (open) queueMicrotask(() => menu?.querySelector<HTMLAnchorElement>('a')?.focus());
 
 	// Build the final nav items based on auth
-	$: authedLinks = user ? [...baseLinks, { href: '/(app)/post', label: 'Post ad' }] : baseLinks;
+	$: authedLinks = user
+		? [...baseLinks, { href: '/(app)/post', label: 'Post ad' }, { href: '/(app)/account', label: 'Account' }]
+		: baseLinks;
 </script>
 
 <header class="nav" class:hidden>

@@ -44,3 +44,22 @@ test('ad detail page renders with mocked data', async ({ page }) => {
 	await page.goto('/ad/e2e-ad-1');
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
 });
+
+test('account page exports data (mocked)', async ({ page }) => {
+	await page.goto('/account');
+	await expect(page.getByRole('heading', { name: 'Account' })).toBeVisible();
+
+	const [download] = await Promise.all([
+		page.waitForEvent('download'),
+		page.getByRole('button', { name: /download data export/i }).click()
+	]);
+
+	expect(download.suggestedFilename()).toMatch(/fogr-ai-export/i);
+});
+
+test('account page deletes account (mocked)', async ({ page }) => {
+	await page.goto('/account');
+	page.once('dialog', (dialog) => dialog.accept());
+	await page.getByRole('button', { name: /delete my account/i }).click();
+	await expect(page).toHaveURL('/');
+});
