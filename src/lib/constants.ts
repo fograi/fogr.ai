@@ -41,4 +41,6 @@ export const MIN_DESC_LENGTH = 20;
 export const MAX_DESC_LENGTH = 1000;
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+export const MAX_IMAGE_COUNT = 4;
+export const MAX_TOTAL_IMAGE_SIZE = 12 * 1024 * 1024; // 12MB
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];

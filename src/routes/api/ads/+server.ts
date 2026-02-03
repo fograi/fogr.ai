@@ -1,5 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit';
-import type { R2Bucket } from '@cloudflare/workers-types';
+import type { KVNamespace, R2Bucket } from '@cloudflare/workers-types';
 import { error, json } from '@sveltejs/kit';
 import OpenAI from 'openai';
 const { default: filter } = await import('leo-profanity');
@@ -10,9 +10,12 @@ import {
 	MIN_DESC_LENGTH,
 	MAX_DESC_LENGTH,
 	ALLOWED_IMAGE_TYPES,
-	MAX_IMAGE_SIZE
+	MAX_IMAGE_SIZE,
+	MAX_IMAGE_COUNT,
+	MAX_TOTAL_IMAGE_SIZE
 } from '$lib/constants';
 import { bannedWords } from '$lib/banned-words';
+import { checkRateLimit } from '$lib/server/rate-limit';
 
 filter.add(bannedWords);
 const obscenity = new RegExpMatcher({
@@ -20,8 +23,25 @@ const obscenity = new RegExpMatcher({
 	...englishRecommendedTransformers
 });
 
+const RATE_LIMIT_10M = 5;
+const RATE_LIMIT_DAY = 30;
+const WINDOW_10M_SECONDS = 10 * 60;
+const WINDOW_DAY_SECONDS = 24 * 60 * 60;
+let warnedMissingRateLimit = false;
+
 const errorResponse = (message: string, status = 400) =>
 	json({ success: false, message }, { status });
+
+const rateLimitResponse = (retryAfterSeconds: number) =>
+	json(
+		{ success: false, message: 'Rate limit exceeded. Please try again later.' },
+		{
+			status: 429,
+			headers: {
+				'Retry-After': String(retryAfterSeconds)
+			}
+		}
+	);
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
 	const bytes = new Uint8Array(buf);
@@ -141,7 +161,40 @@ export const POST: RequestHandler = async (event) => {
 			ADS_BUCKET?: R2Bucket;
 			PUBLIC_R2_BASE?: string;
 			OPENAI_API_KEY?: string;
+			RATE_LIMIT?: KVNamespace;
 		};
+		const rateLimitKv = env?.RATE_LIMIT;
+		if (rateLimitKv) {
+			const ip =
+				request.headers.get('CF-Connecting-IP') ??
+				request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+				'';
+			const actorKey = user?.id ? `u:${user.id}` : ip ? `ip:${ip}` : 'anon';
+
+			const limit10m = await checkRateLimit(
+				rateLimitKv,
+				`ads:post:10m:${actorKey}`,
+				RATE_LIMIT_10M,
+				WINDOW_10M_SECONDS
+			);
+			if (!limit10m.allowed) {
+				return rateLimitResponse(limit10m.retryAfter ?? WINDOW_10M_SECONDS);
+			}
+
+			const dayKey = new Date().toISOString().slice(0, 10);
+			const limitDay = await checkRateLimit(
+				rateLimitKv,
+				`ads:post:day:${dayKey}:${actorKey}`,
+				RATE_LIMIT_DAY,
+				WINDOW_DAY_SECONDS
+			);
+			if (!limitDay.allowed) {
+				return rateLimitResponse(limitDay.retryAfter ?? WINDOW_DAY_SECONDS);
+			}
+		} else if (!warnedMissingRateLimit) {
+			console.warn('RATE_LIMIT KV binding missing; rate limiting disabled.');
+			warnedMissingRateLimit = true;
+		}
 		// OpenAI key from CF env (you already used platform.env — keep that)
 		const openAiApiKey = env?.OPENAI_API_KEY as string | undefined;
 		if (!openAiApiKey) return errorResponse('Missing OPENAI_API_KEY', 500);
@@ -178,6 +231,13 @@ export const POST: RequestHandler = async (event) => {
 		if (imageSingle instanceof File && imageSingle.size > 0) files.push(imageSingle);
 		for (const f of imagesMulti) {
 			if (f instanceof File && f.size > 0) files.push(f);
+		}
+		if (files.length > MAX_IMAGE_COUNT) {
+			return errorResponse(`Too many images (max ${MAX_IMAGE_COUNT}).`, 413);
+		}
+		const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+		if (totalBytes > MAX_TOTAL_IMAGE_SIZE) {
+			return errorResponse('Total image size too large.', 413);
 		}
 
 		// ------------ validations ------------

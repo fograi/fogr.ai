@@ -21,6 +21,15 @@
 	  // to the same R2 bucket with public access enabled
 	  "PUBLIC_R2_BASE": "https://cdn.fogr.ai/"
 	},
+
+	// KV namespace for rate limiting (create one and paste the ids)
+	"kv_namespaces": [
+	  {
+		"binding": "RATE_LIMIT",
+		"id": "REPLACE_WITH_KV_ID",
+		"preview_id": "REPLACE_WITH_KV_PREVIEW_ID"
+	  }
+	],
   
 	// ✅ R2 bucket binding available at platform.env.ADS_BUCKET
 	"r2_buckets": [

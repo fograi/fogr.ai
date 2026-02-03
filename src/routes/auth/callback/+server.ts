@@ -1,10 +1,11 @@
 import type { RequestHandler } from './$types';
 import { redirect } from '@sveltejs/kit';
+import { safeRedirectPath } from '$lib/server/redirect';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
 	// Supabase sends a one-time code when you use emailRedirectTo to a server route
 	const code = url.searchParams.get('code');
-	const redirectTo = url.searchParams.get('redirectTo') ?? '/';
+	const redirectTo = safeRedirectPath(url.searchParams.get('redirectTo'), '/');
 
 	if (code) {
 		const { error } = await locals.supabase.auth.exchangeCodeForSession(code);
