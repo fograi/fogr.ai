@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE, catBase, catIcon } from '$lib/constants';
+	import {
+		ALLOWED_IMAGE_TYPES,
+		MAX_IMAGE_SIZE,
+		MAX_IMAGE_COUNT,
+		MAX_TOTAL_IMAGE_SIZE,
+		catBase,
+		catIcon
+	} from '$lib/constants';
 
 	// two-way bind from parent
 	export let file: File | null = null;
@@ -140,7 +147,10 @@
 					hidden
 				/>
 			</label>
-			<small>Max {Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB • JPG/PNG • 1 image</small>
+			<small>
+				Max {Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB each • {MAX_IMAGE_COUNT} images •
+				{Math.floor(MAX_TOTAL_IMAGE_SIZE / (1024 * 1024))}MB total • JPG/PNG
+			</small>
 			{#if err}<p class="error">{err}</p>{/if}
 		</div>
 	{/if}
