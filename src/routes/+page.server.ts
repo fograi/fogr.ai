@@ -1,15 +1,28 @@
 import type { PageServerLoad } from './$types';
 import type { AdCard, ApiAdRow } from '../types/ad-types';
+import { getPagination } from '$lib/server/pagination';
 
 const DEFAULT_LIMIT = 24;
 
 export const load: PageServerLoad = async ({ fetch, url }) => {
-	const pageRaw = Number(url.searchParams.get('page') ?? '1');
-	const page = Number.isFinite(pageRaw) ? Math.max(Math.floor(pageRaw), 1) : 1;
-	const res = await fetch(`/api/ads?page=${page}&limit=${DEFAULT_LIMIT}`);
-	if (!res.ok) return { ads: [] };
+	const { page, limit } = getPagination(url.searchParams, DEFAULT_LIMIT, 100);
+	const res = await fetch(`/api/ads?page=${page}&limit=${limit}`);
+	if (!res.ok) {
+		let message = 'Failed to load ads';
+		let requestId: string | undefined;
+		try {
+			const body = (await res.json()) as { message?: string; requestId?: string };
+			message = body?.message || message;
+			requestId = body?.requestId;
+		} catch {}
+		return { ads: [], page, error: { message, requestId } };
+	}
 
-	const { ads } = (await res.json()) as { ads: ApiAdRow[] };
+	const { ads, nextPage, requestId } = (await res.json()) as {
+		ads: ApiAdRow[];
+		nextPage?: number | null;
+		requestId?: string;
+	};
 
 	const mapped: AdCard[] = ads.map((ad) => ({
 		id: ad.id,
@@ -21,5 +34,5 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 		currency: ad.currency ?? undefined
 	}));
 
-	return { ads: mapped, page };
+	return { ads: mapped, page, nextPage: nextPage ?? null, requestId };
 };

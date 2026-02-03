@@ -3,6 +3,7 @@
 	import AdCard from '../lib/components/AdCard.svelte';
 
 	let { data } = $props();
+	let loggedError = false;
 
 	let container: HTMLUListElement;
 
@@ -40,7 +41,27 @@
 			window.removeEventListener('resize', layout);
 		};
 	});
+
+	$effect(() => {
+		if (data?.error && !loggedError) {
+			console.error('ads_load_failed', data.error);
+			loggedError = true;
+		}
+		if (!data?.error && loggedError) {
+			loggedError = false;
+		}
+	});
 </script>
+
+{#if data?.error}
+	<div class="error-banner" role="alert">
+		<strong>Couldn’t load ads.</strong>
+		<span>{data.error.message}</span>
+		{#if data.error.requestId}
+			<span class="req">Request ID: {data.error.requestId}</span>
+		{/if}
+	</div>
+{/if}
 
 <ul bind:this={container} class="masonry-grid">
 	{#each data.ads as ad}
@@ -48,7 +69,31 @@
 	{/each}
 </ul>
 
+<nav class="pager" aria-label="Pagination">
+	{#if data.page > 1}
+		<a class="pager__link" href={`/?page=${data.page - 1}`}>Prev</a>
+	{/if}
+	{#if data.nextPage}
+		<a class="pager__link" href={`/?page=${data.nextPage}`}>Next</a>
+	{/if}
+</nav>
+
 <style>
+	.error-banner {
+		margin: 12px 0 16px;
+		padding: 10px 12px;
+		border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+		background: color-mix(in srgb, var(--bg) 92%, transparent);
+		color: var(--fg);
+		border-radius: 8px;
+		display: grid;
+		gap: 4px;
+	}
+	.error-banner .req {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+			'Courier New', monospace;
+		font-size: 0.85rem;
+	}
 	.masonry-grid {
 		list-style: none;
 		padding-left: 0px;
@@ -57,5 +102,19 @@
 		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 		gap: 16px;
 		grid-auto-rows: 8px; /* ← pair with JS 'row' */
+	}
+	.pager {
+		display: flex;
+		justify-content: center;
+		gap: 12px;
+		margin: 18px 0 8px;
+	}
+	.pager__link {
+		text-decoration: none;
+		padding: 6px 12px;
+		border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+		border-radius: 8px;
+		color: inherit;
+		background: var(--surface);
 	}
 </style>

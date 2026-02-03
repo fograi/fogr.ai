@@ -5,18 +5,18 @@ import OpenAI from 'openai';
 const { default: filter } = await import('leo-profanity');
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = await import('obscenity');
 import {
-	CATEGORIES,
 	MIN_TITLE_LENGTH,
 	MAX_TITLE_LENGTH,
 	MIN_DESC_LENGTH,
 	MAX_DESC_LENGTH,
-	MAX_PRICE,
 	ALLOWED_IMAGE_TYPES,
 	MAX_IMAGE_SIZE,
 	MAX_IMAGE_COUNT,
 	MAX_TOTAL_IMAGE_SIZE
 } from '$lib/constants';
 import { bannedWords } from '$lib/banned-words';
+import { validateAdMeta } from '$lib/server/ads-validation';
+import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
 
 filter.add(bannedWords);
@@ -260,10 +260,8 @@ export const POST: RequestHandler = async (event) => {
 		}
 
 		// ------------ validations ------------
-		if (!category) return errorResponse('Category is required.', 400, requestId);
-		if (!CATEGORIES.includes(category as (typeof CATEGORIES)[number])) {
-			return errorResponse('Invalid category.', 400, requestId);
-		}
+		const metaError = validateAdMeta({ category, currency, priceStr });
+		if (metaError) return errorResponse(metaError, 400, requestId);
 
 		if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.', 400, requestId);
 		if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413, requestId);
@@ -271,16 +269,7 @@ export const POST: RequestHandler = async (event) => {
 		if (description.length < MIN_DESC_LENGTH) return errorResponse('Description too short.', 400, requestId);
 		if (description.length > MAX_DESC_LENGTH) return errorResponse('Description too long.', 413, requestId);
 
-		if (!/^[A-Z]{3}$/.test(currency)) return errorResponse('Invalid currency.', 400, requestId);
-
-		if (priceStr !== null) {
-			const n = Number(priceStr);
-			if (!Number.isFinite(n) || n < 0 || n > MAX_PRICE)
-				return errorResponse('Invalid price.', 400, requestId);
-			if (category === 'Free / Giveaway' && n !== 0) {
-				return errorResponse('Free items must have a price of 0.', 400, requestId);
-			}
-		}
+		// category, currency, and price are validated above
 
 		// ------------ local moderation (fast) ------------
 		const combinedText = `${title} ${description}`;
@@ -415,12 +404,7 @@ export const POST: RequestHandler = async (event) => {
 export const GET: RequestHandler = async (event) => {
 	const { locals, url } = event;
 	const requestId = makeRequestId();
-	const limitRaw = Number(url.searchParams.get('limit') ?? '24');
-	const pageRaw = Number(url.searchParams.get('page') ?? '1');
-	const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 100) : 24;
-	const page = Number.isFinite(pageRaw) ? Math.max(Math.floor(pageRaw), 1) : 1;
-	const from = (page - 1) * limit;
-	const to = from + limit - 1;
+	const { page, limit, from, to } = getPagination(url.searchParams, 24, 100);
 
 	// Cloudflare edge cache
 	const cfCache = globalThis.caches?.default as Cache | undefined;
