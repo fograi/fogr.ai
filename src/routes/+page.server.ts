@@ -1,8 +1,12 @@
 import type { PageServerLoad } from './$types';
 import type { AdCard, ApiAdRow } from '../types/ad-types';
 
-export const load: PageServerLoad = async ({ fetch }) => {
-	const res = await fetch('/api/ads');
+const DEFAULT_LIMIT = 24;
+
+export const load: PageServerLoad = async ({ fetch, url }) => {
+	const pageRaw = Number(url.searchParams.get('page') ?? '1');
+	const page = Number.isFinite(pageRaw) ? Math.max(Math.floor(pageRaw), 1) : 1;
+	const res = await fetch(`/api/ads?page=${page}&limit=${DEFAULT_LIMIT}`);
 	if (!res.ok) return { ads: [] };
 
 	const { ads } = (await res.json()) as { ads: ApiAdRow[] };
@@ -17,5 +21,5 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		currency: ad.currency ?? undefined
 	}));
 
-	return { ads: mapped };
+	return { ads: mapped, page };
 };

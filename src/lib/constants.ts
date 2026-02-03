@@ -39,6 +39,7 @@ export const MIN_TITLE_LENGTH = 5;
 export const MAX_TITLE_LENGTH = 80;
 export const MIN_DESC_LENGTH = 20;
 export const MAX_DESC_LENGTH = 1000;
+export const MAX_PRICE = 1_000_000;
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_IMAGE_COUNT = 4;

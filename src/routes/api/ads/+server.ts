@@ -5,10 +5,12 @@ import OpenAI from 'openai';
 const { default: filter } = await import('leo-profanity');
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = await import('obscenity');
 import {
+	CATEGORIES,
 	MIN_TITLE_LENGTH,
 	MAX_TITLE_LENGTH,
 	MIN_DESC_LENGTH,
 	MAX_DESC_LENGTH,
+	MAX_PRICE,
 	ALLOWED_IMAGE_TYPES,
 	MAX_IMAGE_SIZE,
 	MAX_IMAGE_COUNT,
@@ -29,19 +31,29 @@ const WINDOW_10M_SECONDS = 10 * 60;
 const WINDOW_DAY_SECONDS = 24 * 60 * 60;
 let warnedMissingRateLimit = false;
 
-const errorResponse = (message: string, status = 400) =>
-	json({ success: false, message }, { status });
-
-const rateLimitResponse = (retryAfterSeconds: number) =>
+const errorResponse = (message: string, status = 400, requestId?: string) =>
 	json(
-		{ success: false, message: 'Rate limit exceeded. Please try again later.' },
+		{ success: false, message, requestId },
+		{
+			status,
+			headers: requestId ? { 'x-request-id': requestId } : undefined
+		}
+	);
+
+const rateLimitResponse = (retryAfterSeconds: number, requestId?: string) =>
+	json(
+		{ success: false, message: 'Rate limit exceeded. Please try again later.', requestId },
 		{
 			status: 429,
 			headers: {
+				...(requestId ? { 'x-request-id': requestId } : {}),
 				'Retry-After': String(retryAfterSeconds)
 			}
 		}
 	);
+
+const makeRequestId = () =>
+	crypto?.randomUUID?.() ?? `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
 	const bytes = new Uint8Array(buf);
@@ -148,6 +160,9 @@ async function moderateSingleImage(openai: OpenAI, imageDataUrl: string): Promis
 
 export const POST: RequestHandler = async (event) => {
 	const { request, locals, platform } = event;
+	const requestId = makeRequestId();
+	const log = (level: 'info' | 'warn' | 'error', message: string, extra: Record<string, unknown> = {}) =>
+		console[level](JSON.stringify({ level, message, requestId, ...extra }));
 	// Auth
 	const {
 		data: { user }
@@ -155,6 +170,7 @@ export const POST: RequestHandler = async (event) => {
 	if (!user) throw error(401, 'Auth required');
 
 	const email = user.email ?? null;
+	log('info', 'ads_post_start', { userId: user.id });
 
 	try {
 		const env = platform?.env as {
@@ -178,7 +194,8 @@ export const POST: RequestHandler = async (event) => {
 				WINDOW_10M_SECONDS
 			);
 			if (!limit10m.allowed) {
-				return rateLimitResponse(limit10m.retryAfter ?? WINDOW_10M_SECONDS);
+				log('warn', 'ads_post_rate_limited_10m', { userId: user.id });
+				return rateLimitResponse(limit10m.retryAfter ?? WINDOW_10M_SECONDS, requestId);
 			}
 
 			const dayKey = new Date().toISOString().slice(0, 10);
@@ -189,7 +206,8 @@ export const POST: RequestHandler = async (event) => {
 				WINDOW_DAY_SECONDS
 			);
 			if (!limitDay.allowed) {
-				return rateLimitResponse(limitDay.retryAfter ?? WINDOW_DAY_SECONDS);
+				log('warn', 'ads_post_rate_limited_day', { userId: user.id });
+				return rateLimitResponse(limitDay.retryAfter ?? WINDOW_DAY_SECONDS, requestId);
 			}
 		} else if (!warnedMissingRateLimit) {
 			console.warn('RATE_LIMIT KV binding missing; rate limiting disabled.');
@@ -197,16 +215,16 @@ export const POST: RequestHandler = async (event) => {
 		}
 		// OpenAI key from CF env (you already used platform.env — keep that)
 		const openAiApiKey = env?.OPENAI_API_KEY as string | undefined;
-		if (!openAiApiKey) return errorResponse('Missing OPENAI_API_KEY', 500);
+		if (!openAiApiKey) return errorResponse('Missing OPENAI_API_KEY', 500, requestId);
 
 		// R2 + public base from CF env
 		const bucket = env?.ADS_BUCKET;
 		if (!bucket || typeof bucket.put !== 'function') {
 			console.warn('R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.');
-			return errorResponse('Storage temporarily unavailable', 503);
+			return errorResponse('Storage temporarily unavailable', 503, requestId);
 		}
 		const publicBase = env?.PUBLIC_R2_BASE?.replace(/\/$/, '');
-		if (!publicBase) return errorResponse('Missing PUBLIC_R2_BASE', 500);
+		if (!publicBase) return errorResponse('Missing PUBLIC_R2_BASE', 500, requestId);
 
 		const openai = new OpenAI({ apiKey: openAiApiKey });
 
@@ -218,7 +236,8 @@ export const POST: RequestHandler = async (event) => {
 		const description = form.get('description')?.toString() || '';
 		const priceStr = form.get('price')?.toString() ?? null;
 		// === NEW === optional passthroughs for DB
-		const currency = form.get('currency')?.toString() || 'EUR';
+		const currencyRaw = form.get('currency')?.toString() || 'EUR';
+		const currency = currencyRaw.trim().toUpperCase();
 
 		// single file
 		const imageSingle = form.get('image');
@@ -233,61 +252,72 @@ export const POST: RequestHandler = async (event) => {
 			if (f instanceof File && f.size > 0) files.push(f);
 		}
 		if (files.length > MAX_IMAGE_COUNT) {
-			return errorResponse(`Too many images (max ${MAX_IMAGE_COUNT}).`, 413);
+			return errorResponse(`Too many images (max ${MAX_IMAGE_COUNT}).`, 413, requestId);
 		}
 		const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
 		if (totalBytes > MAX_TOTAL_IMAGE_SIZE) {
-			return errorResponse('Total image size too large.', 413);
+			return errorResponse('Total image size too large.', 413, requestId);
 		}
 
 		// ------------ validations ------------
-		if (!category) return errorResponse('Category is required.');
+		if (!category) return errorResponse('Category is required.', 400, requestId);
+		if (!CATEGORIES.includes(category as (typeof CATEGORIES)[number])) {
+			return errorResponse('Invalid category.', 400, requestId);
+		}
 
-		if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.');
-		if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413);
+		if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.', 400, requestId);
+		if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413, requestId);
 
-		if (description.length < MIN_DESC_LENGTH) return errorResponse('Description too short.');
-		if (description.length > MAX_DESC_LENGTH) return errorResponse('Description too long.', 413);
+		if (description.length < MIN_DESC_LENGTH) return errorResponse('Description too short.', 400, requestId);
+		if (description.length > MAX_DESC_LENGTH) return errorResponse('Description too long.', 413, requestId);
+
+		if (!/^[A-Z]{3}$/.test(currency)) return errorResponse('Invalid currency.', 400, requestId);
 
 		if (priceStr !== null) {
 			const n = Number(priceStr);
-			if (Number.isNaN(n) || n < 0) return errorResponse('Invalid price.');
+			if (!Number.isFinite(n) || n < 0 || n > MAX_PRICE)
+				return errorResponse('Invalid price.', 400, requestId);
+			if (category === 'Free / Giveaway' && n !== 0) {
+				return errorResponse('Free items must have a price of 0.', 400, requestId);
+			}
 		}
 
 		// ------------ local moderation (fast) ------------
 		const combinedText = `${title} ${description}`;
-		if (filter.check(combinedText)) return errorResponse('Failed profanity filter.');
-		if (obscenity.hasMatch(combinedText)) return errorResponse('Failed obscenity filter.');
+		if (filter.check(combinedText))
+			return errorResponse('Failed profanity filter.', 400, requestId);
+		if (obscenity.hasMatch(combinedText))
+			return errorResponse('Failed obscenity filter.', 400, requestId);
 
 		// ------------ image validations ------------
 		if (files.length > 0) {
 			const badType = files.find((f) => !ALLOWED_IMAGE_TYPES.includes(f.type));
-			if (badType) return errorResponse('Invalid image type(s).', 415);
+			if (badType) return errorResponse('Invalid image type(s).', 415, requestId);
 
 			const tooLarge = files.find((f) => f.size > MAX_IMAGE_SIZE);
-			if (tooLarge) return errorResponse('Image(s) too large.', 413);
+			if (tooLarge) return errorResponse('Image(s) too large.', 413, requestId);
 		}
 
 		// ------------ OpenAI moderation (final gate) ------------
 		if (files.length === 0) {
 			const flagged = await moderateText(openai, combinedText);
-			if (flagged) return errorResponse('Failed AI moderation.');
+			if (flagged) return errorResponse('Failed AI moderation.', 400, requestId);
 		} else if (files.length === 1) {
 			const dataUrl = await fileToDataUrl(files[0]);
 			const flagged = await moderateTextAndImage(openai, combinedText, dataUrl);
-			if (flagged) return errorResponse('Failed AI moderation.');
+			if (flagged) return errorResponse('Failed AI moderation.', 400, requestId);
 		} else {
 			if (combinedImage) {
 				const cleaned = cleanDataUrlBase64(combinedImage);
 				const dataUrl = `data:image/png;base64,${cleaned}`;
 				const flagged = await moderateTextAndImage(openai, combinedText, dataUrl);
-				if (flagged) return errorResponse('Failed AI moderation.');
+				if (flagged) return errorResponse('Failed AI moderation.', 400, requestId);
 			} else {
 				const MAX_CHECK = Math.min(files.length, 3);
 				for (let i = 0; i < MAX_CHECK; i++) {
 					const dataUrl = await fileToDataUrl(files[i]);
 					const flagged = await moderateSingleImage(openai, dataUrl);
-					if (flagged) return errorResponse('Failed AI moderation.');
+					if (flagged) return errorResponse('Failed AI moderation.', 400, requestId);
 				}
 			}
 		}
@@ -308,7 +338,7 @@ export const POST: RequestHandler = async (event) => {
 			.select('id')
 			.single();
 		if (insErr || !inserted) {
-			return errorResponse('Failed to save ad (insert).', 500);
+			return errorResponse('Failed to save ad (insert).', 500, requestId);
 		}
 
 		const adId: string = inserted.id;
@@ -328,7 +358,6 @@ export const POST: RequestHandler = async (event) => {
 
 				const key = `${user.id}/${adId}/${String(idx).padStart(2, '0')}.${ext}`;
 
-				// ✅ Pass File (Blob) directly
 				await bucket.put(key, await file.arrayBuffer(), {
 					httpMetadata: {
 						contentType: file.type,
@@ -339,7 +368,16 @@ export const POST: RequestHandler = async (event) => {
 				return key;
 			});
 
-			image_keys = await Promise.all(uploads);
+			const results = await Promise.allSettled(uploads);
+			image_keys = results
+				.filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled')
+				.map((r) => r.value);
+
+			if (results.some((r) => r.status === 'rejected')) {
+				await Promise.allSettled(image_keys.map((key) => bucket.delete(key)));
+				await locals.supabase.from('ads').delete().eq('id', adId);
+				return errorResponse('Failed to upload images.', 500, requestId);
+			}
 
 			// === NEW === 3) Update row with image keys
 			const { error: updErr } = await locals.supabase
@@ -348,29 +386,41 @@ export const POST: RequestHandler = async (event) => {
 				.eq('id', adId);
 
 			if (updErr) {
-				return errorResponse('Saved ad but failed to attach images.', 500);
+				await Promise.allSettled(image_keys.map((key) => bucket.delete(key)));
+				await locals.supabase.from('ads').delete().eq('id', adId);
+				return errorResponse('Saved ad but failed to attach images.', 500, requestId);
 			}
 		}
 
 		// === NEW === 4) Return the id so the client can redirect
+		log('info', 'ads_post_success', { userId: user.id, adId, images: image_keys.length });
 		return json(
 			{
 				success: true,
 				id: adId,
 				message: 'Ad submitted successfully!',
-				image_keys
+				image_keys,
+				requestId
 			},
-			{ status: 200 }
+			{ status: 200, headers: { 'x-request-id': requestId } }
 		);
 	} catch (err: unknown) {
 		const msg = err instanceof Error ? err.message : 'Internal error';
-		return errorResponse(msg, 500);
+		log('error', 'ads_post_error', { error: msg });
+		return errorResponse(msg, 500, requestId);
 	}
 };
 
 // === add GET handler for listing ads ===
 export const GET: RequestHandler = async (event) => {
 	const { locals, url } = event;
+	const requestId = makeRequestId();
+	const limitRaw = Number(url.searchParams.get('limit') ?? '24');
+	const pageRaw = Number(url.searchParams.get('page') ?? '1');
+	const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 100) : 24;
+	const page = Number.isFinite(pageRaw) ? Math.max(Math.floor(pageRaw), 1) : 1;
+	const from = (page - 1) * limit;
+	const to = from + limit - 1;
 
 	// Cloudflare edge cache
 	const cfCache = globalThis.caches?.default as Cache | undefined;
@@ -385,17 +435,29 @@ export const GET: RequestHandler = async (event) => {
 		.from('ads')
 		.select('id,title,description,price,currency,category,image_keys,created_at')
 		.order('created_at', { ascending: false })
-		.limit(100);
+		.range(from, to);
 
 	if (error) {
-		return json({ success: false, message: 'DB error' }, { status: 500 });
+		return json(
+			{ success: false, message: 'DB error', requestId },
+			{ status: 500, headers: { 'x-request-id': requestId } }
+		);
 	}
 
+	const hasNext = (data?.length ?? 0) === limit;
 	const res = json(
-		{ success: true, ads: data ?? [] },
+		{
+			success: true,
+			ads: data ?? [],
+			page,
+			limit,
+			nextPage: hasNext ? page + 1 : null,
+			requestId
+		},
 		{
 			headers: {
-				'cache-control': 'public, s-maxage=300, max-age=300, stale-while-revalidate=86400'
+				'cache-control': 'public, s-maxage=300, max-age=300, stale-while-revalidate=86400',
+				'x-request-id': requestId
 			}
 		}
 	);
