@@ -14,7 +14,9 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 			const body = (await res.json()) as { message?: string; requestId?: string };
 			message = body?.message || message;
 			requestId = body?.requestId;
-		} catch {}
+		} catch {
+			/* noop */
+		}
 		return { ads: [], page, error: { message, requestId } };
 	}
 

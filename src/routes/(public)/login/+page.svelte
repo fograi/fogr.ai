@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto, invalidate, invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { createClient } from '@supabase/supabase-js';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
@@ -45,7 +46,9 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ access_token, refresh_token })
 			});
-		} catch {}
+		} catch {
+			/* noop */
+		}
 	}
 
 	async function finishLoginAndGo() {
@@ -53,7 +56,7 @@
 		// Optional: if landing on same route, refresh all data
 		if (data.redirectTo === window.location.pathname) await invalidateAll();
 		redirected = true;
-		await goto(data.redirectTo, { replaceState: true });
+		await goto(resolve(data.redirectTo), { replaceState: true });
 	}
 
 	onMount(() => {
@@ -107,8 +110,8 @@
 
 		<footer class="foot">
 			<small>
-				By continuing you agree to our <a href="/terms">Terms</a> and
-				<a href="/privacy">Privacy</a>.
+				By continuing you agree to our <a href={resolve('/terms')}>Terms</a> and
+				<a href={resolve('/privacy')}>Privacy</a>.
 			</small>
 		</footer>
 	</div>

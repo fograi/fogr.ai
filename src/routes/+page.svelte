@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import AdCard from '../lib/components/AdCard.svelte';
+	import { resolve } from '$app/paths';
 
 	let { data } = $props();
 	let loggedError = false;
@@ -64,17 +65,17 @@
 {/if}
 
 <ul bind:this={container} class="masonry-grid">
-	{#each data.ads as ad}
+	{#each data.ads as ad (ad.id)}
 		<AdCard {...ad} />
 	{/each}
 </ul>
 
 <nav class="pager" aria-label="Pagination">
 	{#if data.page > 1}
-		<a class="pager__link" href={`/?page=${data.page - 1}`}>Prev</a>
+		<a class="pager__link" href={resolve(`/?page=${data.page - 1}`)}>Prev</a>
 	{/if}
 	{#if data.nextPage}
-		<a class="pager__link" href={`/?page=${data.nextPage}`}>Next</a>
+		<a class="pager__link" href={resolve(`/?page=${data.nextPage}`)}>Next</a>
 	{/if}
 </nav>
 

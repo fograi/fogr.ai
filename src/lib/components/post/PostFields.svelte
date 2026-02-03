@@ -27,12 +27,12 @@
 <section class="fields" aria-busy={loading}>
 	<div class="field">
 		<label for="category">Category</label>
-		<select id="category" bind:value={category} disabled={loading}>
-			<option value="" disabled selected hidden>Choose…</option>
-			{#each CATEGORIES as c}
-				<option value={c}>{c}</option>
-			{/each}
-		</select>
+			<select id="category" bind:value={category} disabled={loading}>
+				<option value="" disabled selected hidden>Choose…</option>
+				{#each CATEGORIES as c (c)}
+					<option value={c}>{c}</option>
+				{/each}
+			</select>
 	</div>
 
 	<div class="field">

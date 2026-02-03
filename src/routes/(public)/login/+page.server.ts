@@ -10,6 +10,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	try {
 		const { data, error } = await locals.supabase.auth.getUser();
 		if (!error && data?.user) throw redirect(302, redirectTo);
-	} catch {}
+	} catch {
+		/* noop */
+	}
 	return { redirectTo };
 };

@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { afterNavigate, goto, invalidate } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { createClient } from '@supabase/supabase-js';
+	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import { user$ } from '$lib/stores/user';
 
@@ -24,9 +26,9 @@
 	let burgerEl: HTMLButtonElement;
 
 	// supabase client (only needed for client-side signout UX)
-	const supabase = browser
+	const supabase: SupabaseClient | null = browser
 		? createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY)
-		: (null as any);
+		: null;
 
 	$: user = ($page.data.user as { id: string; email?: string | null } | null) ?? $user$;
 
@@ -42,7 +44,7 @@
 		// …and clear server cookies too if you have this endpoint
 		await fetch('/auth/logout', { method: 'POST' }).catch(() => {});
 		await invalidate('supabase:auth');
-		await goto('/', { replaceState: true });
+		await goto(resolve('/'), { replaceState: true });
 	}
 
 	function onScroll(y: number) {
@@ -108,7 +110,7 @@
 
 <header class="nav" class:hidden>
 	<div class="wrap">
-		<a class="brand" href="/">{title}</a>
+		<a class="brand" href={resolve('/')}>{title}</a>
 
 		<button
 			class="burger"
@@ -123,8 +125,8 @@
 		</button>
 
 		<nav id="site-menu" bind:this={menu} class:open aria-hidden={!open}>
-			{#each authedLinks as { href, label }}
-				<a {href} on:click={() => closeMenu(false)}>{label}</a>
+			{#each authedLinks as link (link.href)}
+				<a href={resolve(link.href)} on:click={() => closeMenu(false)}>{link.label}</a>
 			{/each}
 
 			{#if user}
@@ -135,7 +137,7 @@
 			{:else}
 				<!-- Login link with redirect back to current page -->
 				<a
-					href={'/login?redirectTo=' + encodeURIComponent($page.url.pathname + $page.url.search)}
+					href={resolve(`/login?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}`)}
 					on:click={() => closeMenu(false)}>Login</a
 				>
 			{/if}

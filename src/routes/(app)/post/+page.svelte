@@ -43,6 +43,13 @@
 		MAX_DESC_LENGTH
 	} from '$lib/constants';
 
+	type ApiResponse = {
+		success?: boolean;
+		message?: string;
+		id?: string;
+		requestId?: string;
+	};
+
 	let err = '';
 	let ok = '';
 	let loading = false;
@@ -93,9 +100,9 @@
 
 			const res = await fetch('/api/ads', { method: 'POST', body: form });
 			const raw = await res.text();
-			let data: any;
+			let data: ApiResponse;
 			try {
-				data = JSON.parse(raw);
+				data = JSON.parse(raw) as ApiResponse;
 			} catch {
 				data = { message: raw };
 			}
@@ -116,8 +123,8 @@
 			if (previewUrl) URL.revokeObjectURL(previewUrl);
 			previewUrl = null;
 			file = null;
-		} catch (e: any) {
-			err = e?.message || 'Failed to post. Try again.';
+		} catch (e: unknown) {
+			err = e instanceof Error ? e.message : 'Failed to post. Try again.';
 		} finally {
 			loading = false;
 		}

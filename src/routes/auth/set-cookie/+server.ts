@@ -19,9 +19,12 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	}
 
 	// This writes the sb-* cookies that your server & SSR can read
-	const { error } = await locals.supabase.auth.setSession({ access_token, refresh_token });
-	if (error) {
-		return new Response(JSON.stringify({ ok: false, message: error.message }), {
+	const { error: sessionError } = await locals.supabase.auth.setSession({
+		access_token,
+		refresh_token
+	});
+	if (sessionError) {
+		return new Response(JSON.stringify({ ok: false, message: sessionError.message }), {
 			status: 401,
 			headers: { 'Content-Type': 'application/json' }
 		});

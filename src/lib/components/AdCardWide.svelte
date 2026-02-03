@@ -64,7 +64,9 @@
 		try {
 			if (navigator.share) await navigator.share({ title, text: title, url: location.href });
 			else await navigator.clipboard?.writeText(location.href);
-		} catch (_) {}
+		} catch {
+			/* noop */
+		}
 	}
 </script>
 
@@ -97,7 +99,9 @@
 				<div class="actions desktop">
 					<!-- Price badge sits here (not over image) -->
 					{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
-					{#if email}<a class="btn primary" href={mailtoHref}>Contact</a>{/if}
+					{#if email}
+						<a class="btn primary" href={mailtoHref} rel="external">Contact</a>
+					{/if}
 					<button type="button" class="btn" on:click={share}>Share</button>
 				</div>
 			</div>
@@ -114,7 +118,9 @@
 
 				<div class="actions desktop">
 					{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
-					{#if email}<a class="btn primary" href={mailtoHref}>Contact</a>{/if}
+					{#if email}
+						<a class="btn primary" href={mailtoHref} rel="external">Contact</a>
+					{/if}
 					<button type="button" class="btn" on:click={share}>Share</button>
 				</div>
 			</div>
@@ -124,7 +130,9 @@
 	<!-- Mobile sticky CTA -->
 	<div class="sticky-cta" role="region" aria-label="Listing actions">
 		<div class="sticky-cta__price">{displayedPrice}</div>
-		{#if email}<a class="btn primary btn--cta" href={mailtoHref}>Contact</a>{/if}
+		{#if email}
+			<a class="btn primary btn--cta" href={mailtoHref} rel="external">Contact</a>
+		{/if}
 		<button type="button" class="btn" on:click={share}>Share</button>
 	</div>
 </article>

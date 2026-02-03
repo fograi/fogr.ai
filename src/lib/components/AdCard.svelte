@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
+	import { resolve } from '$app/paths';
 
 	export let id: number | string;
 	export let title: string;
@@ -11,7 +12,6 @@
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 
-	const href = `/ad/${id}`;
 	$: formattedPrice =
 		typeof price === 'number' && price > -1
 			? new Intl.NumberFormat(locale, {
@@ -63,7 +63,7 @@
 </script>
 
 <li class="card">
-	<a class="link-wrap" {href} aria-label={`View ad: ${title}`}>
+	<a class="link-wrap" href={resolve(`/ad/${id}`)} aria-label={`View ad: ${title}`}>
 		<div class="card__inner">
 			<div class="hdr">
 				<span class="hdr__cat">{category || 'Classifieds'}</span>
