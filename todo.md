@@ -12,3 +12,5 @@
 - [ ] Implement self-serve GDPR data export and account deletion
 - [ ] Implement ad expiry automation for selected durations (default 32 days)
 - [ ] Finalize refund/withdrawal flow at checkout (no refunds except required by law)
+- [ ] Capture withdrawal waiver + consent at checkout (EEA digital services)
+- [ ] Record proof of publication for paid ads (published_at + audit log + payment IDs)
