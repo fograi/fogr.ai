@@ -14,6 +14,11 @@ export const E2E_MOCK_AD: ApiAdRow = {
 	updated_at: null
 };
 
+export const E2E_MOCK_USER = {
+	id: '00000000-0000-0000-0000-000000000000',
+	email: 'e2e@example.com'
+};
+
 export function isE2eMock(platform?: App.Platform): boolean {
 	if (!platform?.env) return false;
 	const env = platform.env as Record<string, unknown>;
