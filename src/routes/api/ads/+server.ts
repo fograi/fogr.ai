@@ -182,6 +182,11 @@ export const POST: RequestHandler = async (event) => {
 		message: string,
 		extra: Record<string, unknown> = {}
 	) => console[level](JSON.stringify({ level, message, requestId, ...extra }));
+	const ip =
+		request.headers.get('CF-Connecting-IP') ??
+		request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+		'';
+	const userAgent = request.headers.get('user-agent') ?? '';
 	if (!isSameOrigin(request, event.url)) {
 		return errorResponse('Forbidden', 403, requestId);
 	}
@@ -225,10 +230,6 @@ export const POST: RequestHandler = async (event) => {
 			}
 		}
 		if (rateLimitKv) {
-			const ip =
-				request.headers.get('CF-Connecting-IP') ??
-				request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-				'';
 			const actorKey = user?.id ? `u:${user.id}` : ip ? `ip:${ip}` : 'anon';
 
 			const limit10m = await checkRateLimit(
@@ -303,6 +304,20 @@ export const POST: RequestHandler = async (event) => {
 
 		// ------------ validations ------------
 		if (!ageConfirmed) return errorResponse('Must confirm you are 18 or older.', 400, requestId);
+		// Persist age confirmation (best-effort). Upsert avoids errors on repeat posts.
+		const { error: ageConfirmError } = await locals.supabase
+			.from('user_age_confirmations')
+			.upsert(
+				{
+					user_id: user.id,
+					age_confirmed_ip: ip || null,
+					age_confirmed_user_agent: userAgent || null
+				},
+				{ onConflict: 'user_id', ignoreDuplicates: true }
+			);
+		if (ageConfirmError) {
+			log('warn', 'age_confirmation_upsert_failed', { error: ageConfirmError.message });
+		}
 		const metaError = validateAdMeta({ category, currency, priceStr });
 		if (metaError) return errorResponse(metaError, 400, requestId);
 

@@ -7,6 +7,8 @@
 	import StickyCTA from '$lib/components/post/StickyCTA.svelte';
 	import { createModerationClient } from '$lib/clients/moderationClient';
 
+	export let data: { ageConfirmed?: boolean };
+
 	// ---- Form state ----
 	let title = '';
 	let description = '';
@@ -14,7 +16,7 @@
 	let price: number | '' = '';
 	let currency = 'EUR';
 	let locale = 'en-IE';
-	let ageConfirmed = false;
+	let ageConfirmed = data?.ageConfirmed ?? false;
 
 	// one image (optional)
 	let file: File | null = null;

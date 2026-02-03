@@ -13,5 +13,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	} catch {
 		/* noop */
 	}
-	return { redirectTo };
+	let ageConfirmed = false;
+	try {
+		const { data: ageRow } = await locals.supabase
+			.from('user_age_confirmations')
+			.select('user_id')
+			.maybeSingle();
+		ageConfirmed = !!ageRow?.user_id;
+	} catch {
+		/* noop */
+	}
+	return { redirectTo, ageConfirmed };
 };

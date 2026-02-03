@@ -59,6 +59,30 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			user_age_confirmations: {
+				Row: {
+					age_confirmed_at: string;
+					age_confirmed_ip: string | null;
+					age_confirmed_user_agent: string | null;
+					terms_version: string | null;
+					user_id: string;
+				};
+				Insert: {
+					age_confirmed_at?: string;
+					age_confirmed_ip?: string | null;
+					age_confirmed_user_agent?: string | null;
+					terms_version?: string | null;
+					user_id: string;
+				};
+				Update: {
+					age_confirmed_at?: string;
+					age_confirmed_ip?: string | null;
+					age_confirmed_user_agent?: string | null;
+					terms_version?: string | null;
+					user_id?: string;
+				};
+				Relationships: [];
+			};
 		};
 		Views: {
 			[_ in never]: never;

@@ -4,7 +4,7 @@
 	import { createClient } from '@supabase/supabase-js';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
-	export let data: { redirectTo: string }; // from +page.server.ts
+	export let data: { redirectTo: string; ageConfirmed?: boolean }; // from +page.server.ts
 
 	const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
@@ -13,7 +13,7 @@
 	let err = '';
 	let sending = false;
 	let redirected = false;
-	let ageConfirmed = false;
+	let ageConfirmed = data.ageConfirmed ?? false;
 
 	async function sendLink() {
 		success = false;
@@ -106,10 +106,12 @@
 					inputmode="email"
 					aria-invalid={!!err}
 				/>
-				<label class="checkbox">
-					<input type="checkbox" bind:checked={ageConfirmed} />
-					<span>I am 18 or older.</span>
-				</label>
+				{#if !ageConfirmed}
+					<label class="checkbox">
+						<input type="checkbox" bind:checked={ageConfirmed} />
+						<span>I am 18 or older.</span>
+					</label>
+				{/if}
 				{#if err}<p class="err" aria-live="assertive">{err}</p>{/if}
 				<button type="submit" disabled={sending || !email || !ageConfirmed}>
 					{sending ? 'Sending…' : 'Send link'}
