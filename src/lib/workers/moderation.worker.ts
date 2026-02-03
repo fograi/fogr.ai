@@ -11,18 +11,19 @@ const obscenity = new RegExpMatcher({
 
 self.addEventListener('message', (e: MessageEvent<string | { id?: string; text?: string }>) => {
 	const payload = e.data;
+	const isObj = typeof payload === 'object' && payload !== null;
 
 	// Accept string or { id, text }
 	const id =
-		(payload && typeof payload.id === 'string' && payload.id) ||
+		(isObj && typeof payload.id === 'string' && payload.id) ||
 		(typeof payload === 'string' ? 'live' : 'unknown');
 
 	let text: string =
 		typeof payload === 'string'
 			? payload
-			: typeof payload?.text === 'string'
+			: isObj && typeof payload.text === 'string'
 				? payload.text
-				: String(payload?.text ?? '');
+				: String(isObj ? payload.text ?? '' : '');
 
 	try {
 		text = text.normalize('NFKC');

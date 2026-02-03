@@ -309,10 +309,4 @@
 		margin-right: 8px;
 	}
 
-	/* Reduce heavy effects on touch devices */
-	@media (hover: none) {
-		.chip {
-			backdrop-filter: none;
-		}
-	}
 </style>

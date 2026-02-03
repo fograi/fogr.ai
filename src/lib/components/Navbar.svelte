@@ -11,10 +11,12 @@
 
 	export let title = 'fogr.ai';
 	// base links that are always shown
-	const baseLinks = [
-		{ href: '/about', label: 'About' },
+	type NavHref = '/' | '/(public)/about' | '/(app)/post';
+	const baseLinks: Array<{ href: NavHref; label: string }> = [
+		{ href: '/(public)/about', label: 'About' },
 		{ href: '/', label: 'Ads' }
 	];
+	let authedLinks: Array<{ href: NavHref; label: string }> = baseLinks;
 
 	// UI state (unchanged)
 	let open = false;
@@ -105,7 +107,9 @@
 	$: if (open) queueMicrotask(() => menu?.querySelector<HTMLAnchorElement>('a')?.focus());
 
 	// Build the final nav items based on auth
-	$: authedLinks = user ? [...baseLinks, { href: '/post', label: 'Post ad' }] : baseLinks;
+	$: authedLinks = user
+		? [...baseLinks, { href: '/(app)/post', label: 'Post ad' }]
+		: baseLinks;
 </script>
 
 <header class="nav" class:hidden>
@@ -138,7 +142,7 @@
 				<!-- Login link with redirect back to current page -->
 				<a
 					href={resolve(
-						`/login?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}`
+						`/(public)/login?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}` as any
 					)}
 					on:click={() => closeMenu(false)}>Login</a
 				>

@@ -19,7 +19,10 @@ describe('/+page.svelte', () => {
 							currency: 'EUR',
 							locale: 'en-IE'
 						}
-					]
+					],
+					page: 1,
+					nextPage: null,
+					requestId: undefined
 				}
 			}
 		});

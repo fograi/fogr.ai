@@ -56,7 +56,7 @@
 		// Optional: if landing on same route, refresh all data
 		if (data.redirectTo === window.location.pathname) await invalidateAll();
 		redirected = true;
-		await goto(resolve(data.redirectTo), { replaceState: true });
+		await goto(resolve(data.redirectTo as any), { replaceState: true });
 	}
 
 	onMount(() => {
@@ -110,8 +110,8 @@
 
 		<footer class="foot">
 			<small>
-				By continuing you agree to our <a href={resolve('/terms')}>Terms</a> and
-				<a href={resolve('/privacy')}>Privacy</a>.
+				By continuing you agree to our <a href="/terms" rel="external">Terms</a> and
+				<a href="/privacy" rel="external">Privacy</a>.
 			</small>
 		</footer>
 	</div>

@@ -63,7 +63,11 @@
 </script>
 
 <li class="card">
-	<a class="link-wrap" href={resolve(`/ad/${id}`)} aria-label={`View ad: ${title}`}>
+	<a
+		class="link-wrap"
+		href={resolve('/(public)/ad/[slug]', { slug: String(id) })}
+		aria-label={`View ad: ${title}`}
+	>
 		<div class="card__inner">
 			<div class="hdr">
 				<span class="hdr__cat">{category || 'Classifieds'}</span>
