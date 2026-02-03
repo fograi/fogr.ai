@@ -7,6 +7,7 @@ const PUBLIC_AD_STATUS = 'active';
 
 export const GET: RequestHandler = async ({ params, locals, url, platform }) => {
 	const id = params.id ?? '';
+	const nowIso = new Date().toISOString();
 
 	if (isE2eMock(platform)) {
 		if (id !== E2E_MOCK_AD.id) {
@@ -49,11 +50,12 @@ export const GET: RequestHandler = async ({ params, locals, url, platform }) => 
 	const query = locals.supabase
 		.from('ads')
 		.select(
-			'id, user_id, title, description, category, price, currency, image_keys, status, created_at, updated_at'
+			'id, user_id, title, description, category, price, currency, image_keys, status, created_at, updated_at, expires_at'
 		)
 		.eq('id', id);
 	if (!authedUser) {
 		query.eq('status', PUBLIC_AD_STATUS);
+		query.gt('expires_at', nowIso);
 	}
 	const { data, error } = await query.maybeSingle();
 
@@ -88,6 +90,15 @@ export const GET: RequestHandler = async ({ params, locals, url, platform }) => 
 			}
 		);
 	}
+	if (data.expires_at && data.expires_at <= nowIso && data.user_id !== authedUser?.id) {
+		return json(
+			{ error: 'Not found' },
+			{
+				status: 404,
+				headers: { 'Cache-Control': 'private, no-store' }
+			}
+		);
+	}
 
 	const resp = json(
 		{ ad: data },
@@ -96,7 +107,13 @@ export const GET: RequestHandler = async ({ params, locals, url, platform }) => 
 			headers: {
 				'Cache-Control': authedUser
 					? 'private, no-store'
-					: 'public, s-maxage=86400, stale-while-revalidate=604800',
+					: (() => {
+							const expiresAtMs = data.expires_at ? Date.parse(data.expires_at) : null;
+							const ttl = expiresAtMs
+								? Math.max(0, Math.min(86400, Math.floor((expiresAtMs - Date.now()) / 1000)))
+								: 86400;
+							return `public, s-maxage=${ttl}, stale-while-revalidate=604800`;
+						})(),
 				ETag: `W/"ad-${data.id}-${data.updated_at ?? data.created_at}"`
 			}
 		}

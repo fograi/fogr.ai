@@ -11,7 +11,7 @@
 - [x] Add age gate (18+) at signup/posting
 - [x] Persist age confirmation per user (user_age_confirmations)
 - [x] Implement self-serve GDPR data export and account deletion
-- [ ] Implement ad expiry automation for selected durations (default 32 days)
+- [x] Implement ad expiry automation for selected durations (default 32 days)
 - [ ] Finalize refund/withdrawal flow at checkout (no refunds except required by law)
 - [ ] Capture withdrawal waiver + consent at checkout (EEA digital services)
 - [ ] Record proof of publication for paid ads for chargeback protection (published_at, audit log, consent timestamp, IP, user agent, terms version, payment IDs)

@@ -21,5 +21,6 @@ export type ApiAdRow = {
 	image_keys: string[] | null;
 	status: string;
 	created_at: string;
+	expires_at?: string;
 	updated_at: string | null;
 };

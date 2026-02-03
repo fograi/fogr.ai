@@ -16,6 +16,7 @@ export type Database = {
 					currency: string;
 					description: string;
 					email: string | null;
+					expires_at: string;
 					id: string;
 					image_keys: string[];
 					images_count: number | null;
@@ -32,6 +33,7 @@ export type Database = {
 					currency?: string;
 					description: string;
 					email?: string | null;
+					expires_at?: string;
 					id?: string;
 					image_keys?: string[];
 					images_count?: number | null;
@@ -48,6 +50,7 @@ export type Database = {
 					currency?: string;
 					description?: string;
 					email?: string | null;
+					expires_at?: string;
 					id?: string;
 					image_keys?: string[];
 					images_count?: number | null;

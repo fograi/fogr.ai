@@ -21,7 +21,10 @@
 			const stamp = new Date().toISOString().slice(0, 10);
 			a.href = url;
 			a.download = `fogr-ai-export-${stamp}.json`;
+			a.style.display = 'none';
+			document.body.appendChild(a);
 			a.click();
+			a.remove();
 			URL.revokeObjectURL(url);
 			ok = 'Your export is downloading.';
 		} catch (e: unknown) {

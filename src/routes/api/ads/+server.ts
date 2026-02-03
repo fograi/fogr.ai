@@ -498,6 +498,7 @@ export const GET: RequestHandler = async (event) => {
 	const { locals, url, platform } = event;
 	const requestId = makeRequestId();
 	const { page, limit, from, to } = getPagination(url.searchParams, 24, 100);
+	const nowIso = new Date().toISOString();
 
 	if (isE2eMock(platform)) {
 		return json(
@@ -533,6 +534,7 @@ export const GET: RequestHandler = async (event) => {
 		.from('ads')
 		.select('id,title,description,price,currency,category,image_keys,created_at')
 		.eq('status', PUBLIC_AD_STATUS)
+		.gt('expires_at', nowIso)
 		.order('created_at', { ascending: false })
 		.range(from, to);
 

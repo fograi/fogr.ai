@@ -29,6 +29,7 @@ const MAX_IMAGE_CHECK = 3;
 const PENDING_STATUS = 'pending';
 const ACTIVE_STATUS = 'active';
 const REJECTED_STATUS = 'rejected';
+const EXPIRED_STATUS = 'expired';
 
 const supabaseHeaders = (env: Env) => ({
 	apikey: env.SUPABASE_SERVICE_ROLE_KEY as string,
@@ -158,6 +159,28 @@ async function updateAdStatus(env: Env, id: string, status: string): Promise<voi
 	}
 }
 
+async function expireActiveAds(env: Env): Promise<void> {
+	const url = new URL('/rest/v1/ads', env.SUPABASE_URL);
+	url.searchParams.set('select', 'id');
+	url.searchParams.set('status', `eq.${ACTIVE_STATUS}`);
+	url.searchParams.set('expires_at', `lte.${new Date().toISOString()}`);
+	url.searchParams.set('order', 'expires_at.asc');
+	url.searchParams.set('limit', String(BATCH_LIMIT));
+
+	const res = await fetch(url, { headers: supabaseHeaders(env) });
+	if (!res.ok) {
+		console.error('cron_expire_fetch_failed', await res.text());
+		return;
+	}
+
+	const expired = (await res.json()) as Array<{ id: string }>;
+	if (expired.length === 0) return;
+
+	for (const row of expired) {
+		await updateAdStatus(env, row.id, EXPIRED_STATUS);
+	}
+}
+
 async function copyPendingToPublic(
 	pendingBucket: R2Bucket,
 	publicBucket: R2Bucket,
@@ -262,6 +285,7 @@ export default {
 						return;
 					}
 					console.log('cron_tick', { scheduledTime: controller.scheduledTime });
+					await expireActiveAds(env);
 					await retryPendingAds(env);
 				} catch (err) {
 					console.error('cron_error', err);
