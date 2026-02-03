@@ -1,11 +1,31 @@
 // src/routes/api/ads/[id]/+server.ts
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
+import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
 
 const PUBLIC_AD_STATUS = 'active';
 
-export const GET: RequestHandler = async ({ params, locals, url }) => {
+export const GET: RequestHandler = async ({ params, locals, url, platform }) => {
 	const id = params.id ?? '';
+
+	if (isE2eMock(platform)) {
+		if (id !== E2E_MOCK_AD.id) {
+			return json(
+				{ error: 'Not found' },
+				{
+					status: 404,
+					headers: { 'Cache-Control': 'no-store' }
+				}
+			);
+		}
+		return json(
+			{ ad: E2E_MOCK_AD },
+			{
+				status: 200,
+				headers: { 'Cache-Control': 'no-store' }
+			}
+		);
+	}
 
 	const {
 		data: { user },

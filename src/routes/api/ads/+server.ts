@@ -18,6 +18,7 @@ import {
 import { bannedWords } from '$lib/banned-words';
 import { validateAdMeta } from '$lib/server/ads-validation';
 import { isSameOrigin } from '$lib/server/csrf';
+import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
 
@@ -477,9 +478,28 @@ export const POST: RequestHandler = async (event) => {
 
 // === add GET handler for listing ads ===
 export const GET: RequestHandler = async (event) => {
-	const { locals, url } = event;
+	const { locals, url, platform } = event;
 	const requestId = makeRequestId();
 	const { page, limit, from, to } = getPagination(url.searchParams, 24, 100);
+
+	if (isE2eMock(platform)) {
+		return json(
+			{
+				success: true,
+				ads: [E2E_MOCK_AD],
+				page: 1,
+				limit: 1,
+				nextPage: null,
+				requestId
+			},
+			{
+				headers: {
+					'cache-control': 'no-store',
+					'x-request-id': requestId
+				}
+			}
+		);
+	}
 
 	// Cloudflare edge cache
 	const cfCache = globalThis.caches?.default as Cache | undefined;

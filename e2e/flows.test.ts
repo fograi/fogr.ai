@@ -13,13 +13,7 @@ test('post page redirects to login when signed out', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
 });
 
-test('ad detail page renders when an ad exists', async ({ page, request }, testInfo) => {
-	const res = await request.get('/api/ads?limit=1');
-	if (!res.ok) testInfo.skip(true, 'Ads API unavailable');
-	const body = (await res.json()) as { ads?: Array<{ id: string; title: string }> };
-	const ad = body.ads?.[0];
-	if (!ad) testInfo.skip(true, 'No ads available');
-
-	await page.goto(`/ad/${ad.id}`);
-	await expect(page.getByRole('heading', { name: ad.title })).toBeVisible();
+test('ad detail page renders with mocked data', async ({ page }) => {
+	await page.goto('/ad/e2e-ad-1');
+	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
 });
