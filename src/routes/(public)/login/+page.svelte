@@ -13,12 +13,17 @@
 	let err = '';
 	let sending = false;
 	let redirected = false;
+	let ageConfirmed = false;
 
 	async function sendLink() {
 		success = false;
 		err = '';
 		if (!email) {
 			err = 'Enter your email';
+			return;
+		}
+		if (!ageConfirmed) {
+			err = 'You must confirm you are 18 or older.';
 			return;
 		}
 		sending = true;
@@ -101,8 +106,12 @@
 					inputmode="email"
 					aria-invalid={!!err}
 				/>
+				<label class="checkbox">
+					<input type="checkbox" bind:checked={ageConfirmed} />
+					<span>I am 18 or older.</span>
+				</label>
 				{#if err}<p class="err" aria-live="assertive">{err}</p>{/if}
-				<button type="submit" disabled={sending || !email}>
+				<button type="submit" disabled={sending || !email || !ageConfirmed}>
 					{sending ? 'Sending…' : 'Send link'}
 				</button>
 			</form>
@@ -204,6 +213,16 @@
 		margin-bottom: 4px;
 		font-size: 0.9rem;
 		color: var(--muted);
+	}
+	.checkbox {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		justify-content: center;
+	}
+	.checkbox input {
+		width: 16px;
+		height: 16px;
 	}
 
 	input[type='email'] {

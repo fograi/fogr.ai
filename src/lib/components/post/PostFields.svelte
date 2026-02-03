@@ -14,6 +14,7 @@
 	export let description = '';
 	export let price: number | '' = '';
 	export let isFree = false;
+	export let ageConfirmed = false;
 
 	// validation messages from parent (optional)
 	export let err = '';
@@ -84,6 +85,13 @@
 		</div>
 	</div>
 
+	<div class="row">
+		<label class="checkbox">
+			<input type="checkbox" bind:checked={ageConfirmed} disabled={loading} />
+			<span>I am 18 or older.</span>
+		</label>
+	</div>
+
 	{#if err}<p class="error" role="alert">{err}</p>{/if}
 	{#if ok}<p class="ok" role="status">{ok}</p>{/if}
 </section>
@@ -101,6 +109,16 @@
 		display: flex;
 		gap: 12px;
 		align-items: flex-end;
+	}
+	.checkbox {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-weight: 600;
+	}
+	.checkbox input {
+		width: 16px;
+		height: 16px;
 	}
 	label {
 		font-weight: 700;

@@ -14,6 +14,7 @@
 	let price: number | '' = '';
 	let currency = 'EUR';
 	let locale = 'en-IE';
+	let ageConfirmed = false;
 
 	// one image (optional)
 	let file: File | null = null;
@@ -63,6 +64,7 @@
 		if (description.trim().length < MIN_DESC_LENGTH)
 			return `Description must be ≥ ${MIN_DESC_LENGTH} chars.`;
 		if (description.length > MAX_DESC_LENGTH) return `Description ≤ ${MAX_DESC_LENGTH} chars.`;
+		if (!ageConfirmed) return 'You must confirm you are 18 or older.';
 		if (!isFree) {
 			const n = Number(price);
 			if (Number.isNaN(n) || n < 0) return 'Price must be 0 or more.';
@@ -96,6 +98,7 @@
 			form.append('price', String(isFree ? 0 : price || 0));
 			form.append('currency', currency);
 			form.append('locale', locale);
+			form.append('age_confirmed', ageConfirmed ? '1' : '0');
 			if (file) form.append('image', file);
 
 			const res = await fetch('/api/ads', { method: 'POST', body: form });
@@ -146,6 +149,7 @@
 				bind:title
 				bind:description
 				bind:price
+				bind:ageConfirmed
 				{isFree}
 				{err}
 				{ok}

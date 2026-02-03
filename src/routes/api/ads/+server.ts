@@ -276,6 +276,7 @@ export const POST: RequestHandler = async (event) => {
 		const title = form.get('title')?.toString() || '';
 		const description = form.get('description')?.toString() || '';
 		const priceStr = form.get('price')?.toString() ?? null;
+		const ageConfirmed = form.get('age_confirmed')?.toString() === '1';
 		// === NEW === optional passthroughs for DB
 		const currencyRaw = form.get('currency')?.toString() || 'EUR';
 		const currency = currencyRaw.trim().toUpperCase();
@@ -301,6 +302,7 @@ export const POST: RequestHandler = async (event) => {
 		}
 
 		// ------------ validations ------------
+		if (!ageConfirmed) return errorResponse('Must confirm you are 18 or older.', 400, requestId);
 		const metaError = validateAdMeta({ category, currency, priceStr });
 		if (metaError) return errorResponse(metaError, 400, requestId);
 
