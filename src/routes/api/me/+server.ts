@@ -1,4 +1,4 @@
-import type { RequestHandler } from '../ads/$types';
+import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const { data, error } = await locals.supabase.auth.getUser();
