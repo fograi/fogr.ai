@@ -23,7 +23,7 @@ self.addEventListener('message', (e: MessageEvent<string | { id?: string; text?:
 			? payload
 			: isObj && typeof payload.text === 'string'
 				? payload.text
-				: String(isObj ? payload.text ?? '' : '');
+				: String(isObj ? (payload.text ?? '') : '');
 
 	try {
 		text = text.normalize('NFKC');

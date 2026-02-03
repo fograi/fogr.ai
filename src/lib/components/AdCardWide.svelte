@@ -308,5 +308,4 @@
 		text-align: center;
 		margin-right: 8px;
 	}
-
 </style>

@@ -107,9 +107,7 @@
 	$: if (open) queueMicrotask(() => menu?.querySelector<HTMLAnchorElement>('a')?.focus());
 
 	// Build the final nav items based on auth
-	$: authedLinks = user
-		? [...baseLinks, { href: '/(app)/post', label: 'Post ad' }]
-		: baseLinks;
+	$: authedLinks = user ? [...baseLinks, { href: '/(app)/post', label: 'Post ad' }] : baseLinks;
 </script>
 
 <header class="nav" class:hidden>
