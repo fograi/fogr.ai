@@ -6,7 +6,7 @@
 - [x] Client-side image compression (enforce total upload <= 10MB before submit)
 - [x] DB constraints + indexes (status check constraint; index on (status, created_at))
 - [x] Add /terms and /privacy routes
-- [ ] Require prod bindings (OPENAI_API_KEY, ADS_BUCKET, ADS_PENDING_BUCKET, PUBLIC_R2_BASE, RATE_LIMIT, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+- [x] Require prod bindings (OPENAI_API_KEY, ADS_BUCKET, ADS_PENDING_BUCKET, PUBLIC_R2_BASE, RATE_LIMIT, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 - [ ] Expand E2E (login flow, posting, ad detail)
 - [ ] Add age gate (18+) at signup/posting
 - [ ] Implement self-serve GDPR data export and account deletion

@@ -2,6 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import type { KVNamespace, R2Bucket } from '@cloudflare/workers-types';
 import { error, json } from '@sveltejs/kit';
 import OpenAI from 'openai';
+import { dev } from '$app/environment';
 const { default: filter } = await import('leo-profanity');
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = await import('obscenity');
 import {
@@ -201,6 +202,27 @@ export const POST: RequestHandler = async (event) => {
 			RATE_LIMIT?: KVNamespace;
 		};
 		const rateLimitKv = env?.RATE_LIMIT;
+		const openAiApiKey = env?.OPENAI_API_KEY as string | undefined;
+		const publicBucket = env?.ADS_BUCKET;
+		const pendingBucket = env?.ADS_PENDING_BUCKET;
+		const publicBase = env?.PUBLIC_R2_BASE?.replace(/\/$/, '');
+
+		if (!dev) {
+			const missing: string[] = [];
+			if (!openAiApiKey) missing.push('OPENAI_API_KEY');
+			if (!publicBase) missing.push('PUBLIC_R2_BASE');
+			if (!rateLimitKv) missing.push('RATE_LIMIT');
+			if (!publicBucket || typeof publicBucket.put !== 'function') missing.push('ADS_BUCKET');
+			if (!pendingBucket || typeof pendingBucket.put !== 'function') missing.push('ADS_PENDING_BUCKET');
+			if (missing.length > 0) {
+				log('error', 'ads_post_missing_bindings', { missing });
+				return errorResponse(
+					`Missing required bindings: ${missing.join(', ')}`,
+					500,
+					requestId
+				);
+			}
+		}
 		if (rateLimitKv) {
 			const ip =
 				request.headers.get('CF-Connecting-IP') ??
@@ -235,17 +257,13 @@ export const POST: RequestHandler = async (event) => {
 			warnedMissingRateLimit = true;
 		}
 		// OpenAI key from CF env (you already used platform.env — keep that)
-		const openAiApiKey = env?.OPENAI_API_KEY as string | undefined;
 		if (!openAiApiKey) return errorResponse('Missing OPENAI_API_KEY', 500, requestId);
 
 		// R2 buckets from CF env
-		const publicBucket = env?.ADS_BUCKET;
-		const pendingBucket = env?.ADS_PENDING_BUCKET;
 		if (!publicBucket || typeof publicBucket.put !== 'function') {
 			console.warn('Public R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.');
 			return errorResponse('Storage temporarily unavailable', 503, requestId);
 		}
-		const publicBase = env?.PUBLIC_R2_BASE?.replace(/\/$/, '');
 		if (!publicBase) return errorResponse('Missing PUBLIC_R2_BASE', 500, requestId);
 
 		const openai = new OpenAI({ apiKey: openAiApiKey });
