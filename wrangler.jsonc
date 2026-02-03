@@ -2,46 +2,44 @@
  * Wrangler config
  * Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
  */
- {
+{
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "fogr-ai",
 	"main": ".svelte-kit/cloudflare/_worker.js",
 	"compatibility_date": "2025-08-23",
-	"compatibility_flags": ["nodejs_als"],
-  
+	"compatibility_flags": [
+		"nodejs_als"
+	],
 	// SvelteKit adapter output; fine to keep
 	"assets": {
-	  "binding": "ASSETS",
-	  "directory": ".svelte-kit/cloudflare"
+		"binding": "ASSETS",
+		"directory": ".svelte-kit/cloudflare"
 	},
-  
 	// ✅ Env vars available at platform.env.*
 	"vars": {
-	  // Make sure you included a trailing slash and this domain is attached
-	  // to the same R2 bucket with public access enabled
-	  "PUBLIC_R2_BASE": "https://cdn.fogr.ai/"
+		// Make sure you included a trailing slash and this domain is attached
+		// to the same R2 bucket with public access enabled
+		"PUBLIC_R2_BASE": "https://cdn.fogr.ai/"
 	},
-
 	// KV namespace for rate limiting (create one and paste the ids)
 	"kv_namespaces": [
-	  {
-		"binding": "RATE_LIMIT",
-		"id": "REPLACE_WITH_KV_ID",
-		"preview_id": "REPLACE_WITH_KV_PREVIEW_ID"
-	  }
+		{
+			"binding": "RATE_LIMIT",
+			"id": "cf5daa23362c48639599f07aa6afe7aa",
+			"preview_id": "REPLACE_WITH_KV_PREVIEW_ID",
+			"remote": true
+		}
 	],
-  
 	// ✅ R2 bucket binding available at platform.env.ADS_BUCKET
 	"r2_buckets": [
-	  {
-		"binding": "ADS_BUCKET",
-		"bucket_name": "fograi" // <-- your bucket name
-	  }
+		{
+			"binding": "ADS_BUCKET",
+			"bucket_name": "fograi" // <-- your bucket name
+		}
 	],
-  
-	"observability": { "enabled": true }
-  
+	"observability": {
+		"enabled": true
+	}
 	// "placement": { "mode": "smart" }
 	// "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
-  }
-  
+}
