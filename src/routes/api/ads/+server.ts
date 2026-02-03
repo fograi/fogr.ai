@@ -16,6 +16,7 @@ import {
 } from '$lib/constants';
 import { bannedWords } from '$lib/banned-words';
 import { validateAdMeta } from '$lib/server/ads-validation';
+import { isSameOrigin } from '$lib/server/csrf';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
 
@@ -29,6 +30,7 @@ const RATE_LIMIT_10M = 5;
 const RATE_LIMIT_DAY = 30;
 const WINDOW_10M_SECONDS = 10 * 60;
 const WINDOW_DAY_SECONDS = 24 * 60 * 60;
+const PUBLIC_AD_STATUS = 'approved';
 let warnedMissingRateLimit = false;
 
 const errorResponse = (message: string, status = 400, requestId?: string) =>
@@ -84,7 +86,15 @@ function cleanDataUrlBase64(dataUrl: string): string {
 	return cleaned;
 }
 
+function base64DecodedBytes(base64: string): number {
+	if (!base64) return 0;
+	const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+	return Math.max(0, Math.floor((base64.length * 3) / 4) - padding);
+}
+
 // ----------------- OpenAI moderation helpers -----------------
+type ModerationDecision = 'allow' | 'flagged' | 'unavailable';
+
 function shouldFlag(
 	res: OpenAI.Moderations.ModerationCreateResponse & {
 		_request_id?: string | null;
@@ -110,15 +120,15 @@ function shouldFlag(
 	return false;
 }
 
-async function moderateText(openai: OpenAI, text: string): Promise<boolean> {
+async function moderateText(openai: OpenAI, text: string): Promise<ModerationDecision> {
 	try {
 		const res = await openai.moderations.create({
 			model: 'omni-moderation-latest',
 			input: text
 		});
-		return shouldFlag(res);
+		return shouldFlag(res) ? 'flagged' : 'allow';
 	} catch {
-		return true; // fail closed
+		return 'unavailable';
 	}
 }
 
@@ -130,7 +140,7 @@ async function moderateTextAndImage(
 	openai: OpenAI,
 	text: string,
 	imageDataUrl: string
-): Promise<boolean> {
+): Promise<ModerationDecision> {
 	try {
 		const input: AnyModerationInput = [
 			{ type: 'text', text },
@@ -140,22 +150,25 @@ async function moderateTextAndImage(
 			model: 'omni-moderation-latest',
 			input
 		});
-		return shouldFlag(res);
+		return shouldFlag(res) ? 'flagged' : 'allow';
 	} catch {
-		return true;
+		return 'unavailable';
 	}
 }
 
-async function moderateSingleImage(openai: OpenAI, imageDataUrl: string): Promise<boolean> {
+async function moderateSingleImage(
+	openai: OpenAI,
+	imageDataUrl: string
+): Promise<ModerationDecision> {
 	try {
 		const input: AnyModerationInput = [{ type: 'image_url', image_url: { url: imageDataUrl } }];
 		const res = await openai.moderations.create({
 			model: 'omni-moderation-latest',
 			input
 		});
-		return shouldFlag(res);
+		return shouldFlag(res) ? 'flagged' : 'allow';
 	} catch {
-		return true;
+		return 'unavailable';
 	}
 }
 
@@ -167,6 +180,9 @@ export const POST: RequestHandler = async (event) => {
 		message: string,
 		extra: Record<string, unknown> = {}
 	) => console[level](JSON.stringify({ level, message, requestId, ...extra }));
+	if (!isSameOrigin(request, event.url)) {
+		return errorResponse('Forbidden', 403, requestId);
+	}
 	// Auth
 	const {
 		data: { user }
@@ -293,29 +309,44 @@ export const POST: RequestHandler = async (event) => {
 			if (tooLarge) return errorResponse('Image(s) too large.', 413, requestId);
 		}
 
+		let moderationUnavailable = false;
+
 		// ------------ OpenAI moderation (final gate) ------------
 		if (files.length === 0) {
-			const flagged = await moderateText(openai, combinedText);
-			if (flagged) return errorResponse('Failed AI moderation.', 400, requestId);
+			const result = await moderateText(openai, combinedText);
+			if (result === 'flagged') return errorResponse('Failed AI moderation.', 400, requestId);
+			if (result === 'unavailable') moderationUnavailable = true;
 		} else if (files.length === 1) {
 			const dataUrl = await fileToDataUrl(files[0]);
-			const flagged = await moderateTextAndImage(openai, combinedText, dataUrl);
-			if (flagged) return errorResponse('Failed AI moderation.', 400, requestId);
+			const result = await moderateTextAndImage(openai, combinedText, dataUrl);
+			if (result === 'flagged') return errorResponse('Failed AI moderation.', 400, requestId);
+			if (result === 'unavailable') moderationUnavailable = true;
 		} else {
 			if (combinedImage) {
 				const cleaned = cleanDataUrlBase64(combinedImage);
+				const combinedBytes = base64DecodedBytes(cleaned);
+				if (combinedBytes > MAX_TOTAL_IMAGE_SIZE) {
+					return errorResponse('Combined image too large.', 413, requestId);
+				}
 				const dataUrl = `data:image/png;base64,${cleaned}`;
-				const flagged = await moderateTextAndImage(openai, combinedText, dataUrl);
-				if (flagged) return errorResponse('Failed AI moderation.', 400, requestId);
+				const result = await moderateTextAndImage(openai, combinedText, dataUrl);
+				if (result === 'flagged') return errorResponse('Failed AI moderation.', 400, requestId);
+				if (result === 'unavailable') moderationUnavailable = true;
 			} else {
 				const MAX_CHECK = Math.min(files.length, 3);
 				for (let i = 0; i < MAX_CHECK; i++) {
 					const dataUrl = await fileToDataUrl(files[i]);
-					const flagged = await moderateSingleImage(openai, dataUrl);
-					if (flagged) return errorResponse('Failed AI moderation.', 400, requestId);
+					const result = await moderateSingleImage(openai, dataUrl);
+					if (result === 'flagged') return errorResponse('Failed AI moderation.', 400, requestId);
+					if (result === 'unavailable') {
+						moderationUnavailable = true;
+						break;
+					}
 				}
 			}
 		}
+
+		const status = moderationUnavailable ? 'pending' : PUBLIC_AD_STATUS;
 
 		// === NEW === 1) Insert row first to get id
 		const { data: inserted, error: insErr } = await locals.supabase
@@ -328,7 +359,8 @@ export const POST: RequestHandler = async (event) => {
 				price: priceStr ? Number(priceStr) : 0,
 				currency,
 				image_keys: [],
-				email
+				email,
+				status
 			})
 			.select('id')
 			.single();
@@ -389,11 +421,15 @@ export const POST: RequestHandler = async (event) => {
 
 		// === NEW === 4) Return the id so the client can redirect
 		log('info', 'ads_post_success', { userId: user.id, adId, images: image_keys.length });
+		const responseMessage = moderationUnavailable
+			? 'Ad submitted and pending review.'
+			: 'Ad submitted successfully!';
 		return json(
 			{
 				success: true,
 				id: adId,
-				message: 'Ad submitted successfully!',
+				status,
+				message: responseMessage,
 				image_keys,
 				requestId
 			},
@@ -426,6 +462,7 @@ export const GET: RequestHandler = async (event) => {
 	const { data, error } = await locals.supabase
 		.from('ads')
 		.select('id,title,description,price,currency,category,image_keys,created_at')
+		.eq('status', PUBLIC_AD_STATUS)
 		.order('created_at', { ascending: false })
 		.range(from, to);
 
