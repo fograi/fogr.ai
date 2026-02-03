@@ -195,6 +195,7 @@ export const POST: RequestHandler = async (event) => {
 	try {
 		const env = platform?.env as {
 			ADS_BUCKET?: R2Bucket;
+			ADS_PENDING_BUCKET?: R2Bucket;
 			PUBLIC_R2_BASE?: string;
 			OPENAI_API_KEY?: string;
 			RATE_LIMIT?: KVNamespace;
@@ -237,10 +238,11 @@ export const POST: RequestHandler = async (event) => {
 		const openAiApiKey = env?.OPENAI_API_KEY as string | undefined;
 		if (!openAiApiKey) return errorResponse('Missing OPENAI_API_KEY', 500, requestId);
 
-		// R2 + public base from CF env
-		const bucket = env?.ADS_BUCKET;
-		if (!bucket || typeof bucket.put !== 'function') {
-			console.warn('R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.');
+		// R2 buckets from CF env
+		const publicBucket = env?.ADS_BUCKET;
+		const pendingBucket = env?.ADS_PENDING_BUCKET;
+		if (!publicBucket || typeof publicBucket.put !== 'function') {
+			console.warn('Public R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.');
 			return errorResponse('Storage temporarily unavailable', 503, requestId);
 		}
 		const publicBase = env?.PUBLIC_R2_BASE?.replace(/\/$/, '');
@@ -370,9 +372,22 @@ export const POST: RequestHandler = async (event) => {
 
 		const adId: string = inserted.id;
 
-		// === NEW === 2) Upload to R2 and collect public URLs
+		// === NEW === 2) Upload to R2 and collect image keys
 		let image_keys: string[] = [];
-		if (files.length > 0 && !moderationUnavailable) {
+		if (files.length > 0) {
+			const targetBucket = moderationUnavailable ? pendingBucket : publicBucket;
+			const cacheControl = moderationUnavailable
+				? 'private, max-age=86400'
+				: 'public, max-age=31536000, immutable';
+			if (!targetBucket || typeof targetBucket.put !== 'function') {
+				const bucketLabel = moderationUnavailable ? 'Pending' : 'Public';
+				console.warn(
+					`${bucketLabel} R2 bucket binding missing/invalid. Run with \`wrangler dev\` so bindings exist.`
+				);
+				await locals.supabase.from('ads').delete().eq('id', adId);
+				return errorResponse('Storage temporarily unavailable', 503, requestId);
+			}
+
 			const uploads = files.map(async (file, idx) => {
 				const ext =
 					file.type === 'image/jpeg'
@@ -385,10 +400,10 @@ export const POST: RequestHandler = async (event) => {
 
 				const key = `${user.id}/${adId}/${String(idx).padStart(2, '0')}.${ext}`;
 
-				await bucket.put(key, await file.arrayBuffer(), {
+				await targetBucket.put(key, await file.arrayBuffer(), {
 					httpMetadata: {
 						contentType: file.type,
-						cacheControl: 'public, max-age=31536000, immutable'
+						cacheControl
 					}
 				});
 
@@ -401,7 +416,7 @@ export const POST: RequestHandler = async (event) => {
 				.map((r) => r.value);
 
 			if (results.some((r) => r.status === 'rejected')) {
-				await Promise.allSettled(image_keys.map((key) => bucket.delete(key)));
+				await Promise.allSettled(image_keys.map((key) => targetBucket.delete(key)));
 				await locals.supabase.from('ads').delete().eq('id', adId);
 				return errorResponse('Failed to upload images.', 500, requestId);
 			}
@@ -413,7 +428,7 @@ export const POST: RequestHandler = async (event) => {
 				.eq('id', adId);
 
 			if (updErr) {
-				await Promise.allSettled(image_keys.map((key) => bucket.delete(key)));
+				await Promise.allSettled(image_keys.map((key) => targetBucket.delete(key)));
 				await locals.supabase.from('ads').delete().eq('id', adId);
 				return errorResponse('Saved ad but failed to attach images.', 500, requestId);
 			}

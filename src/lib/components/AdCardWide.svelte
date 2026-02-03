@@ -12,6 +12,7 @@
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 	export let email: string = '';
+	export let status: string | undefined = undefined;
 
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
@@ -40,9 +41,9 @@
 
 	// Image handling
 	let isPortrait = false;
-	let showImg = !!img;
+	let showImg = !!img && status !== 'pending';
 	let imgEl: HTMLImageElement | null = null;
-	$: showImg = !!img;
+	$: showImg = !!img && status !== 'pending';
 
 	function onImgError() {
 		showImg = false;

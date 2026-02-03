@@ -33,6 +33,10 @@
 		{
 			"binding": "ADS_BUCKET",
 			"bucket_name": "fograi" // <-- your bucket name
+		},
+		{
+			"binding": "ADS_PENDING_BUCKET",
+			"bucket_name": "fograi-pending" // <-- private bucket for pending ads
 		}
 	],
 	"observability": {

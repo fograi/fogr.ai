@@ -11,6 +11,16 @@
 	"triggers": {
 		"crons": ["*/15 * * * *"]
 	},
+	"r2_buckets": [
+		{
+			"binding": "ADS_BUCKET",
+			"bucket_name": "fograi" // <-- public bucket
+		},
+		{
+			"binding": "ADS_PENDING_BUCKET",
+			"bucket_name": "fograi-pending" // <-- private bucket for pending ads
+		}
+	],
 	// Bindings (set via `wrangler secret put` or dashboard)
 	// "vars": {
 	//   "SUPABASE_URL": "...",
