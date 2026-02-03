@@ -33,6 +33,12 @@ test('post page allows submitting a listing with mocked API', async ({ page }) =
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
 });
 
+test('navbar shows Post ad and Logout when signed in (mocked)', async ({ page }) => {
+	await page.goto('/post');
+	await expect(page.getByRole('link', { name: 'Post ad' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+});
+
 test('ad detail page renders with mocked data', async ({ page }) => {
 	await page.goto('/ad/e2e-ad-1');
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
