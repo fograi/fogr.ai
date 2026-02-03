@@ -8,6 +8,7 @@ export interface AdCard {
 	currency?: string;
 	locale?: string;
 	status?: string;
+	expiresAt?: string;
 }
 
 export type ApiAdRow = {

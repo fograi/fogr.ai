@@ -18,7 +18,8 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		description: ad.description,
 		category: ad.category,
 		currency: ad.currency ?? undefined,
-		status: ad.status
+		status: ad.status,
+		expiresAt: ad.expires_at ?? undefined
 	};
 
 	return { ad: mapped };

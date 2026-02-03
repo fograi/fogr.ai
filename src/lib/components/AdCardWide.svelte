@@ -13,6 +13,7 @@
 	export let locale = 'en-IE';
 	export let email: string = '';
 	export let status: string | undefined = undefined;
+	export let expiresAt: string | undefined = undefined;
 
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
@@ -36,6 +37,10 @@
 						maximumFractionDigits: 0
 					}).format(price)
 				: '';
+
+	$: expiresLabel = expiresAt
+		? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(expiresAt))
+		: '';
 
 	$: mailtoHref = email ? `mailto:${email}?subject=${encodeURIComponent('Enquiry: ' + title)}` : '';
 
@@ -97,6 +102,11 @@
 			<div class="meta">
 				<h3 class="title--standalone">{title}</h3>
 				{#if description}<p class="desc">{description}</p>{/if}
+				{#if expiresLabel}
+					<p class="meta-line">
+						{status === 'expired' ? 'Expired on' : 'Expires on'} {expiresLabel}
+					</p>
+				{/if}
 				<div class="actions desktop">
 					<!-- Price badge sits here (not over image) -->
 					{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
@@ -116,6 +126,11 @@
 
 				<h3 class="title--standalone">{title}</h3>
 				{#if description}<p class="desc">{description}</p>{/if}
+				{#if expiresLabel}
+					<p class="meta-line">
+						{status === 'expired' ? 'Expired on' : 'Expires on'} {expiresLabel}
+					</p>
+				{/if}
 
 				<div class="actions desktop">
 					{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
@@ -235,6 +250,11 @@
 		display: -webkit-box;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+	}
+	.meta-line {
+		margin: 0;
+		font-weight: 600;
+		color: color-mix(in srgb, var(--fg) 65%, transparent);
 	}
 
 	/* Text-only */
