@@ -7,9 +7,14 @@
 	"name": "fogr-ai-cron",
 	"main": "src/cron-worker.ts",
 	"compatibility_date": "2025-08-23",
-	"compatibility_flags": ["nodejs_compat", "nodejs_als"],
+	"compatibility_flags": [
+		"nodejs_compat",
+		"nodejs_als"
+	],
 	"triggers": {
-		"crons": ["*/15 * * * *"]
+		"crons": [
+			"*/15 * * * *"
+		]
 	},
 	"r2_buckets": [
 		{
