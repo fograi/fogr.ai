@@ -22,6 +22,13 @@
 	// state
 	let imgEl: HTMLImageElement | null = null;
 	let err = '';
+	let compressing = false;
+
+	const MAX_DIMENSION = 1600;
+	const JPEG_QUALITY = 0.85;
+	const JPEG_MIN_QUALITY = 0.7;
+	const JPEG_REENCODE_THRESHOLD = 1 * 1024 * 1024; // 1MB
+	const MAX_CLIENT_INPUT_SIZE = 20 * 1024 * 1024; // safety cap for huge files
 
 	$: bannerBase = category ? catBase[category] : '#6B7280';
 	$: bannerIcon = category ? catIcon[category] : '🗂️';
@@ -31,47 +38,148 @@
 		previewUrl = URL.createObjectURL(f);
 		imgLoaded = false;
 	}
-	function clearFile() {
+	function clearFile({ keepError = false }: { keepError?: boolean } = {}) {
 		if (previewUrl) URL.revokeObjectURL(previewUrl);
 		previewUrl = null;
 		file = null;
 		imgLoaded = false;
-		err = '';
+		if (!keepError) err = '';
 		// bubble up so parent can also react if it wants
 		const e = new CustomEvent('clear');
 		dispatchEvent(e);
 	}
 
-	function onFileChange(e: Event) {
+	function toCanvasBlob(
+		canvas: HTMLCanvasElement,
+		type: string,
+		quality?: number
+	): Promise<Blob> {
+		return new Promise((resolve, reject) => {
+			canvas.toBlob(
+				(blob) => (blob ? resolve(blob) : reject(new Error('Image encoding failed'))),
+				type,
+				quality
+			);
+		});
+	}
+
+	function normalizeName(name: string, type: string) {
+		const ext = type === 'image/png' ? '.png' : '.jpg';
+		return name.replace(/\.(png|jpg|jpeg)$/i, '') + ext;
+	}
+
+	async function decodeImage(f: File): Promise<ImageBitmap | HTMLImageElement> {
+		if (typeof createImageBitmap === 'function') {
+			return await createImageBitmap(f);
+		}
+		return await new Promise<HTMLImageElement>((resolve, reject) => {
+			const img = new Image();
+			const url = URL.createObjectURL(f);
+			img.onload = () => {
+				URL.revokeObjectURL(url);
+				resolve(img);
+			};
+			img.onerror = () => {
+				URL.revokeObjectURL(url);
+				reject(new Error('Image decode failed'));
+			};
+			img.src = url;
+		});
+	}
+
+	async function optimizeImage(f: File): Promise<File> {
+		const bitmap = await decodeImage(f);
+		const width = 'width' in bitmap ? bitmap.width : (bitmap as HTMLImageElement).naturalWidth;
+		const height = 'height' in bitmap ? bitmap.height : (bitmap as HTMLImageElement).naturalHeight;
+		const maxDim = Math.max(width, height);
+		const scale = maxDim > MAX_DIMENSION ? MAX_DIMENSION / maxDim : 1;
+		const targetW = Math.max(1, Math.round(width * scale));
+		const targetH = Math.max(1, Math.round(height * scale));
+
+		const isPng = f.type === 'image/png';
+		const shouldResize = scale < 1;
+		const shouldReencode = !isPng && (f.size > JPEG_REENCODE_THRESHOLD || shouldResize);
+
+		if (!shouldResize && !shouldReencode) {
+			if ('close' in bitmap) bitmap.close();
+			return f;
+		}
+
+		const canvas = document.createElement('canvas');
+		canvas.width = targetW;
+		canvas.height = targetH;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) {
+			if ('close' in bitmap) bitmap.close();
+			throw new Error('Canvas not supported');
+		}
+		ctx.drawImage(bitmap as CanvasImageSource, 0, 0, targetW, targetH);
+		if ('close' in bitmap) bitmap.close();
+
+		if (isPng) {
+			const blob = await toCanvasBlob(canvas, 'image/png');
+			return new File([blob], normalizeName(f.name, 'image/png'), {
+				type: 'image/png',
+				lastModified: f.lastModified
+			});
+		}
+
+		let quality = JPEG_QUALITY;
+		let blob = await toCanvasBlob(canvas, 'image/jpeg', quality);
+		while (blob.size > MAX_IMAGE_SIZE && quality > JPEG_MIN_QUALITY) {
+			quality = Math.max(JPEG_MIN_QUALITY, Number((quality - 0.05).toFixed(2)));
+			blob = await toCanvasBlob(canvas, 'image/jpeg', quality);
+		}
+
+		return new File([blob], normalizeName(f.name, 'image/jpeg'), {
+			type: 'image/jpeg',
+			lastModified: f.lastModified
+		});
+	}
+
+	async function handleFile(f: File) {
+		if (!ALLOWED_IMAGE_TYPES.includes(f.type)) {
+			clearFile({ keepError: true });
+			err = 'Only JPEG or PNG allowed.';
+			return;
+		}
+		if (f.size > MAX_CLIENT_INPUT_SIZE) {
+			clearFile({ keepError: true });
+			err = `Image must be ≤ ${Math.floor(MAX_CLIENT_INPUT_SIZE / (1024 * 1024))}MB.`;
+			return;
+		}
+
+		err = '';
+		compressing = true;
+		try {
+			const optimized = await optimizeImage(f);
+			if (optimized.size > MAX_IMAGE_SIZE) {
+				clearFile({ keepError: true });
+				err = `Image must be ≤ ${Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB after optimization.`;
+				return;
+			}
+			file = optimized;
+			setPreview(optimized);
+		} catch {
+			clearFile({ keepError: true });
+			err = 'Could not optimize image. Please try a different file.';
+		} finally {
+			compressing = false;
+		}
+	}
+
+	async function onFileChange(e: Event) {
 		const input = e.currentTarget as HTMLInputElement;
 		const f = input.files?.[0];
 		if (!f) return clearFile();
-		if (!ALLOWED_IMAGE_TYPES.includes(f.type))
-			return ((err = 'Only JPEG or PNG allowed.'), clearFile());
-		if (f.size > MAX_IMAGE_SIZE)
-			return (
-				(err = `Image must be ≤ ${Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB.`),
-				clearFile()
-			);
-		err = '';
-		file = f;
-		setPreview(f);
+		await handleFile(f);
 	}
 
-	function onDrop(e: DragEvent) {
+	async function onDrop(e: DragEvent) {
 		e.preventDefault();
 		const f = e.dataTransfer?.files?.[0];
 		if (!f) return;
-		if (!ALLOWED_IMAGE_TYPES.includes(f.type))
-			return ((err = 'Only JPEG or PNG allowed.'), clearFile());
-		if (f.size > MAX_IMAGE_SIZE)
-			return (
-				(err = `Image must be ≤ ${Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB.`),
-				clearFile()
-			);
-		err = '';
-		file = f;
-		setPreview(f);
+		await handleFile(f);
 	}
 
 	$: formatted =
@@ -134,25 +242,27 @@
 			</label>
 		</div>
 	{:else}
-		<div class="empty">
-			<div class="icon">🖼️</div>
-			<p>Drag & drop an image, or</p>
-			<label class="btn">
-				Choose file
-				<input
-					type="file"
-					accept={ALLOWED_IMAGE_TYPES.join(',')}
-					capture="environment"
-					on:change={onFileChange}
-					hidden
-				/>
-			</label>
-			<small>
-				Max {Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB each • {MAX_IMAGE_COUNT} images •
-				{Math.floor(MAX_TOTAL_IMAGE_SIZE / (1024 * 1024))}MB total • JPG/PNG
-			</small>
-			{#if err}<p class="error">{err}</p>{/if}
-		</div>
+	<div class="empty">
+		<div class="icon">🖼️</div>
+		<p>Drag & drop an image, or</p>
+		<label class="btn">
+			Choose file
+			<input
+				type="file"
+				accept={ALLOWED_IMAGE_TYPES.join(',')}
+				capture="environment"
+				on:change={onFileChange}
+				disabled={compressing}
+				hidden
+			/>
+		</label>
+		<small>
+			Max {Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB each • {MAX_IMAGE_COUNT} images •
+			{Math.floor(MAX_TOTAL_IMAGE_SIZE / (1024 * 1024))}MB total • JPG/PNG
+		</small>
+		{#if compressing}<p class="hint">Optimizing image…</p>{/if}
+		{#if err}<p class="error">{err}</p>{/if}
+	</div>
 	{/if}
 </div>
 
@@ -258,6 +368,10 @@
 		gap: 10px;
 		align-items: center;
 		margin-top: 8px;
+	}
+	.hint {
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+		font-weight: 600;
 	}
 	.price-row {
 		display: flex;
