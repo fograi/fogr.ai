@@ -102,13 +102,13 @@
 <style>
 	/* Base paper card */
 	.card {
-		background: #fffdf6; /* warm off-white */
-		border: 1px solid #1112; /* hairline ink */
+		background: var(--surface);
+		border: 1px solid var(--hairline);
 		border-radius: 0; /* square */
 		box-shadow:
-			inset 0 0 0 1px #0000000f,
-			/* plate edge */ 0 1px 0 #0001; /* slight lift */
-		color: #111;
+			inset 0 0 0 1px color-mix(in srgb, var(--fg) 6%, transparent),
+			/* plate edge */ 0 1px 0 color-mix(in srgb, var(--fg) 6%, transparent);
+		color: var(--fg);
 	}
 
 	/* Headlines feel printed */
@@ -131,9 +131,9 @@
 	/* Full-width black header */
 	.hdr {
 		margin: 0 -12px; /* bleed to card edges */
-		background: #000; /* B&W header */
-		color: #fff;
-		border-bottom: 1px solid #000;
+		background: color-mix(in srgb, var(--fg) 14%, var(--bg));
+		color: var(--fg);
+		border-bottom: 1px solid var(--hairline);
 		text-align: center; /* center contents */
 	}
 
@@ -221,49 +221,17 @@
 		right: 8px;
 		bottom: 8px;
 		padding: 4px 8px;
-		background: #000;
-		color: #fff;
+		background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+		color: var(--fg);
 		font-weight: 800;
 		font-size: 0.85rem;
-		border: 1px solid #000;
+		border: 1px solid var(--hairline);
 		line-height: 1;
 	}
 	@media (prefers-color-scheme: dark) {
-		.card {
-			background: #191b20; /* deep charcoal */
-			border-color: #e5e9ee; /* subtle hairline */
-			box-shadow:
-				inset 0 0 0 1px #0000003a,
-				0 1px 0 #0000;
-		}
-
-		.hdr {
-			background: #e5e9ee;
-			color: #121418;
-			border-bottom-color: #000;
-		}
-
-		.title {
-			color: #e5e9ee;
-		} /* strong headline */
-		.desc {
-			color: #e5e9ee;
-		} /* softer body ink */
-
-		.price {
-			background: #e5e9ee;
-			color: #121418;
-			border-color: #e5e9ee;
-		}
-
 		/* tame bright photos in dark mode (keeps color) */
 		.media img {
 			filter: brightness(0.96) contrast(1.05) saturate(0.98);
-		}
-
-		/* focus ring that’s visible on dark */
-		.link-wrap:focus-visible {
-			outline-color: #8ab4ff;
 		}
 	}
 </style>

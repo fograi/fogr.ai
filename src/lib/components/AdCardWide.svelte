@@ -185,8 +185,8 @@
 
 	.banner {
 		grid-column: 1 / -1;
-		background: #000;
-		color: #fff;
+		background: color-mix(in srgb, var(--fg) 14%, var(--bg));
+		color: var(--fg);
 		border-radius: 6px;
 		padding: 10px 12px;
 		font-weight: 900;
@@ -290,9 +290,9 @@
 		cursor: pointer;
 	}
 	.btn.primary {
-		background: #000;
-		color: #fff;
-		border-color: #000;
+		background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+		color: var(--fg);
+		border-color: var(--hairline);
 	}
 
 	/* Sticky CTA (mobile) */
@@ -320,8 +320,8 @@
 
 	.price-badge {
 		display: inline-block;
-		background: #000;
-		color: #fff;
+		background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+		color: var(--fg);
 		padding: 6px 10px;
 		border-radius: 4px;
 		font-weight: 900;

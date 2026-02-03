@@ -275,8 +275,8 @@
 
 	/* Centered banner header, like the ad page */
 	.banner {
-		background: #000;
-		color: #fff;
+		background: color-mix(in srgb, var(--fg) 14%, var(--bg));
+		color: var(--fg);
 		border-radius: 6px;
 		padding: 10px 12px;
 		font-weight: 900;
@@ -381,8 +381,8 @@
 
 	.price-badge {
 		display: inline-block;
-		background: #000;
-		color: #fff;
+		background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+		color: var(--fg);
 		padding: 6px 12px;
 		border-radius: 8px;
 		font-weight: 900;
