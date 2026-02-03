@@ -19,9 +19,7 @@ class MockKV {
 	}
 
 	async put(key: string, value: string, options?: { expirationTtl?: number }) {
-		const expiresAt = options?.expirationTtl
-			? Date.now() + options.expirationTtl * 1000
-			: null;
+		const expiresAt = options?.expirationTtl ? Date.now() + options.expirationTtl * 1000 : null;
 		this.store.set(key, { value, expiresAt });
 	}
 }

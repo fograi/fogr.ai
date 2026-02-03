@@ -13,8 +13,8 @@ declare global {
 		}
 		interface Locals {
 			supabase: SupabaseClient<Database>;
-            getUser: () => Promise<User | null>;
-            getSessionMeta?: () => Promise<{ expires_at: number | null } | null>;
+			getUser: () => Promise<User | null>;
+			getSessionMeta?: () => Promise<{ expires_at: number | null } | null>;
 		}
 		interface PageData {
 			user?: { id: string; email?: string | null } | null;

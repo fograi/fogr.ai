@@ -6,7 +6,10 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	if (!isSameOrigin(request, url)) {
 		throw error(403, 'Forbidden');
 	}
-	const { access_token, refresh_token } = await request.json() as { access_token: string; refresh_token: string };
+	const { access_token, refresh_token } = (await request.json()) as {
+		access_token: string;
+		refresh_token: string;
+	};
 
 	if (!access_token || !refresh_token) {
 		return new Response(JSON.stringify({ ok: false, message: 'Missing tokens' }), {

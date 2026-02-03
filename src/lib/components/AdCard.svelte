@@ -73,7 +73,7 @@
 				<div class="media">
 					<img
 						bind:this={imgEl}
-						src={PUBLIC_R2_BASE}{img}
+						src="{PUBLIC_R2_BASE}{img}"
 						alt={title}
 						loading="lazy"
 						decoding="async"
@@ -113,7 +113,7 @@
 		letter-spacing: 0.01em;
 		text-align: center;
 	}
-	
+
 	.card:hover {
 		transform: none;
 		box-shadow: none;

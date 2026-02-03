@@ -50,7 +50,9 @@
 	</div>
 
 	<div class="field">
-		<label for="description">Description <span class="muted">({descLen}/{MAX_DESC_LENGTH})</span></label>
+		<label for="description"
+			>Description <span class="muted">({descLen}/{MAX_DESC_LENGTH})</span></label
+		>
 		<textarea
 			id="description"
 			bind:value={description}

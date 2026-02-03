@@ -90,8 +90,9 @@
 		gap: 4px;
 	}
 	.error-banner .req {
-		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-			'Courier New', monospace;
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+			monospace;
 		font-size: 0.85rem;
 	}
 	.masonry-grid {

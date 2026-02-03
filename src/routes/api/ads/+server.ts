@@ -53,7 +53,8 @@ const rateLimitResponse = (retryAfterSeconds: number, requestId?: string) =>
 	);
 
 const makeRequestId = () =>
-	crypto?.randomUUID?.() ?? `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+	crypto?.randomUUID?.() ??
+	`req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
 	const bytes = new Uint8Array(buf);
@@ -161,8 +162,11 @@ async function moderateSingleImage(openai: OpenAI, imageDataUrl: string): Promis
 export const POST: RequestHandler = async (event) => {
 	const { request, locals, platform } = event;
 	const requestId = makeRequestId();
-	const log = (level: 'info' | 'warn' | 'error', message: string, extra: Record<string, unknown> = {}) =>
-		console[level](JSON.stringify({ level, message, requestId, ...extra }));
+	const log = (
+		level: 'info' | 'warn' | 'error',
+		message: string,
+		extra: Record<string, unknown> = {}
+	) => console[level](JSON.stringify({ level, message, requestId, ...extra }));
 	// Auth
 	const {
 		data: { user }
@@ -266,8 +270,10 @@ export const POST: RequestHandler = async (event) => {
 		if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.', 400, requestId);
 		if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413, requestId);
 
-		if (description.length < MIN_DESC_LENGTH) return errorResponse('Description too short.', 400, requestId);
-		if (description.length > MAX_DESC_LENGTH) return errorResponse('Description too long.', 413, requestId);
+		if (description.length < MIN_DESC_LENGTH)
+			return errorResponse('Description too short.', 400, requestId);
+		if (description.length > MAX_DESC_LENGTH)
+			return errorResponse('Description too long.', 413, requestId);
 
 		// category, currency, and price are validated above
 
@@ -408,11 +414,13 @@ export const GET: RequestHandler = async (event) => {
 
 	// Cloudflare edge cache
 	const cfCache = globalThis.caches?.default as Cache | undefined;
-	const cacheKey = cfCache ? new Request(new URL(url.pathname + url.search, url.origin), { method:'GET' }) : undefined;
-  
+	const cacheKey = cfCache
+		? new Request(new URL(url.pathname + url.search, url.origin), { method: 'GET' })
+		: undefined;
+
 	if (cfCache && cacheKey) {
-	  const hit = await cfCache.match(cacheKey);
-	  if (hit) return hit;
+		const hit = await cfCache.match(cacheKey);
+		if (hit) return hit;
 	}
 
 	const { data, error } = await locals.supabase

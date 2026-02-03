@@ -4,7 +4,7 @@ import { json } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ params, locals, url }) => {
 	const id = params.id ?? '';
-	
+
 	// Cloudflare edge cache if available (safe no-op locally)
 	const cfCache = globalThis.caches?.default;
 	const cacheKey = cfCache

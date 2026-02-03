@@ -12,7 +12,9 @@ export function getPagination(
 ): Pagination {
 	const limitRaw = Number(params.get('limit') ?? String(defaultLimit));
 	const pageRaw = Number(params.get('page') ?? '1');
-	const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), maxLimit) : defaultLimit;
+	const limit = Number.isFinite(limitRaw)
+		? Math.min(Math.max(limitRaw, 1), maxLimit)
+		: defaultLimit;
 	const page = Number.isFinite(pageRaw) ? Math.max(Math.floor(pageRaw), 1) : 1;
 	const from = (page - 1) * limit;
 	const to = from + limit - 1;
