@@ -146,16 +146,6 @@ Short ads. One image. One price. No spam.
 
 ---
 
-## Categories to Launch With (Max 5)
-
-- Community
-- For Sale
-- Jobs
-- Services
-- Rentals (careful with rules)
-
----
-
 ## Non-Goals
 
 - National dominance

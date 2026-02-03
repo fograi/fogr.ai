@@ -17,6 +17,12 @@
 - [ ] Add “large image” warnings while still attempting client-side compression
 - [ ] Fix dark/light mode glitches
 - [ ] Fix auth state UI refresh (logged-in vs logged-out view)
+- [ ] Enforce product rules: max 256 chars total (headline + body)
+- [ ] Enforce product rules: mandatory price (including Free = €0)
+- [ ] Block disposable email domains at login
+- [ ] Rate-limit magic link requests
+- [ ] Enforce 1 free ad per user per day
+- [ ] Add image reuse detection (hashing)
 - [ ] Finalize refund/withdrawal flow at checkout (no refunds except required by law)
 - [ ] Capture withdrawal waiver + consent at checkout (EEA digital services)
 - [ ] Record proof of publication for paid ads for chargeback protection (published_at, audit log, consent timestamp, IP, user agent, terms version, payment IDs)
