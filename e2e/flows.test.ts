@@ -47,7 +47,7 @@ test('ad detail page renders with mocked data', async ({ page }) => {
 
 test('account page exports data (mocked)', async ({ page }) => {
 	await page.goto('/account');
-	await expect(page.getByRole('heading', { name: 'Account' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Account', exact: true })).toBeVisible();
 
 	const [download] = await Promise.all([
 		page.waitForEvent('download'),
