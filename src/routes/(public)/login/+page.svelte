@@ -26,6 +26,11 @@
 			err = 'You must confirm you are 18 or older.';
 			return;
 		}
+		try {
+			sessionStorage.setItem('age_confirmed_pending', '1');
+		} catch {
+			/* noop */
+		}
 		sending = true;
 
 		const emailRedirectTo = `${window.location.origin}/login?redirectTo=${encodeURIComponent(
@@ -64,6 +69,27 @@
 		await goto(data.redirectTo, { replaceState: true });
 	}
 
+	async function confirmAgeIfPending() {
+		let pending = '';
+		try {
+			pending = sessionStorage.getItem('age_confirmed_pending') || '';
+		} catch {
+			return;
+		}
+		if (!pending) return;
+		try {
+			await fetch('/api/me/age-confirm', { method: 'POST', credentials: 'same-origin' });
+		} catch {
+			/* noop */
+		} finally {
+			try {
+				sessionStorage.removeItem('age_confirmed_pending');
+			} catch {
+				/* noop */
+			}
+		}
+	}
+
 	onMount(() => {
 		// Rely on the auth state change; no client getUser() call
 		const {
@@ -71,6 +97,7 @@
 		} = supabase.auth.onAuthStateChange(async (event, sess) => {
 			if (event === 'SIGNED_IN' && sess && !redirected) {
 				await bridgeSession(sess.access_token, sess.refresh_token);
+				await confirmAgeIfPending();
 				await finishLoginAndGo();
 			}
 		});
