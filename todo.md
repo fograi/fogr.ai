@@ -12,7 +12,7 @@
 - [x] Persist age confirmation per user (user_age_confirmations)
 - [x] Implement self-serve GDPR data export and account deletion
 - [x] Implement ad expiry automation for selected durations (default 32 days)
-- [ ] Fix dark/light mode glitches
+- [x] Fix dark/light mode glitches
 - [ ] Fix auth state UI refresh (logged-in vs logged-out view)
 - [ ] Align image upload UI with actual limit (currently single image vs “up to 4”)
 - [ ] Soften upload size messaging (avoid technical MB limits in UI copy)

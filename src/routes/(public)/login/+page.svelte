@@ -129,17 +129,25 @@
 </section>
 
 <style>
-	:root {
-		--bg: hsl(0 0% 98%);
-		--card: #fff;
-		--text: hsl(222 47% 11%);
-		--muted: hsl(215 16% 47%);
-		--border: hsl(214 32% 91%);
-		--brand: hsl(0, 0%, 0%);
-		--brand-pressed: hsl(221 73% 47%);
+	.auth-wrap {
+		--card: var(--surface);
+		--text: var(--fg);
+		--muted: color-mix(in srgb, var(--fg) 55%, transparent);
+		--border: var(--hairline);
+		--brand: #111;
+		--brand-contrast: #fff;
+		--brand-pressed: #000;
 		--danger: #b91c1c;
 		--radius: 14px;
-		--shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+		--shadow: 0 10px 30px color-mix(in srgb, #000 12%, transparent);
+	}
+	@media (prefers-color-scheme: dark) {
+		.auth-wrap {
+			--brand: #e7e7ea;
+			--brand-contrast: #111;
+			--brand-pressed: #cfcfd4;
+			--shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+		}
 	}
 
 	.sr-only {
@@ -249,7 +257,7 @@
 		border: 0;
 		border-radius: 10px;
 		background: var(--brand);
-		color: white;
+		color: var(--brand-contrast);
 		font-weight: 600;
 		font-size: 1rem;
 		cursor: pointer;
