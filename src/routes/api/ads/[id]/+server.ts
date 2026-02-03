@@ -2,7 +2,7 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 
-const PUBLIC_AD_STATUS = 'approved';
+const PUBLIC_AD_STATUS = 'active';
 
 export const GET: RequestHandler = async ({ params, locals, url }) => {
 	const id = params.id ?? '';

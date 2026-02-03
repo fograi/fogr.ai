@@ -30,7 +30,7 @@ const RATE_LIMIT_10M = 5;
 const RATE_LIMIT_DAY = 30;
 const WINDOW_10M_SECONDS = 10 * 60;
 const WINDOW_DAY_SECONDS = 24 * 60 * 60;
-const PUBLIC_AD_STATUS = 'approved';
+const PUBLIC_AD_STATUS = 'active';
 let warnedMissingRateLimit = false;
 
 const errorResponse = (message: string, status = 400, requestId?: string) =>
