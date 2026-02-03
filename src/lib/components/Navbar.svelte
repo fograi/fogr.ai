@@ -26,6 +26,7 @@
 
 	let menu: HTMLElement;
 	let burgerEl: HTMLButtonElement;
+	let isDesktop = false;
 
 	// supabase client (only needed for client-side signout UX)
 	const supabase: SupabaseClient | null = browser
@@ -61,6 +62,14 @@
 	afterNavigate(() => closeMenu(false));
 
 	onMount(() => {
+		const media = window.matchMedia('(min-width: 768px)');
+		const syncDesktop = () => {
+			isDesktop = media.matches;
+			if (isDesktop) open = false;
+		};
+		syncDesktop();
+		media.addEventListener('change', syncDesktop);
+
 		lastY = window.scrollY;
 		const onWinScroll = () => {
 			if (!ticking) {
@@ -96,6 +105,7 @@
 		document.addEventListener('focusin', onFocusIn);
 
 		return () => {
+			media.removeEventListener('change', syncDesktop);
 			removeEventListener('scroll', onWinScroll);
 			document.removeEventListener('pointerdown', onDocPointer);
 			document.removeEventListener('keydown', onDocKey);
@@ -126,7 +136,7 @@
 			<span></span><span></span><span></span>
 		</button>
 
-		<nav id="site-menu" bind:this={menu} class:open aria-hidden={!open}>
+		<nav id="site-menu" bind:this={menu} class:open aria-hidden={!open && !isDesktop}>
 			{#each authedLinks as link (link.href)}
 				<a href={resolve(link.href)} on:click={() => closeMenu(false)}>{link.label}</a>
 			{/each}
