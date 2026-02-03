@@ -74,7 +74,8 @@
 	{#if data.page > 1}
 		<a
 			class="pager__link"
-			href={resolve(`/?page=${data.page - 1}` as unknown as Parameters<typeof resolve>[0])}
+			href={`${resolve('/')}?page=${data.page - 1}`}
+			rel="external"
 		>
 			Prev
 		</a>
@@ -82,7 +83,8 @@
 	{#if data.nextPage}
 		<a
 			class="pager__link"
-			href={resolve(`/?page=${data.nextPage}` as unknown as Parameters<typeof resolve>[0])}
+			href={`${resolve('/')}?page=${data.nextPage}`}
+			rel="external"
 		>
 			Next
 		</a>

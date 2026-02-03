@@ -128,12 +128,7 @@
 
 		<nav id="site-menu" bind:this={menu} class:open aria-hidden={!open}>
 			{#each authedLinks as link (link.href)}
-				<a
-					href={resolve(link.href as unknown as Parameters<typeof resolve>[0])}
-					on:click={() => closeMenu(false)}
-				>
-					{link.label}
-				</a>
+				<a href={resolve(link.href)} on:click={() => closeMenu(false)}>{link.label}</a>
 			{/each}
 
 			{#if user}
@@ -144,11 +139,8 @@
 			{:else}
 				<!-- Login link with redirect back to current page -->
 				<a
-					href={resolve(
-						`/(public)/login?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}` as unknown as Parameters<
-							typeof resolve
-						>[0]
-					)}
+					href={`${resolve('/(public)/login')}?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}`}
+					rel="external"
 					on:click={() => closeMenu(false)}
 				>
 					Login
