@@ -12,17 +12,19 @@
 - [x] Persist age confirmation per user (user_age_confirmations)
 - [x] Implement self-serve GDPR data export and account deletion
 - [x] Implement ad expiry automation for selected durations (default 32 days)
+- [ ] Fix dark/light mode glitches
+- [ ] Fix auth state UI refresh (logged-in vs logged-out view)
 - [ ] Align image upload UI with actual limit (currently single image vs “up to 4”)
 - [ ] Soften upload size messaging (avoid technical MB limits in UI copy)
 - [ ] Add “large image” warnings while still attempting client-side compression
-- [ ] Fix dark/light mode glitches
-- [ ] Fix auth state UI refresh (logged-in vs logged-out view)
 - [ ] Enforce product rules: max 256 chars total (headline + body)
 - [ ] Enforce product rules: mandatory price (including Free = €0)
 - [ ] Block disposable email domains at login
 - [ ] Rate-limit magic link requests
 - [ ] Enforce 1 free ad per user per day
 - [ ] Add image reuse detection (hashing)
+- [ ] Implement payment system (Stripe or alternative) + checkout flow
+- [ ] Decide paid upsells and pricing (extra images, extra text, extended duration, local pin)
 - [ ] Finalize refund/withdrawal flow at checkout (no refunds except required by law)
 - [ ] Capture withdrawal waiver + consent at checkout (EEA digital services)
 - [ ] Record proof of publication for paid ads for chargeback protection (published_at, audit log, consent timestamp, IP, user agent, terms version, payment IDs)
