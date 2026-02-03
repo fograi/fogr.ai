@@ -72,10 +72,20 @@
 
 <nav class="pager" aria-label="Pagination">
 	{#if data.page > 1}
-		<a class="pager__link" href={resolve(`/?page=${data.page - 1}` as any)}>Prev</a>
+		<a
+			class="pager__link"
+			href={resolve(`/?page=${data.page - 1}` as unknown as Parameters<typeof resolve>[0])}
+		>
+			Prev
+		</a>
 	{/if}
 	{#if data.nextPage}
-		<a class="pager__link" href={resolve(`/?page=${data.nextPage}` as any)}>Next</a>
+		<a
+			class="pager__link"
+			href={resolve(`/?page=${data.nextPage}` as unknown as Parameters<typeof resolve>[0])}
+		>
+			Next
+		</a>
 	{/if}
 </nav>
 
