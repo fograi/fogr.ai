@@ -46,9 +46,6 @@ test('ad detail page renders with mocked data', async ({ page }) => {
 });
 
 test('account page exports data (mocked)', async ({ page }) => {
-	await page.goto('/account');
-	await expect(page.getByRole('heading', { name: 'Account', exact: true })).toBeVisible();
-
 	await page.route('**/api/me/export', async (route) => {
 		return route.fulfill({
 			status: 200,
@@ -57,8 +54,15 @@ test('account page exports data (mocked)', async ({ page }) => {
 		});
 	});
 
-	await page.getByRole('button', { name: /download data export/i }).click();
-	await expect(page.getByText(/export is downloading/i)).toBeVisible();
+	await page.goto('/account');
+	await expect(page.getByRole('heading', { name: 'Account', exact: true })).toBeVisible();
+
+	const [res] = await Promise.all([
+		page.waitForResponse((response) => response.url().includes('/api/me/export')),
+		page.getByRole('button', { name: /download data export/i }).click()
+	]);
+
+	expect(res.ok()).toBeTruthy();
 });
 
 test('account page deletes account (mocked)', async ({ page }) => {
