@@ -177,6 +177,7 @@ async function moderateSingleImage(
 export const POST: RequestHandler = async (event) => {
 	const { request, locals, platform } = event;
 	const requestId = makeRequestId();
+	const isMock = isE2eMock(platform);
 	const log = (
 		level: 'info' | 'warn' | 'error',
 		message: string,
@@ -213,7 +214,7 @@ export const POST: RequestHandler = async (event) => {
 		const pendingBucket = env?.ADS_PENDING_BUCKET;
 		const publicBase = env?.PUBLIC_R2_BASE?.replace(/\/$/, '');
 
-		if (!dev) {
+		if (!dev && !isMock) {
 			const missing: string[] = [];
 			if (!openAiApiKey) missing.push('OPENAI_API_KEY');
 			if (!publicBase) missing.push('PUBLIC_R2_BASE');
