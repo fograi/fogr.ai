@@ -3,6 +3,9 @@
 	--bg: #fffdf6; /* light grey */
 	--fg: #111; /* near-black text */
 	--link: #0a58ca;
+	--danger: #b91c1c;
+	--danger-strong: #dc2626;
+	--success: #0a7f3f;
 	/* derived tokens so components don't need their own dark-mode blocks */
 	--hairline: color-mix(in srgb, var(--fg) 10%, transparent);
 	--hover: color-mix(in srgb, var(--fg) 8%, transparent);

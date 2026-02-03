@@ -134,18 +134,18 @@
 		--text: var(--fg);
 		--muted: color-mix(in srgb, var(--fg) 55%, transparent);
 		--border: var(--hairline);
-		--brand: #111;
-		--brand-contrast: #fff;
-		--brand-pressed: #000;
-		--danger: #b91c1c;
+		--brand: var(--fg);
+		--brand-contrast: var(--bg);
+		--brand-pressed: color-mix(in srgb, var(--fg) 85%, var(--bg));
+		--danger: var(--danger);
 		--radius: 14px;
-		--shadow: 0 10px 30px color-mix(in srgb, #000 12%, transparent);
+		--shadow: 0 10px 30px color-mix(in srgb, var(--fg) 12%, transparent);
 	}
 	@media (prefers-color-scheme: dark) {
 		.auth-wrap {
-			--brand: #e7e7ea;
-			--brand-contrast: #111;
-			--brand-pressed: #cfcfd4;
+			--brand: var(--fg);
+			--brand-contrast: var(--bg);
+			--brand-pressed: color-mix(in srgb, var(--fg) 75%, var(--bg));
 			--shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 		}
 	}

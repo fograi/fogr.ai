@@ -360,7 +360,7 @@
 		font-size: 2rem;
 	}
 	.error {
-		color: #b91c1c;
+		color: var(--danger);
 		font-weight: 700;
 	}
 	.row.actions {

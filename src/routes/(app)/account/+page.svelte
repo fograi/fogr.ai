@@ -148,19 +148,19 @@
 		cursor: default;
 	}
 	.danger {
-		border-color: color-mix(in srgb, #dc2626 50%, var(--hairline));
+		border-color: color-mix(in srgb, var(--danger-strong) 50%, var(--hairline));
 	}
 	.danger-btn {
-		background: #dc2626;
+		background: var(--danger-strong);
 		color: white;
 	}
 	.err {
-		color: #b91c1c;
+		color: var(--danger);
 		font-weight: 700;
 		margin: 4px 0 0;
 	}
 	.ok {
-		color: #0a7f3f;
+		color: var(--success);
 		font-weight: 700;
 		margin: 4px 0 0;
 	}

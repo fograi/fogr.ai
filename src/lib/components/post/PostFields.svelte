@@ -137,12 +137,12 @@
 		color: color-mix(in srgb, var(--fg) 55%, transparent);
 	}
 	.error {
-		color: #b91c1c;
+		color: var(--danger);
 		font-weight: 700;
 		margin: 4px 0;
 	}
 	.ok {
-		color: #0a7f3f;
+		color: var(--success);
 		font-weight: 700;
 		margin: 4px 0;
 	}

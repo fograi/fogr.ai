@@ -36,7 +36,7 @@
 		margin: 16px auto 8px;
 		padding: 10px 12px;
 		border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
-		background: color-mix(in srgb, #fee2e2 40%, var(--bg));
+		background: color-mix(in srgb, var(--danger) 18%, var(--bg));
 		border-radius: 8px;
 		text-align: center;
 		font-weight: 600;
