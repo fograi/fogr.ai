@@ -372,7 +372,7 @@ export const POST: RequestHandler = async (event) => {
 
 		// === NEW === 2) Upload to R2 and collect public URLs
 		let image_keys: string[] = [];
-		if (files.length > 0) {
+		if (files.length > 0 && !moderationUnavailable) {
 			const uploads = files.map(async (file, idx) => {
 				const ext =
 					file.type === 'image/jpeg'

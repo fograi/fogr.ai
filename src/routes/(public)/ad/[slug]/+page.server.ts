@@ -17,7 +17,8 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		img: ad.image_keys?.[0] ?? '',
 		description: ad.description,
 		category: ad.category,
-		currency: ad.currency ?? undefined
+		currency: ad.currency ?? undefined,
+		status: ad.status
 	};
 
 	return { ad: mapped };
