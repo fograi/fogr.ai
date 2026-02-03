@@ -137,7 +137,9 @@
 			{:else}
 				<!-- Login link with redirect back to current page -->
 				<a
-					href={resolve(`/login?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}`)}
+					href={resolve(
+						`/login?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}`
+					)}
 					on:click={() => closeMenu(false)}>Login</a
 				>
 			{/if}
