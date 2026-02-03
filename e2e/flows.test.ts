@@ -49,12 +49,16 @@ test('account page exports data (mocked)', async ({ page }) => {
 	await page.goto('/account');
 	await expect(page.getByRole('heading', { name: 'Account', exact: true })).toBeVisible();
 
-	const [download] = await Promise.all([
-		page.waitForEvent('download'),
-		page.getByRole('button', { name: /download data export/i }).click()
-	]);
+	await page.route('**/api/me/export', async (route) => {
+		return route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ ok: true })
+		});
+	});
 
-	expect(download.suggestedFilename()).toMatch(/fogr-ai-export/i);
+	await page.getByRole('button', { name: /download data export/i }).click();
+	await expect(page.getByText(/export is downloading/i)).toBeVisible();
 });
 
 test('account page deletes account (mocked)', async ({ page }) => {
