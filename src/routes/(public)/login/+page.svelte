@@ -3,6 +3,7 @@
 	import { goto, invalidate, invalidateAll } from '$app/navigation';
 	import { createClient } from '@supabase/supabase-js';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+	import { isDisposableEmail } from '$lib/disposable-email-domains';
 
 	export let data: { redirectTo: string; ageConfirmed?: boolean }; // from +page.server.ts
 
@@ -18,8 +19,13 @@
 	async function sendLink() {
 		success = false;
 		err = '';
-		if (!email) {
+		const normalized = email.trim().toLowerCase();
+		if (!normalized) {
 			err = 'Enter your email';
+			return;
+		}
+		if (isDisposableEmail(normalized)) {
+			err = 'Disposable email addresses aren’t allowed. Use a real inbox.';
 			return;
 		}
 		if (!ageConfirmed) {
@@ -38,7 +44,7 @@
 		)}`;
 
 		const { error } = await supabase.auth.signInWithOtp({
-			email,
+			email: normalized,
 			options: { emailRedirectTo }
 		});
 

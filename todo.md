@@ -18,7 +18,7 @@
 - [x] Soften upload size messaging (avoid technical MB limits in UI copy)
 - [x] Add “large image” warnings while still attempting client-side compression
 - [x] Enforce product rules: mandatory price (including Free = €0)
-- [ ] Block disposable email domains at login
+- [x] Block disposable email domains at login
 - [ ] Rate-limit magic link requests
 - [ ] Enforce 1 free ad per user per day
 - [ ] Add image reuse detection (hashing)
