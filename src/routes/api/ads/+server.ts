@@ -2,6 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import type { KVNamespace, R2Bucket } from '@cloudflare/workers-types';
 import { error, json } from '@sveltejs/kit';
 import OpenAI from 'openai';
+import { createClient } from '@supabase/supabase-js';
 import { dev } from '$app/environment';
 const { default: filter } = await import('leo-profanity');
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = await import('obscenity');
@@ -21,6 +22,7 @@ import { isSameOrigin } from '$lib/server/csrf';
 import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
+import type { Database } from '$lib/supabase.types';
 
 filter.add(bannedWords);
 const obscenity = new RegExpMatcher({
@@ -30,6 +32,7 @@ const obscenity = new RegExpMatcher({
 
 const RATE_LIMIT_10M = 5;
 const RATE_LIMIT_DAY = 30;
+const ADS_PER_DAY = 1;
 const WINDOW_10M_SECONDS = 10 * 60;
 const WINDOW_DAY_SECONDS = 24 * 60 * 60;
 const PUBLIC_AD_STATUS = 'active';
@@ -207,6 +210,8 @@ export const POST: RequestHandler = async (event) => {
 			PUBLIC_R2_BASE?: string;
 			OPENAI_API_KEY?: string;
 			RATE_LIMIT?: KVNamespace;
+			SUPABASE_URL?: string;
+			SUPABASE_SERVICE_ROLE_KEY?: string;
 		};
 		const rateLimitKv = env?.RATE_LIMIT;
 		const openAiApiKey = env?.OPENAI_API_KEY as string | undefined;
@@ -321,6 +326,7 @@ export const POST: RequestHandler = async (event) => {
 		}
 		const metaError = validateAdMeta({ category, currency, priceStr });
 		if (metaError) return errorResponse(metaError, 400, requestId);
+		const price = Number(priceStr ?? 0);
 
 		if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.', 400, requestId);
 		if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413, requestId);
@@ -329,6 +335,36 @@ export const POST: RequestHandler = async (event) => {
 			return errorResponse('Description too short.', 400, requestId);
 		if (description.length > MAX_DESC_LENGTH)
 			return errorResponse('Description too long.', 413, requestId);
+
+		const dayStart = new Date();
+		dayStart.setUTCHours(0, 0, 0, 0);
+		const nextDay = new Date(dayStart);
+		nextDay.setUTCDate(dayStart.getUTCDate() + 1);
+
+		const supabaseUrl = env?.SUPABASE_URL?.replace(/\/$/, '');
+		const serviceKey = env?.SUPABASE_SERVICE_ROLE_KEY;
+		const limiterClient =
+			supabaseUrl && serviceKey
+				? createClient<Database>(supabaseUrl, serviceKey, {
+						auth: { persistSession: false, autoRefreshToken: false }
+					})
+				: locals.supabase;
+
+		const { count, error: limitError } = await limiterClient
+			.from('ads')
+			.select('id', { count: 'exact', head: true })
+			.eq('user_id', user.id)
+			.gte('created_at', dayStart.toISOString())
+			.lt('created_at', nextDay.toISOString());
+
+		if (limitError) {
+			log('error', 'ads_post_daily_limit_check_failed', { error: limitError.message });
+			return errorResponse('Unable to validate daily posting limit. Please try again later.', 503, requestId);
+		}
+
+		if ((count ?? 0) >= ADS_PER_DAY) {
+			return errorResponse('Daily posting limit reached. You can post one ad per day.', 429, requestId);
+		}
 
 		// category, currency, and price are validated above
 
@@ -395,7 +431,7 @@ export const POST: RequestHandler = async (event) => {
 				title,
 				description,
 				category,
-				price: priceStr ? Number(priceStr) : 0,
+				price,
 				currency,
 				image_keys: [],
 				email,

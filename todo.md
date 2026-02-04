@@ -20,7 +20,7 @@
 - [x] Enforce product rules: mandatory price (including Free = €0)
 - [x] Block disposable email domains at login
 - [x] Rate-limit magic link requests
-- [ ] Enforce 1 free ad per user per day
+- [x] Enforce 1 free ad per user per day
 - [ ] Add image reuse detection (hashing)
 - [ ] Implement payment system (Stripe or alternative) + checkout flow
 - [ ] Decide paid upsells and pricing (extra images, extra text, extended duration, local pin)
