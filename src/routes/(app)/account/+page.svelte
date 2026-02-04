@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 
 	export let data: { user: { id: string; email?: string | null } };
 
@@ -46,7 +45,7 @@
 				throw new Error(body?.message || 'Failed to delete account.');
 			}
 			ok = 'Account deleted. Redirecting…';
-			await goto('/', { replaceState: true });
+			window.location.replace('/');
 		} catch (e: unknown) {
 			err = e instanceof Error ? e.message : 'Failed to delete account.';
 		} finally {
