@@ -8,6 +8,7 @@
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import { user$ } from '$lib/stores/user';
+	import logoUrl from '$lib/assets/fógraí.svg?url';
 
 	export let title = 'fogr.ai';
 	// base links that are always shown
@@ -124,7 +125,9 @@
 
 <header class="nav" class:hidden>
 	<div class="wrap">
-		<a class="brand" href={resolve('/')}>{title}</a>
+		<a class="brand" href={resolve('/')} aria-label={title}>
+			<img src={logoUrl} alt={title} />
+		</a>
 
 		<button
 			class="burger"
@@ -191,10 +194,16 @@
 	}
 
 	.brand {
-		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
 		text-decoration: none;
 		color: inherit;
-		letter-spacing: 0.2px;
+		line-height: 0;
+	}
+	.brand img {
+		display: block;
+		height: 28px;
+		width: auto;
 	}
 
 	.burger {
