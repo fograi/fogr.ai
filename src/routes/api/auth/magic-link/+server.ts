@@ -26,7 +26,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	}
 
 	const redirectTo = safeRedirectPath(body.redirectTo ?? '/', '/');
-	const emailRedirectTo = `${url.origin}/login?redirectTo=${encodeURIComponent(redirectTo)}`;
+	const emailRedirectTo = `${url.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`;
 
 	const { error } = await locals.supabase.auth.signInWithOtp({
 		email,
