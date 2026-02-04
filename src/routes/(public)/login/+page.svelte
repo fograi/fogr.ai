@@ -39,17 +39,19 @@
 		}
 		sending = true;
 
-		const emailRedirectTo = `${window.location.origin}/login?redirectTo=${encodeURIComponent(
-			data.redirectTo
-		)}`;
-
-		const { error } = await supabase.auth.signInWithOtp({
-			email: normalized,
-			options: { emailRedirectTo }
+		type MagicLinkResponse = { success?: boolean; message?: string };
+		const res = await fetch('/api/auth/magic-link', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			credentials: 'same-origin',
+			body: JSON.stringify({ email: normalized, redirectTo: data.redirectTo })
 		});
-
-		if (error) err = error.message;
-		else success = true;
+		const body = (await res.json().catch(() => ({}))) as MagicLinkResponse;
+		if (!res.ok || body.success === false) {
+			err = body.message || 'Failed to send login link.';
+		} else {
+			success = true;
+		}
 		sending = false;
 	}
 
