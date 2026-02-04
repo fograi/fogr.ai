@@ -44,4 +44,4 @@ export const MAX_PRICE = 1_000_000;
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_IMAGE_COUNT = 4;
 export const MAX_TOTAL_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

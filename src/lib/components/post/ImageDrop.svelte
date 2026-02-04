@@ -138,7 +138,7 @@
 	async function handleFile(f: File) {
 		if (!ALLOWED_IMAGE_TYPES.includes(f.type)) {
 			clearFile({ keepError: true });
-			err = 'Only JPEG or PNG allowed.';
+			err = 'That image format isn’t supported yet. Try a JPEG or PNG.';
 			return;
 		}
 		if (f.size > MAX_CLIENT_INPUT_SIZE) {
@@ -160,7 +160,7 @@
 			setPreview(optimized);
 		} catch {
 			clearFile({ keepError: true });
-			err = 'Could not optimize image. Please try a different file.';
+			err = 'That image format isn’t supported yet. Try a JPEG or PNG.';
 		} finally {
 			compressing = false;
 		}
@@ -232,7 +232,7 @@
 				Replace
 				<input
 					type="file"
-					accept={ALLOWED_IMAGE_TYPES.join(',')}
+					accept="image/*"
 					capture="environment"
 					on:change={onFileChange}
 					hidden
@@ -246,15 +246,15 @@
 		<label class="btn">
 			Choose file
 			<input
-				type="file"
-				accept={ALLOWED_IMAGE_TYPES.join(',')}
-				capture="environment"
-				on:change={onFileChange}
-				disabled={compressing}
-				hidden
-			/>
+					type="file"
+					accept="image/*"
+					capture="environment"
+					on:change={onFileChange}
+					disabled={compressing}
+					hidden
+				/>
 		</label>
-		<small>1 image • JPG/PNG • We’ll optimize the size for you</small>
+		<small>1 image</small>
 		{#if compressing}<p class="hint">Optimizing image…</p>{/if}
 		{#if err}<p class="error">{err}</p>{/if}
 	</div>
