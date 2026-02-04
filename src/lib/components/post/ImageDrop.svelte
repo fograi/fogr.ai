@@ -2,8 +2,6 @@
 	import {
 		ALLOWED_IMAGE_TYPES,
 		MAX_IMAGE_SIZE,
-		MAX_IMAGE_COUNT,
-		MAX_TOTAL_IMAGE_SIZE,
 		catBase,
 		catIcon
 	} from '$lib/constants';
@@ -257,8 +255,7 @@
 			/>
 		</label>
 		<small>
-			Max {Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB each • {MAX_IMAGE_COUNT} images •
-			{Math.floor(MAX_TOTAL_IMAGE_SIZE / (1024 * 1024))}MB total • JPG/PNG
+			Max {Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB • 1 image • JPG/PNG
 		</small>
 		{#if compressing}<p class="hint">Optimizing image…</p>{/if}
 		{#if err}<p class="error">{err}</p>{/if}
