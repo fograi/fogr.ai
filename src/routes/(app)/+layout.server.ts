@@ -1,9 +1,8 @@
 import type { LayoutServerLoad } from './$types';
 import { E2E_MOCK_USER, isE2eMock } from '$lib/server/e2e-mocks';
 
-export const load: LayoutServerLoad = async ({ locals, setHeaders, depends, platform }) => {
+export const load: LayoutServerLoad = async ({ locals, depends, platform }) => {
 	depends('supabase:auth');
-	setHeaders({ 'cache-control': 'private, no-store' });
 
 	if (isE2eMock(platform)) {
 		return { user: E2E_MOCK_USER };
