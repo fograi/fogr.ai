@@ -15,8 +15,8 @@
 
   <!-- Acute accent above the "o" -->
   <!-- Position tuned for the default font stack above; adjust x/y if you change font-size or family -->
-  <path class="accent-o" d="M85 50 L116 21 L128 29 Z"/>
+  <path class="accent-o" d="M92 44 L116 12 L130 26 L98 50 Z"/>
 
   <!-- Acute accent above the final "i" -->
-  <path class="accent-i" d="M356 50 L382 21 L392 29 Z"/>
+  <path class="accent-i" d="M362 44 L386 12 L400 26 L368 50 Z"/>
 </svg>
