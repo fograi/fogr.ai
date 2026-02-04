@@ -16,7 +16,7 @@
 - [x] Fix auth state UI refresh (logged-in vs logged-out view)
 - [x] Align image upload UI with actual limit (currently single image vs “up to 4”)
 - [x] Soften upload size messaging (avoid technical MB limits in UI copy)
-- [ ] Add “large image” warnings while still attempting client-side compression
+- [x] Add “large image” warnings while still attempting client-side compression
 - [ ] Enforce product rules: max 256 chars total (headline + body)
 - [ ] Enforce product rules: mandatory price (including Free = €0)
 - [ ] Block disposable email domains at login

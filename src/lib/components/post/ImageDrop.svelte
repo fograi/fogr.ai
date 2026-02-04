@@ -20,13 +20,13 @@
 	// state
 	let imgEl: HTMLImageElement | null = null;
 	let err = '';
+	let warn = '';
 	let compressing = false;
 
 	const MAX_DIMENSION = 1600;
 	const JPEG_QUALITY = 0.85;
 	const JPEG_MIN_QUALITY = 0.7;
 	const JPEG_REENCODE_THRESHOLD = 1 * 1024 * 1024; // 1MB
-	const MAX_CLIENT_INPUT_SIZE = 20 * 1024 * 1024; // safety cap for huge files
 
 	$: bannerBase = category ? catBase[category] : '#6B7280';
 	$: bannerIcon = category ? catIcon[category] : '🗂️';
@@ -41,6 +41,7 @@
 		previewUrl = null;
 		file = null;
 		imgLoaded = false;
+		warn = '';
 		if (!keepError) err = '';
 		// bubble up so parent can also react if it wants
 		const e = new CustomEvent('clear');
@@ -136,15 +137,15 @@
 	}
 
 	async function handleFile(f: File) {
+		warn = '';
 		if (!ALLOWED_IMAGE_TYPES.includes(f.type)) {
 			clearFile({ keepError: true });
 			err = 'That image format isn’t supported yet. Try a JPEG or PNG.';
 			return;
 		}
-		if (f.size > MAX_CLIENT_INPUT_SIZE) {
-			clearFile({ keepError: true });
-			err = `Image must be ≤ ${Math.floor(MAX_CLIENT_INPUT_SIZE / (1024 * 1024))}MB.`;
-			return;
+		if (f.size > MAX_IMAGE_SIZE) {
+			warn =
+				'Large image — we’ll try to optimize it. If it can’t be reduced enough, try a smaller one.';
 		}
 
 		err = '';
@@ -153,7 +154,7 @@
 			const optimized = await optimizeImage(f);
 			if (optimized.size > MAX_IMAGE_SIZE) {
 				clearFile({ keepError: true });
-				err = `Image must be ≤ ${Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB after optimization.`;
+				err = 'Image is still too large after optimization. Try a smaller one.';
 				return;
 			}
 			file = optimized;
@@ -239,6 +240,7 @@
 				/>
 			</label>
 		</div>
+		{#if warn}<p class="warn">{warn}</p>{/if}
 	{:else}
 	<div class="empty">
 		<div class="icon">🖼️</div>
@@ -256,6 +258,7 @@
 		</label>
 		<small>1 image</small>
 		{#if compressing}<p class="hint">Optimizing image…</p>{/if}
+		{#if warn}<p class="warn">{warn}</p>{/if}
 		{#if err}<p class="error">{err}</p>{/if}
 	</div>
 	{/if}
@@ -367,6 +370,10 @@
 	.hint {
 		color: color-mix(in srgb, var(--fg) 70%, transparent);
 		font-weight: 600;
+	}
+	.warn {
+		color: color-mix(in srgb, #d97706 85%, var(--bg));
+		font-weight: 700;
 	}
 	.price-row {
 		display: flex;
