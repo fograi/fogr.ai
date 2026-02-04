@@ -8,7 +8,7 @@
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import { user$ } from '$lib/stores/user';
-	import logoUrl from '$lib/assets/fógraí.svg?url';
+	import logoSvg from '$lib/assets/fógraí.svg?raw';
 
 	export let title = 'fogr.ai';
 	// base links that are always shown
@@ -126,7 +126,7 @@
 <header class="nav" class:hidden>
 	<div class="wrap">
 		<a class="brand" href={resolve('/')} aria-label={title}>
-			<img src={logoUrl} alt={title} />
+			<span class="brand__logo" aria-hidden="true">{@html logoSvg}</span>
 		</a>
 
 		<button
@@ -200,7 +200,11 @@
 		color: inherit;
 		line-height: 0;
 	}
-	.brand img {
+	.brand__logo {
+		display: inline-flex;
+		align-items: center;
+	}
+	.brand__logo :global(svg) {
 		display: block;
 		height: 28px;
 		width: auto;
