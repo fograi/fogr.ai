@@ -12,11 +12,10 @@ export function validateAdMeta({ category, currency, priceStr }: AdValidationInp
 
 	if (!/^[A-Z]{3}$/.test(currency)) return 'Invalid currency.';
 
-	if (priceStr !== null) {
-		const n = Number(priceStr);
-		if (!Number.isFinite(n) || n < 0) return 'Invalid price.';
-		if (category === 'Free / Giveaway' && n !== 0) return 'Free items must have a price of 0.';
-	}
+	if (priceStr === null || priceStr.trim() === '') return 'Price is required.';
+	const n = Number(priceStr);
+	if (!Number.isFinite(n) || n < 0) return 'Invalid price.';
+	if (category === 'Free / Giveaway' && n !== 0) return 'Free items must have a price of 0.';
 
 	return null;
 }

@@ -79,6 +79,7 @@
 				inputmode="numeric"
 				pattern="[0-9]*"
 				bind:value={price}
+				required={!isFree}
 				disabled={isFree || loading}
 				placeholder={isFree ? '0' : 'e.g., 50'}
 			/>
