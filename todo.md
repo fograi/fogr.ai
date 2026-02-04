@@ -21,9 +21,9 @@
 - [x] Block disposable email domains at login
 - [x] Rate-limit magic link requests
 - [x] Enforce 1 free ad per user per day
-- [ ] Add image reuse detection (hashing)
 - [ ] Implement payment system (Stripe or alternative) + checkout flow
 - [ ] Decide paid upsells and pricing (extra images, extra text, extended duration, local pin)
 - [ ] Finalize refund/withdrawal flow at checkout (no refunds except required by law)
 - [ ] Capture withdrawal waiver + consent at checkout (EEA digital services)
 - [ ] Record proof of publication for paid ads for chargeback protection (published_at, audit log, consent timestamp, IP, user agent, terms version, payment IDs)
+- [ ] Add image reuse detection (hashing)
