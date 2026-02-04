@@ -8,7 +8,7 @@
   </style>
 
   <!-- Text -->
-  <text class="base" x="20" y="125" letter-spacing="-2">
+  <text class="base" x="15" y="125" letter-spacing="-2">
     <!-- fógr.aí (accents are drawn separately for independent coloring) -->
     <tspan>fogr.aı</tspan>
   </text>
@@ -18,5 +18,5 @@
   <path class="accent-o" d="M85 50 L116 21 L128 29 Z"/>
 
   <!-- Acute accent above the final "i" -->
-  <path class="accent-i" d="M361 42 L386 17 L396 23 Z"/>
+  <path class="accent-i" d="M356 50 L382 21 L392 29 Z"/>
 </svg>
