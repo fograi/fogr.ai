@@ -254,9 +254,7 @@
 				hidden
 			/>
 		</label>
-		<small>
-			Max {Math.floor(MAX_IMAGE_SIZE / (1024 * 1024))}MB • 1 image • JPG/PNG
-		</small>
+		<small>1 image • JPG/PNG • We’ll optimize the size for you</small>
 		{#if compressing}<p class="hint">Optimizing image…</p>{/if}
 		{#if err}<p class="error">{err}</p>{/if}
 	</div>
