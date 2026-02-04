@@ -13,10 +13,7 @@
 	export let title = 'fogr.ai';
 	// base links that are always shown
 	type NavHref = '/' | '/(public)/about' | '/(app)/post' | '/(app)/account';
-	const baseLinks: Array<{ href: NavHref; label: string }> = [
-		{ href: '/(public)/about', label: 'About' },
-		{ href: '/', label: 'Ads' }
-	];
+	const baseLinks: Array<{ href: NavHref; label: string }> = [];
 	let authedLinks: Array<{ href: NavHref; label: string }> = baseLinks;
 
 	// UI state (unchanged)

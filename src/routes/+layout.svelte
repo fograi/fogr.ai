@@ -26,6 +26,7 @@
 			<span>© {year}</span>
 		</div>
 		<nav class="legal" aria-label="Legal">
+			<a href={resolve('/(public)/about')}>About</a>
 			<a href={resolve('/(public)/terms')}>Terms</a>
 			<a href={resolve('/(public)/privacy')}>Privacy</a>
 		</nav>
