@@ -21,7 +21,7 @@
 <footer class="site-footer">
 	<div class="wrap">
 		<div class="brand-line">
-			<span class="brand-name">fogr.ai</span>
+			<span class="brand-name"><i>fógraí</i></span>
 			<span class="dot">•</span>
 			<span>© {year}</span>
 		</div>
