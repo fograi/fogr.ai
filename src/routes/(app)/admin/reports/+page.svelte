@@ -41,8 +41,11 @@
 
 <section class="admin">
 	<header class="admin-header">
-		<h1>Ad Reports</h1>
-		<p class="sub">{data.reports.length} reports</p>
+		<div>
+			<h1>Ad Reports</h1>
+			<p class="sub">{data.reports.length} reports</p>
+		</div>
+		<a class="link" href="/admin/appeals">View appeals</a>
 	</header>
 
 	{#if data.reports.length === 0}
@@ -132,6 +135,15 @@
 									name="legal_basis"
 									placeholder="e.g. Terms section 4.2, Prohibited items policy"
 								/>
+							</label>
+
+							<p class="action-hint">
+								Do not include personal data in the statement of reasons. This may be submitted to
+								a transparency database.
+							</p>
+							<label class="checkbox">
+								<input type="checkbox" name="no_personal_data" required />
+								<span>I confirm this statement contains no personal data.</span>
 							</label>
 
 							<button type="submit">Apply action</button>
@@ -271,6 +283,20 @@
 		display: grid;
 		gap: 6px;
 		font-weight: 600;
+	}
+	.action-hint {
+		margin: 0;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+		font-size: 0.9rem;
+	}
+	.action-form .checkbox {
+		display: inline-flex;
+		gap: 8px;
+		align-items: flex-start;
+		font-weight: 600;
+	}
+	.action-form .checkbox input {
+		margin-top: 3px;
 	}
 	.action-form textarea,
 	.action-form input,

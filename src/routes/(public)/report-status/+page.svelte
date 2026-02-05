@@ -5,6 +5,8 @@
 	let email = '';
 	let loading = false;
 	let error = '';
+	let copied = false;
+	let copyError = '';
 	let result:
 		| {
 				report: {
@@ -21,6 +23,7 @@
 					automated: boolean;
 					created_at: string;
 				} | null;
+				decision_source: string | null;
 		  }
 		| null = null;
 
@@ -32,6 +35,8 @@
 	async function lookup() {
 		error = '';
 		result = null;
+		copied = false;
+		copyError = '';
 		if (!reportId.trim()) {
 			error = 'Report ID is required.';
 			return;
@@ -59,13 +64,27 @@
 			} else {
 				result = {
 					report: body.report,
-					decision: body.decision ?? null
+					decision: body.decision ?? null,
+					decision_source: body.decision_source ?? null
 				};
 			}
 		} catch {
 			error = 'Unable to fetch report status.';
 		} finally {
 			loading = false;
+		}
+	}
+
+	async function copyId() {
+		copyError = '';
+		copied = false;
+		const id = result?.report?.id ?? reportId;
+		if (!id) return;
+		try {
+			await navigator.clipboard?.writeText(id);
+			copied = true;
+		} catch {
+			copyError = 'Unable to copy. Please copy the reference manually.';
 		}
 	}
 </script>
@@ -84,6 +103,7 @@
 
 		<label for="report-email">Your email</label>
 		<input id="report-email" type="email" bind:value={email} autocomplete="email" />
+		<p class="hint">Use the same email you provided in the report.</p>
 
 		{#if error}<p class="error" aria-live="assertive">{error}</p>{/if}
 
@@ -95,6 +115,12 @@
 	{#if result}
 		<div class="result">
 			<h2>Report #{result.report.id.slice(0, 8)}</h2>
+			<div class="actions">
+				<button type="button" on:click={copyId}>
+					{copied ? 'Copied' : 'Copy report ID'}
+				</button>
+				{#if copyError}<p class="error" aria-live="assertive">{copyError}</p>{/if}
+			</div>
 			<p class="meta">
 				Status: <strong>{result.report.status.replace('_', ' ')}</strong>
 			</p>
@@ -107,6 +133,9 @@
 						{result.decision.action_type.replace('_', ' ')} on
 						{formatDate(result.decision.created_at)}
 					</p>
+					{#if result.decision_source}
+						<p class="meta">Decision source: {result.decision_source}</p>
+					{/if}
 					<p><strong>Reason category:</strong> {result.decision.reason_category}</p>
 					<p class="details">{result.decision.reason_details}</p>
 					{#if result.decision.legal_basis}
@@ -117,6 +146,7 @@
 					<p class="meta">
 						Decision type: {result.decision.automated ? 'Automated' : 'Manual'}
 					</p>
+					<p class="meta">Decisions may involve automated tools.</p>
 				</div>
 			{:else}
 				<p class="meta">No decision yet. We will update this page once reviewed.</p>
@@ -145,6 +175,11 @@
 		border: 1px solid var(--hairline);
 		border-radius: 12px;
 		background: var(--surface);
+	}
+	.hint {
+		margin: -4px 0 0;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+		font-size: 0.9rem;
 	}
 	label {
 		font-weight: 600;
@@ -179,6 +214,22 @@
 		border: 1px solid var(--hairline);
 		border-radius: 12px;
 		background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+	}
+	.actions {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		flex-wrap: wrap;
+		margin-bottom: 10px;
+	}
+	.actions button {
+		padding: 6px 10px;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--surface);
+		color: inherit;
+		cursor: pointer;
+		font-weight: 600;
 	}
 	.meta {
 		margin: 0 0 8px;

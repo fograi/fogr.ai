@@ -143,6 +143,12 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		.limit(1)
 		.maybeSingle();
 
+	const decisionSource = action
+		? action.report_id
+			? 'User report'
+			: 'Own-initiative review'
+		: null;
+
 	return json(
 		{
 			success: true,
@@ -152,7 +158,8 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 				reason_category: report.reason_category,
 				created_at: report.created_at
 			},
-			decision: action ?? null
+			decision: action ?? null,
+			decision_source: decisionSource
 		},
 		{ status: 200 }
 	);

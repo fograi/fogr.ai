@@ -100,6 +100,7 @@ export const actions: Actions = {
 		const reasonCategory = (form.get('reason_category') ?? '').toString().trim();
 		const reasonDetails = (form.get('reason_details') ?? '').toString().trim();
 		const legalBasis = (form.get('legal_basis') ?? '').toString().trim();
+		const noPersonalData = (form.get('no_personal_data') ?? '').toString().trim();
 
 		if (!adId || !ACTION_TYPES.has(actionType)) {
 			return fail(400, { message: 'Invalid action.' });
@@ -109,6 +110,9 @@ export const actions: Actions = {
 		}
 		if (reasonDetails.length < MIN_REASON_LENGTH) {
 			return fail(400, { message: `Reason must be at least ${MIN_REASON_LENGTH} characters.` });
+		}
+		if (!noPersonalData) {
+			return fail(400, { message: 'You must confirm the statement contains no personal data.' });
 		}
 
 		const admin = getAdminClient(env);

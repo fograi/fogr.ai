@@ -18,6 +18,7 @@ export type ModerationAction = {
 	legal_basis: string | null;
 	automated: boolean;
 	created_at: string;
+	report_id?: string | null;
 };
 
 export type ApiAdRow = {

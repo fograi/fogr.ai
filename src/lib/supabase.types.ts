@@ -98,6 +98,36 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			ad_moderation_appeals: {
+				Row: {
+					action_id: string | null;
+					ad_id: string;
+					appellant_user_id: string;
+					created_at: string;
+					id: string;
+					reason_details: string;
+					status: string;
+				};
+				Insert: {
+					action_id?: string | null;
+					ad_id: string;
+					appellant_user_id: string;
+					created_at?: string;
+					id?: string;
+					reason_details: string;
+					status?: string;
+				};
+				Update: {
+					action_id?: string | null;
+					ad_id?: string;
+					appellant_user_id?: string;
+					created_at?: string;
+					id?: string;
+					reason_details?: string;
+					status?: string;
+				};
+				Relationships: [];
+			};
 			ads: {
 				Row: {
 					category: string;

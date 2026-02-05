@@ -22,6 +22,21 @@
 	let reportSuccess = false;
 	let reportError = '';
 	let reportId = '';
+	let reportCopied = false;
+	let reportCopyError = '';
+	const MIN_APPEAL_DETAILS = 20;
+
+	let appealOpen = false;
+	let appealDetails = '';
+	let appealSending = false;
+	let appealSuccess = false;
+	let appealError = '';
+	let appealId = '';
+
+	$: reportDetailsCount = reportDetails.length;
+	$: appealDetailsCount = appealDetails.length;
+	$: decisionSource =
+		data.moderation ? (data.moderation.report_id ? 'User report' : 'Own-initiative review') : '';
 
 	const formatDecisionDate = (iso?: string) =>
 		iso
@@ -30,10 +45,24 @@
 				)
 			: '';
 
+	async function copyReportId() {
+		reportCopyError = '';
+		reportCopied = false;
+		if (!reportId) return;
+		try {
+			await navigator.clipboard?.writeText(reportId);
+			reportCopied = true;
+		} catch {
+			reportCopyError = 'Unable to copy. Please copy the reference manually.';
+		}
+	}
+
 	async function submitReport() {
 		reportError = '';
 		reportSuccess = false;
 		reportId = '';
+		reportCopied = false;
+		reportCopyError = '';
 
 		if (!reportName.trim()) {
 			reportError = 'Name is required.';
@@ -89,6 +118,43 @@
 			reportSending = false;
 		}
 	}
+
+	async function submitAppeal() {
+		appealError = '';
+		appealSuccess = false;
+		appealId = '';
+
+		if (appealDetails.trim().length < MIN_APPEAL_DETAILS) {
+			appealError = `Please provide at least ${MIN_APPEAL_DETAILS} characters.`;
+			return;
+		}
+
+		appealSending = true;
+		try {
+			const res = await fetch(`/api/ads/${data.ad.id}/appeal`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'same-origin',
+				body: JSON.stringify({ details: appealDetails.trim() })
+			});
+			const body = (await res.json().catch(() => ({}))) as {
+				success?: boolean;
+				message?: string;
+				appealId?: string;
+			};
+			if (!res.ok || body.success === false) {
+				appealError = body.message || 'Failed to submit appeal.';
+			} else {
+				appealSuccess = true;
+				appealId = body.appealId || '';
+				appealDetails = '';
+			}
+		} catch {
+			appealError = 'Failed to submit appeal.';
+		} finally {
+			appealSending = false;
+		}
+	}
 </script>
 
 	{#if data?.ad}
@@ -106,11 +172,13 @@
 		{#if data.moderation}
 			<section class="moderation">
 				<h2>Moderation decision</h2>
+				<p class="moderation-meta">Decision source: {decisionSource}</p>
 				<p class="moderation-meta">
 					{data.moderation.action_type.replace('_', ' ')} on
 					{formatDecisionDate(data.moderation.created_at)}
 				</p>
 				<p><strong>Reason category:</strong> {data.moderation.reason_category}</p>
+				<p><strong>Facts and circumstances:</strong></p>
 				<p class="moderation-details">{data.moderation.reason_details}</p>
 				{#if data.moderation.legal_basis}
 					<p class="moderation-legal">
@@ -120,6 +188,48 @@
 				<p class="moderation-meta">
 					Decision type: {data.moderation.automated ? 'Automated' : 'Manual'}
 				</p>
+
+				<details class="appeal">
+					<summary>Challenge this decision</summary>
+					<div class="appeal-body">
+						<p class="appeal-intro">
+							If you believe this decision is incorrect, you can submit an appeal. We will
+							review it as soon as possible.
+						</p>
+						{#if appealSuccess}
+							<p class="appeal-success" aria-live="polite">
+								Appeal received{appealId ? ` (ref: ${appealId})` : ''}.
+							</p>
+						{:else}
+							<form class="appeal-form" on:submit|preventDefault={submitAppeal}>
+								<label for="appeal-details">
+									Your explanation
+									<span class="field-meta">
+										<span class="hint">
+											Explain why you believe the decision should be changed.
+										</span>
+										<span class="char-count">
+											{appealDetailsCount}/{MIN_APPEAL_DETAILS} min
+										</span>
+									</span>
+								</label>
+								<textarea
+									id="appeal-details"
+									rows="4"
+									bind:value={appealDetails}
+									minlength={MIN_APPEAL_DETAILS}
+									placeholder="Provide any facts or context you want us to reconsider."
+								></textarea>
+
+								{#if appealError}<p class="appeal-error" aria-live="assertive">{appealError}</p>{/if}
+
+								<button type="submit" class="appeal-submit" disabled={appealSending}>
+									{appealSending ? 'Sending...' : 'Submit appeal'}
+								</button>
+							</form>
+						{/if}
+					</div>
+				</details>
 			</section>
 		{/if}
 		<section class="report">
@@ -143,11 +253,22 @@
 							Thanks - your report has been received{reportId ? ` (ref: ${reportId})` : ''}.
 						</p>
 						{#if reportId}
+							<div class="report-actions">
+								<button type="button" class="report-copy" on:click={copyReportId}>
+									{reportCopied ? 'Copied' : 'Copy report ID'}
+								</button>
+								{#if reportCopyError}
+									<p class="report-error" aria-live="assertive">{reportCopyError}</p>
+								{/if}
+							</div>
 							<p class="report-followup">
 								Check status at
 								<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
 							</p>
 						{/if}
+						<p class="report-note">
+							We review reports promptly. Decisions may involve automated tools.
+						</p>
 					{:else}
 						<form class="report-form" on:submit|preventDefault={submitReport}>
 							<label for="report-name">Your name</label>
@@ -168,7 +289,17 @@
 								{/each}
 							</select>
 
-							<label for="report-details">Details</label>
+							<label for="report-details">
+								Details
+								<span class="field-meta">
+									<span class="hint">
+										Explain why this listing is illegal or against our rules.
+									</span>
+									<span class="char-count">
+										{reportDetailsCount}/{MIN_REPORT_DETAILS} min
+									</span>
+								</span>
+							</label>
 							<textarea
 								id="report-details"
 								rows="5"
@@ -248,6 +379,57 @@
 	.moderation-legal {
 		margin: 0 0 8px;
 	}
+	.appeal {
+		margin-top: 12px;
+		border-top: 1px solid var(--hairline);
+		padding-top: 10px;
+	}
+	.appeal summary {
+		cursor: pointer;
+		font-weight: 600;
+	}
+	.appeal-body {
+		margin-top: 10px;
+	}
+	.appeal-intro {
+		margin: 0 0 10px;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+	}
+	.appeal-form {
+		display: grid;
+		gap: 10px;
+	}
+	.appeal-form textarea {
+		width: 100%;
+		padding: 10px 12px;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--bg);
+		color: var(--fg);
+		resize: vertical;
+	}
+	.appeal-error {
+		margin: 0;
+		color: var(--danger);
+	}
+	.appeal-success {
+		margin: 0;
+		color: color-mix(in srgb, var(--fg) 80%, transparent);
+		font-weight: 600;
+	}
+	.appeal-submit {
+		height: 44px;
+		border: 0;
+		border-radius: 10px;
+		background: var(--fg);
+		color: var(--bg);
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.appeal-submit[disabled] {
+		opacity: 0.6;
+		cursor: default;
+	}
 	.report-toggle {
 		width: 100%;
 		text-align: center;
@@ -275,6 +457,21 @@
 	}
 	.report-form label {
 		font-weight: 600;
+	}
+	.field-meta {
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+		margin-top: 4px;
+		font-weight: 500;
+		font-size: 0.85rem;
+		color: color-mix(in srgb, var(--fg) 65%, transparent);
+	}
+	.hint {
+		flex: 1;
+	}
+	.char-count {
+		white-space: nowrap;
 	}
 	.report-form input,
 	.report-form select,
@@ -308,6 +505,26 @@
 	}
 	.report-followup {
 		margin: 8px 0 0;
+	}
+	.report-actions {
+		margin-top: 8px;
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+	.report-copy {
+		padding: 6px 10px;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--surface);
+		color: inherit;
+		cursor: pointer;
+		font-weight: 600;
+	}
+	.report-note {
+		margin: 8px 0 0;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
 	}
 	.report-submit {
 		height: 44px;
