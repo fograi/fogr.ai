@@ -47,23 +47,23 @@ export const MIN_DESC_LENGTH = 20;
 export const MAX_DESC_LENGTH = 1024;
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-export const MAX_IMAGE_COUNT = 4;
+export const MAX_IMAGE_COUNT = 1;
 export const MAX_TOTAL_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export const MIN_PHOTOS_BY_CATEGORY: Record<Category, number> = {
-	'Home & Garden': 3,
-	Electronics: 3,
-	'Baby & Kids': 3,
-	'Sports & Bikes': 3,
-	'Clothing & Accessories': 3,
-	'Services & Gigs': 1,
-	'Lessons & Tutoring': 1,
-	'Lost and Found': 1,
-	'Free / Giveaway': 1
+	'Home & Garden': 0,
+	Electronics: 0,
+	'Baby & Kids': 0,
+	'Sports & Bikes': 0,
+	'Clothing & Accessories': 0,
+	'Services & Gigs': 0,
+	'Lessons & Tutoring': 0,
+	'Lost and Found': 0,
+	'Free / Giveaway': 0
 };
 
 export const getMinPhotosForCategory = (category: Category | '' | null | undefined) => {
-	if (!category) return 1;
-	return MIN_PHOTOS_BY_CATEGORY[category] ?? 1;
+	if (!category) return 0;
+	return MIN_PHOTOS_BY_CATEGORY[category] ?? 0;
 };
