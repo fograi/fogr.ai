@@ -356,12 +356,14 @@
 		font-weight: 700;
 	}
 	.notice.error {
-		background: color-mix(in srgb, var(--danger) 12%, var(--bg));
-		color: var(--danger);
+		background: var(--tangerine-bg);
+		color: var(--accent-orange);
+		border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent);
 	}
 	.notice.ok {
-		background: color-mix(in srgb, var(--success) 12%, var(--bg));
-		color: var(--success);
+		background: var(--mint-bg);
+		color: var(--accent-green);
+		border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent);
 	}
 
 	.panel {

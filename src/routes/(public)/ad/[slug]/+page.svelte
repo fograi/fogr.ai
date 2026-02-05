@@ -248,7 +248,13 @@
 					{:else}
 						<form class="report-form" on:submit|preventDefault={submitReport}>
 							<label for="report-name">Your name</label>
-							<input id="report-name" type="text" bind:value={reportName} autocomplete="name" />
+							<input
+								id="report-name"
+								type="text"
+								bind:value={reportName}
+								autocomplete="name"
+								required
+							/>
 
 							<label for="report-email">Your email</label>
 							<input
@@ -256,10 +262,11 @@
 								type="email"
 								bind:value={reportEmail}
 								autocomplete="email"
+								required
 							/>
 
 							<label for="report-reason">Reason</label>
-							<select id="report-reason" bind:value={reportReason}>
+							<select id="report-reason" bind:value={reportReason} required>
 								{#each reportReasons as reason}
 									<option value={reason.value}>{reason.label}</option>
 								{/each}
@@ -279,11 +286,12 @@
 								rows="5"
 								bind:value={reportDetails}
 								minlength={MIN_REPORT_DETAILS}
+								required
 								placeholder="Describe the issue and where it appears."
 							></textarea>
 
 							<label class="checkbox">
-								<input type="checkbox" bind:checked={reportGoodFaith} />
+								<input type="checkbox" bind:checked={reportGoodFaith} required />
 								<span>I confirm this report is made in good faith.</span>
 							</label>
 
@@ -349,6 +357,7 @@
 										rows="4"
 										bind:value={appealDetails}
 										minlength={MIN_APPEAL_DETAILS}
+										required
 										placeholder="Share any facts or context we should reconsider."
 									></textarea>
 
@@ -512,12 +521,20 @@
 	}
 	.appeal-error {
 		margin: 0;
-		color: var(--danger);
+		color: var(--accent-orange);
+		background: var(--tangerine-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent);
+		border-radius: 10px;
+		padding: 8px 10px;
 	}
 	.appeal-success {
 		margin: 0;
-		color: color-mix(in srgb, var(--fg) 80%, transparent);
-		font-weight: 600;
+		color: var(--accent-green);
+		background: var(--mint-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent);
+		border-radius: 10px;
+		padding: 8px 10px;
+		font-weight: 700;
 	}
 	.appeal-submit {
 		height: 44px;
@@ -591,12 +608,20 @@
 	}
 	.report-error {
 		margin: 0;
-		color: var(--danger);
+		color: var(--accent-orange);
+		background: var(--tangerine-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent);
+		border-radius: 10px;
+		padding: 8px 10px;
 	}
 	.report-success {
 		margin: 0;
-		color: color-mix(in srgb, var(--fg) 80%, transparent);
-		font-weight: 600;
+		color: var(--accent-green);
+		background: var(--mint-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent);
+		border-radius: 10px;
+		padding: 8px 10px;
+		font-weight: 700;
 	}
 	.report-followup {
 		margin: 8px 0 0;

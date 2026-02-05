@@ -204,7 +204,11 @@
 	}
 	.error {
 		margin: 0;
-		color: var(--danger);
+		color: var(--accent-orange);
+		background: var(--tangerine-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent);
+		border-radius: 10px;
+		padding: 8px 10px;
 	}
 	.result {
 		margin-top: 16px;

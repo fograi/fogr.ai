@@ -154,13 +154,21 @@
 		color: white;
 	}
 	.err {
-		color: var(--danger);
+		color: var(--accent-orange);
+		background: var(--tangerine-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent);
+		border-radius: 10px;
 		font-weight: 700;
 		margin: 4px 0 0;
+		padding: 8px 10px;
 	}
 	.ok {
-		color: var(--success);
+		color: var(--accent-green);
+		background: var(--mint-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent);
+		border-radius: 10px;
 		font-weight: 700;
 		margin: 4px 0 0;
+		padding: 8px 10px;
 	}
 </style>

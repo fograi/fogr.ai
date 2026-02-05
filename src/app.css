@@ -8,6 +8,10 @@
 	--danger: #b91c1c;
 	--danger-strong: #dc2626;
 	--success: #0a7f3f;
+	--accent-orange: #f97316;
+	--accent-green: #22c55e;
+	--tangerine-bg: color-mix(in srgb, var(--accent-orange) 14%, var(--bg));
+	--mint-bg: color-mix(in srgb, var(--accent-green) 12%, var(--bg));
 	--font-body: 'Sora', ui-sans-serif, system-ui, sans-serif;
 	--font-display: 'Fraunces', 'Sora', ui-sans-serif, serif;
 	--page-pad: clamp(16px, 4vw, 28px);
@@ -75,6 +79,40 @@ h3 {
 :where(input, select, textarea) {
 	font: inherit;
 	border-radius: var(--radius-2);
+	transition:
+		border-color 0.2s ease,
+		box-shadow 0.2s ease,
+		background-color 0.2s ease;
+}
+:where(input, textarea, select)[aria-invalid='true'] {
+	border-color: var(--accent-orange);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent);
+	background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
+}
+:where(input, textarea):where(:user-invalid):not(:focus),
+:where(select):where(:user-invalid):not(:focus) {
+	border-color: var(--accent-orange);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent);
+	background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
+}
+:where(input, textarea):where(:user-valid):not(:placeholder-shown):not(:focus),
+:where(select):where(:user-valid):not(:focus) {
+	border-color: var(--accent-green);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
+}
+
+@supports not selector(:user-valid) {
+	:where(input, textarea):where(:invalid):not(:placeholder-shown):not(:focus),
+	:where(select):where(:invalid):not(:focus) {
+		border-color: var(--accent-orange);
+		box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent);
+		background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
+	}
+	:where(input, textarea):where(:valid):not(:placeholder-shown):not(:focus),
+	:where(select):where(:valid):not(:focus) {
+		border-color: var(--accent-green);
+		box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
+	}
 }
 
 a {

@@ -200,9 +200,9 @@
 	.error-banner {
 		margin: 12px 0 16px;
 		padding: 10px 12px;
-		border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
-		background: color-mix(in srgb, var(--bg) 92%, transparent);
-		color: var(--fg);
+		border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent);
+		background: var(--tangerine-bg);
+		color: var(--accent-orange);
 		border-radius: 8px;
 		display: grid;
 		gap: 4px;

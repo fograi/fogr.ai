@@ -314,11 +314,19 @@
 
 	.success {
 		margin: 12px 0 0;
-		color: var(--muted);
+		color: var(--accent-green);
+		background: var(--mint-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent);
+		border-radius: 10px;
+		padding: 8px 10px;
 	}
 	.err {
 		margin: 6px 0 0;
-		color: var(--danger);
+		color: var(--accent-orange);
+		background: var(--tangerine-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent);
+		border-radius: 10px;
+		padding: 8px 10px;
 	}
 
 	.foot {

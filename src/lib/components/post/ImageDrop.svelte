@@ -385,7 +385,11 @@
 		font-size: 2rem;
 	}
 	.error {
-		color: var(--danger);
+		color: var(--accent-orange);
+		background: var(--tangerine-bg);
+		border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent);
+		border-radius: 10px;
+		padding: 8px 10px;
 		font-weight: 700;
 	}
 	.row.actions {
