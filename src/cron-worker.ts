@@ -30,6 +30,7 @@ const PENDING_STATUS = 'pending';
 const ACTIVE_STATUS = 'active';
 const REJECTED_STATUS = 'rejected';
 const EXPIRED_STATUS = 'expired';
+const METRICS_KEEP_DAYS = 90;
 
 const supabaseHeaders = (env: Env) => ({
 	apikey: env.SUPABASE_SERVICE_ROLE_KEY as string,
@@ -275,6 +276,37 @@ async function retryPendingAds(env: Env): Promise<void> {
 	}
 }
 
+async function callSupabaseRpc<T extends Record<string, unknown> | undefined>(
+	env: Env,
+	fnName: string,
+	body?: T
+): Promise<Response> {
+	const url = new URL(`/rest/v1/rpc/${fnName}`, env.PUBLIC_SUPABASE_URL);
+	return fetch(url, {
+		method: 'POST',
+		headers: supabaseHeaders(env),
+		body: JSON.stringify(body ?? {})
+	});
+}
+
+async function runMetricsRollup(env: Env): Promise<void> {
+	const res = await callSupabaseRpc(env, 'rollup_event_metrics_daily');
+	if (!res.ok) {
+		console.error('cron_metrics_rollup_failed', await res.text());
+		return;
+	}
+	console.log('cron_metrics_rollup_ok');
+}
+
+async function runMetricsPurge(env: Env): Promise<void> {
+	const res = await callSupabaseRpc(env, 'purge_event_metrics', { keep_days: METRICS_KEEP_DAYS });
+	if (!res.ok) {
+		console.error('cron_metrics_purge_failed', await res.text());
+		return;
+	}
+	console.log('cron_metrics_purge_ok');
+}
+
 export default {
 	async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext) {
 		ctx.waitUntil(
@@ -285,8 +317,22 @@ export default {
 						return;
 					}
 					console.log('cron_tick', { scheduledTime: controller.scheduledTime });
+					const scheduledAt = new Date(controller.scheduledTime);
+					const utcHour = scheduledAt.getUTCHours();
+					const utcMinute = scheduledAt.getUTCMinutes();
+					const utcDay = scheduledAt.getUTCDay(); // 0 = Sunday
+					const isDailyWindow = utcHour === 0 && utcMinute === 15;
+					const isWeeklyWindow = utcDay === 0 && utcHour === 0 && utcMinute === 30;
+
 					await expireActiveAds(env);
 					await retryPendingAds(env);
+
+					if (isDailyWindow) {
+						await runMetricsRollup(env);
+					}
+					if (isWeeklyWindow) {
+						await runMetricsPurge(env);
+					}
 				} catch (err) {
 					console.error('cron_error', err);
 				}
