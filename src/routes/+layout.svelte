@@ -85,9 +85,10 @@
 		justify-items: center;
 	}
 	.link-group {
-		display: grid;
+		display: flex;
+		flex-direction: column;
 		gap: 0.35rem;
-		justify-items: center;
+		align-items: center;
 		text-align: center;
 	}
 	.link-group .label {
@@ -106,15 +107,25 @@
 	}
 	@media (min-width: 768px) {
 		.site-footer .wrap {
-			grid-template-columns: auto 1fr;
-			justify-items: start;
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 3rem;
 		}
 		.link-grid {
-			justify-items: end;
+			display: flex;
+			align-items: flex-start;
+			justify-content: flex-end;
+			gap: 2.5rem;
 		}
 		.link-group {
-			justify-items: start;
+			align-items: flex-start;
 			text-align: left;
+		}
+	}
+	@media (min-width: 1024px) {
+		.link-grid {
+			flex-wrap: nowrap;
 		}
 	}
 </style>
