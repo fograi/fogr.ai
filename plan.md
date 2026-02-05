@@ -37,7 +37,7 @@
 - [x] Simplify navigation and information architecture around one primary action per screen
 - [x] Redesign home and browse with a focused search-first layout and minimal filters
 - [x] Convert posting into a short step-by-step wizard with progressive disclosure
-- [ ] Redesign ad detail with a single primary action rail and collapsible secondary info
+- [x] Redesign ad detail with a single primary action rail and collapsible secondary info
 - [ ] Overhaul copy and error messaging for clarity and consistency
 - [ ] Update shared UI tokens (typography, spacing, buttons) for simpler hierarchy
 

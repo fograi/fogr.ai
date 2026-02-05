@@ -25,6 +25,8 @@
 	let reportCopied = false;
 	let reportCopyError = '';
 	const MIN_APPEAL_DETAILS = 20;
+	let reportPanel: HTMLDetailsElement | null = null;
+	let moderationPanel: HTMLDetailsElement | null = null;
 
 	let appealOpen = false;
 	let appealDetails = '';
@@ -32,6 +34,7 @@
 	let appealSuccess = false;
 	let appealError = '';
 	let appealId = '';
+	let moderationOpen = false;
 
 	$: reportDetailsCount = reportDetails.length;
 	$: appealDetailsCount = appealDetails.length;
@@ -44,6 +47,28 @@
 					new Date(iso)
 				)
 			: '';
+
+	async function share() {
+		try {
+			if (navigator.share) {
+				await navigator.share({ title: data?.ad?.title ?? 'Listing', url: location.href });
+			} else {
+				await navigator.clipboard?.writeText(location.href);
+			}
+		} catch {
+			/* noop */
+		}
+	}
+
+	function openPanel(kind: 'report' | 'moderation') {
+		if (kind === 'report') {
+			reportOpen = true;
+			reportPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		} else {
+			moderationOpen = true;
+			moderationPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}
+	}
 
 	async function copyReportId() {
 		reportCopyError = '';
@@ -168,166 +193,174 @@
 				This ad has expired.
 			</div>
 		{/if}
-		<AdCardWide {...data.ad} />
-		{#if data.moderation}
-			<section class="moderation">
-				<h2>Moderation decision</h2>
-				<p class="moderation-meta">
-					This section is only visible to the ad owner when signed in.
-				</p>
-				<p class="moderation-meta">Decision source: {decisionSource}</p>
-				<p class="moderation-meta">
-					{data.moderation.action_type.replace('_', ' ')} on
-					{formatDecisionDate(data.moderation.created_at)}
-				</p>
-				<p><strong>Reason category:</strong> {data.moderation.reason_category}</p>
-				<p><strong>Facts and circumstances:</strong></p>
-				<p class="moderation-details">{data.moderation.reason_details}</p>
-				{#if data.moderation.legal_basis}
-					<p class="moderation-legal">
-						<strong>Legal or policy basis:</strong> {data.moderation.legal_basis}
-					</p>
-				{/if}
-				<p class="moderation-meta">
-					Decision type: {data.moderation.automated ? 'Automated' : 'Manual'}
-				</p>
+		<AdCardWide {...data.ad} showActions={false} />
 
-				<details class="appeal">
-					<summary>Challenge this decision</summary>
-					<div class="appeal-body">
-						<p class="appeal-intro">
-							If you believe this decision is incorrect, you can submit an appeal. We will
-							review it as soon as possible.
-						</p>
-						{#if appealSuccess}
-							<p class="appeal-success" aria-live="polite">
-								Appeal received{appealId ? ` (ref: ${appealId})` : ''}.
-							</p>
-						{:else}
-							<form class="appeal-form" on:submit|preventDefault={submitAppeal}>
-								<label for="appeal-details">
-									Your explanation
-									<span class="field-meta">
-										<span class="hint">
-											Explain why you believe the decision should be changed.
-										</span>
-										<span class="char-count">
-											{appealDetailsCount}/{MIN_APPEAL_DETAILS} min
-										</span>
-									</span>
-								</label>
-								<textarea
-									id="appeal-details"
-									rows="4"
-									bind:value={appealDetails}
-									minlength={MIN_APPEAL_DETAILS}
-									placeholder="Provide any facts or context you want us to reconsider."
-								></textarea>
-
-								{#if appealError}<p class="appeal-error" aria-live="assertive">{appealError}</p>{/if}
-
-								<button type="submit" class="appeal-submit" disabled={appealSending}>
-									{appealSending ? 'Sending...' : 'Submit appeal'}
-								</button>
-							</form>
-						{/if}
-					</div>
-				</details>
-			</section>
-		{/if}
-		<section class="report">
-			<button
-				type="button"
-				class="report-toggle"
-				aria-expanded={reportOpen}
-				on:click={() => (reportOpen = !reportOpen)}
-			>
+		<section class="action-rail" aria-label="Listing actions">
+			<button type="button" class="btn primary" on:click={share}>Share listing</button>
+			<button type="button" class="btn" on:click={() => openPanel('report')}>
 				Report this ad
 			</button>
-
-			{#if reportOpen}
-				<div class="report-card">
-					<p class="report-intro">
-						Use this form to report illegal or inappropriate content. We review reports promptly.
-					</p>
-
-					{#if reportSuccess}
-						<p class="report-success" aria-live="polite">
-							Thanks - your report has been received{reportId ? ` (ref: ${reportId})` : ''}.
-						</p>
-						{#if reportId}
-							<div class="report-actions">
-								<button type="button" class="report-copy" on:click={copyReportId}>
-									{reportCopied ? 'Copied' : 'Copy report ID'}
-								</button>
-								{#if reportCopyError}
-									<p class="report-error" aria-live="assertive">{reportCopyError}</p>
-								{/if}
-							</div>
-							<p class="report-followup">
-								Check status at
-								<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
-							</p>
-						{/if}
-						<p class="report-note">
-							We review reports promptly. Decisions may involve automated tools.
-						</p>
-					{:else}
-						<form class="report-form" on:submit|preventDefault={submitReport}>
-							<label for="report-name">Your name</label>
-							<input id="report-name" type="text" bind:value={reportName} autocomplete="name" />
-
-							<label for="report-email">Your email</label>
-							<input
-								id="report-email"
-								type="email"
-								bind:value={reportEmail}
-								autocomplete="email"
-							/>
-
-							<label for="report-reason">Reason</label>
-							<select id="report-reason" bind:value={reportReason}>
-								{#each reportReasons as reason}
-									<option value={reason.value}>{reason.label}</option>
-								{/each}
-							</select>
-
-							<label for="report-details">
-								Details
-								<span class="field-meta">
-									<span class="hint">
-										Explain why this listing is illegal or against our rules.
-									</span>
-									<span class="char-count">
-										{reportDetailsCount}/{MIN_REPORT_DETAILS} min
-									</span>
-								</span>
-							</label>
-							<textarea
-								id="report-details"
-								rows="5"
-								bind:value={reportDetails}
-								minlength={MIN_REPORT_DETAILS}
-								placeholder="Explain why this listing is illegal or inappropriate."
-							></textarea>
-
-							<label class="checkbox">
-								<input type="checkbox" bind:checked={reportGoodFaith} />
-								<span>
-									I confirm this report is made in good faith and the information is accurate.
-								</span>
-							</label>
-
-							{#if reportError}<p class="report-error" aria-live="assertive">{reportError}</p>{/if}
-
-							<button type="submit" class="report-submit" disabled={reportSending}>
-								{reportSending ? 'Sending...' : 'Submit report'}
-							</button>
-						</form>
-					{/if}
-				</div>
+			{#if data.moderation}
+				<button type="button" class="btn ghost" on:click={() => openPanel('moderation')}>
+					Moderation decision
+				</button>
 			{/if}
 		</section>
+
+		<details class="panel" bind:this={reportPanel} bind:open={reportOpen}>
+			<summary>Report details</summary>
+			<div class="report-card">
+				<p class="report-intro">
+					Use this form to report illegal or inappropriate content. We review reports promptly.
+				</p>
+
+				{#if reportSuccess}
+					<p class="report-success" aria-live="polite">
+						Thanks - your report has been received{reportId ? ` (ref: ${reportId})` : ''}.
+					</p>
+					{#if reportId}
+						<div class="report-actions">
+							<button type="button" class="report-copy" on:click={copyReportId}>
+								{reportCopied ? 'Copied' : 'Copy report ID'}
+							</button>
+							{#if reportCopyError}
+								<p class="report-error" aria-live="assertive">{reportCopyError}</p>
+							{/if}
+						</div>
+						<p class="report-followup">
+							Check status at
+							<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
+						</p>
+					{/if}
+					<p class="report-note">
+						We review reports promptly. Decisions may involve automated tools.
+					</p>
+				{:else}
+					<form class="report-form" on:submit|preventDefault={submitReport}>
+						<label for="report-name">Your name</label>
+						<input id="report-name" type="text" bind:value={reportName} autocomplete="name" />
+
+						<label for="report-email">Your email</label>
+						<input
+							id="report-email"
+							type="email"
+							bind:value={reportEmail}
+							autocomplete="email"
+						/>
+
+						<label for="report-reason">Reason</label>
+						<select id="report-reason" bind:value={reportReason}>
+							{#each reportReasons as reason}
+								<option value={reason.value}>{reason.label}</option>
+							{/each}
+						</select>
+
+						<label for="report-details">
+							Details
+							<span class="field-meta">
+								<span class="hint">
+									Explain why this listing is illegal or against our rules.
+								</span>
+								<span class="char-count">
+									{reportDetailsCount}/{MIN_REPORT_DETAILS} min
+								</span>
+							</span>
+						</label>
+						<textarea
+							id="report-details"
+							rows="5"
+							bind:value={reportDetails}
+							minlength={MIN_REPORT_DETAILS}
+							placeholder="Explain why this listing is illegal or inappropriate."
+						></textarea>
+
+						<label class="checkbox">
+							<input type="checkbox" bind:checked={reportGoodFaith} />
+							<span>
+								I confirm this report is made in good faith and the information is accurate.
+							</span>
+						</label>
+
+						{#if reportError}<p class="report-error" aria-live="assertive">{reportError}</p>{/if}
+
+						<button type="submit" class="report-submit" disabled={reportSending}>
+							{reportSending ? 'Sending...' : 'Submit report'}
+						</button>
+					</form>
+				{/if}
+			</div>
+		</details>
+
+		{#if data.moderation}
+			<details class="panel" bind:this={moderationPanel} bind:open={moderationOpen}>
+				<summary>Moderation decision</summary>
+				<div class="moderation-card">
+					<p class="moderation-meta">
+						This section is only visible to the ad owner when signed in.
+					</p>
+					<p class="moderation-meta">Decision source: {decisionSource}</p>
+					<p class="moderation-meta">
+						{data.moderation.action_type.replace('_', ' ')} on
+						{formatDecisionDate(data.moderation.created_at)}
+					</p>
+					<p><strong>Reason category:</strong> {data.moderation.reason_category}</p>
+					<p><strong>Facts and circumstances:</strong></p>
+					<p class="moderation-details">{data.moderation.reason_details}</p>
+					{#if data.moderation.legal_basis}
+						<p class="moderation-legal">
+							<strong>Legal or policy basis:</strong> {data.moderation.legal_basis}
+						</p>
+					{/if}
+					<p class="moderation-meta">
+						Decision type: {data.moderation.automated ? 'Automated' : 'Manual'}
+					</p>
+
+					<details class="appeal">
+						<summary>Challenge this decision</summary>
+						<div class="appeal-body">
+							<p class="appeal-intro">
+								If you believe this decision is incorrect, you can submit an appeal. We will
+								review it as soon as possible.
+							</p>
+							{#if appealSuccess}
+								<p class="appeal-success" aria-live="polite">
+									Appeal received{appealId ? ` (ref: ${appealId})` : ''}.
+								</p>
+							{:else}
+								<form class="appeal-form" on:submit|preventDefault={submitAppeal}>
+									<label for="appeal-details">
+										Your explanation
+										<span class="field-meta">
+											<span class="hint">
+												Explain why you believe the decision should be changed.
+											</span>
+											<span class="char-count">
+												{appealDetailsCount}/{MIN_APPEAL_DETAILS} min
+											</span>
+										</span>
+									</label>
+									<textarea
+										id="appeal-details"
+										rows="4"
+										bind:value={appealDetails}
+										minlength={MIN_APPEAL_DETAILS}
+										placeholder="Provide any facts or context you want us to reconsider."
+									></textarea>
+
+									{#if appealError}
+										<p class="appeal-error" aria-live="assertive">{appealError}</p>
+									{/if}
+
+									<button type="submit" class="appeal-submit" disabled={appealSending}>
+										{appealSending ? 'Sending...' : 'Submit appeal'}
+									</button>
+								</form>
+							{/if}
+						</div>
+					</details>
+				</div>
+			</details>
+		{/if}
 {:else}
 	<p>Ad not found.</p>
 {/if}
@@ -354,22 +387,62 @@
 		font-weight: 600;
 	}
 
-	.report {
-		max-width: 960px;
-		margin: 12px auto 32px;
-		padding: 0 16px;
-	}
-	.moderation {
+	.action-rail {
 		max-width: 960px;
 		margin: 12px auto 16px;
+		padding: 0 16px;
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	.action-rail .btn {
+		display: inline-grid;
+		place-items: center;
+		gap: 6px;
+		padding: 10px 14px;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+		background: var(--surface);
+		cursor: pointer;
+		font-weight: 700;
+	}
+	.action-rail .btn.primary {
+		background: var(--fg);
+		color: var(--bg);
+		border-color: var(--fg);
+	}
+	.action-rail .btn.ghost {
+		background: transparent;
+	}
+
+	.panel {
+		max-width: 960px;
+		margin: 12px auto;
+		padding: 0 16px;
+	}
+	.panel summary {
+		list-style: none;
+		cursor: pointer;
+		font-weight: 700;
+		padding: 10px 12px;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--surface);
+	}
+	.panel summary::-webkit-details-marker {
+		display: none;
+	}
+	.panel[open] summary {
+		border-color: var(--fg);
+		box-shadow: 0 0 0 2px color-mix(in srgb, var(--fg) 12%, transparent);
+	}
+	.moderation-card {
+		margin-top: 12px;
 		padding: 14px 16px;
 		border: 1px solid var(--hairline);
 		border-radius: 12px;
 		background: color-mix(in srgb, var(--fg) 4%, var(--bg));
-	}
-	.moderation h2 {
-		margin: 0 0 8px;
-		font-size: 1.1rem;
 	}
 	.moderation-meta {
 		margin: 0 0 8px;
@@ -432,16 +505,6 @@
 	.appeal-submit[disabled] {
 		opacity: 0.6;
 		cursor: default;
-	}
-	.report-toggle {
-		width: 100%;
-		text-align: center;
-		padding: 10px 12px;
-		border-radius: 10px;
-		border: 1px solid var(--hairline);
-		background: color-mix(in srgb, var(--fg) 6%, var(--bg));
-		font-weight: 700;
-		cursor: pointer;
 	}
 	.report-card {
 		margin-top: 12px;

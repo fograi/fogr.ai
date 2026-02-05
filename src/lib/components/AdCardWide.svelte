@@ -14,6 +14,7 @@
 	export let email: string = '';
 	export let status: string | undefined = undefined;
 	export let expiresAt: string | undefined = undefined;
+	export let showActions = true;
 
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
@@ -107,14 +108,16 @@
 						{status === 'expired' ? 'Expired on' : 'Expires on'} {expiresLabel}
 					</p>
 				{/if}
-				<div class="actions desktop">
-					<!-- Price badge sits here (not over image) -->
-					{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
-					{#if email}
-						<a class="btn primary" href={mailtoHref} rel="external">Contact</a>
-					{/if}
-					<button type="button" class="btn" on:click={share}>Share</button>
-				</div>
+				{#if showActions}
+					<div class="actions desktop">
+						<!-- Price badge sits here (not over image) -->
+						{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
+						{#if email}
+							<a class="btn primary" href={mailtoHref} rel="external">Contact</a>
+						{/if}
+						<button type="button" class="btn" on:click={share}>Share</button>
+					</div>
+				{/if}
 			</div>
 		{:else}
 			<!-- TEXT-ONLY FULL-WIDTH -->
@@ -132,25 +135,29 @@
 					</p>
 				{/if}
 
-				<div class="actions desktop">
-					{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
-					{#if email}
-						<a class="btn primary" href={mailtoHref} rel="external">Contact</a>
-					{/if}
-					<button type="button" class="btn" on:click={share}>Share</button>
-				</div>
+				{#if showActions}
+					<div class="actions desktop">
+						{#if displayedPrice}<span class="price-badge">{displayedPrice}</span>{/if}
+						{#if email}
+							<a class="btn primary" href={mailtoHref} rel="external">Contact</a>
+						{/if}
+						<button type="button" class="btn" on:click={share}>Share</button>
+					</div>
+				{/if}
 			</div>
 		{/if}
 	</div>
 
 	<!-- Mobile sticky CTA -->
-	<div class="sticky-cta" role="region" aria-label="Listing actions">
-		<div class="sticky-cta__price">{displayedPrice}</div>
-		{#if email}
-			<a class="btn primary btn--cta" href={mailtoHref} rel="external">Contact</a>
-		{/if}
-		<button type="button" class="btn" on:click={share}>Share</button>
-	</div>
+	{#if showActions}
+		<div class="sticky-cta" role="region" aria-label="Listing actions">
+			<div class="sticky-cta__price">{displayedPrice}</div>
+			{#if email}
+				<a class="btn primary btn--cta" href={mailtoHref} rel="external">Contact</a>
+			{/if}
+			<button type="button" class="btn" on:click={share}>Share</button>
+		</div>
+	{/if}
 </article>
 
 <style>
