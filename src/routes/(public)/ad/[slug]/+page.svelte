@@ -579,12 +579,15 @@
 		resize: vertical;
 	}
 	.report-form .checkbox {
-		display: inline-flex;
-		gap: 8px;
-		align-items: flex-start;
+		display: grid;
+		grid-template-columns: 18px 1fr;
+		gap: 6px;
+		align-items: center;
 	}
 	.report-form .checkbox input {
-		margin-top: 3px;
+		margin: 0;
+		width: 16px;
+		height: 16px;
 	}
 	.report-error {
 		margin: 0;

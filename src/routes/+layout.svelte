@@ -63,6 +63,7 @@
 		display: grid;
 		gap: 1.25rem;
 		align-items: start;
+		justify-items: center;
 	}
 	.brand-line {
 		display: inline-flex;
@@ -81,11 +82,13 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 		gap: 1.25rem;
+		justify-items: center;
 	}
 	.link-group {
 		display: grid;
 		gap: 0.35rem;
-		justify-items: start;
+		justify-items: center;
+		text-align: center;
 	}
 	.link-group .label {
 		margin: 0 0 0.25rem;
@@ -104,9 +107,14 @@
 	@media (min-width: 768px) {
 		.site-footer .wrap {
 			grid-template-columns: auto 1fr;
+			justify-items: start;
 		}
 		.link-grid {
 			justify-items: end;
+		}
+		.link-group {
+			justify-items: start;
+			text-align: left;
 		}
 	}
 </style>
