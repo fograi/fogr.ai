@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		ALLOWED_IMAGE_TYPES,
+		MAX_IMAGE_COUNT,
 		MAX_IMAGE_SIZE,
 		catBase,
 		catIcon,
@@ -8,19 +9,18 @@
 	} from '$lib/constants';
 
 	// two-way bind from parent
-	export let file: File | null = null;
-	export let previewUrl: string | null = null;
-	export let imgLoaded = false;
+	export let files: File[] = [];
+	export let previewUrls: string[] = [];
 	export let title: string = '';
 	export let category: keyof typeof catBase | '' = '';
-	export let isFree = false;
 	export let priceType: PriceType = 'fixed';
 	export let price: number | '' = '';
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
+	export let minPhotos = 1;
+	export let showErrors = false;
 
 	// state
-	let imgEl: HTMLImageElement | null = null;
 	let err = '';
 	let warn = '';
 	let compressing = false;
@@ -33,21 +33,25 @@
 	$: bannerBase = category ? catBase[category] : '#6B7280';
 	$: bannerIcon = category ? catIcon[category] : '🗂️';
 
-	function setPreview(f: File) {
-		if (previewUrl) URL.revokeObjectURL(previewUrl);
-		previewUrl = URL.createObjectURL(f);
-		imgLoaded = false;
-	}
-	function clearFile({ keepError = false }: { keepError?: boolean } = {}) {
-		if (previewUrl) URL.revokeObjectURL(previewUrl);
-		previewUrl = null;
-		file = null;
-		imgLoaded = false;
+	function clearAll({ keepError = false }: { keepError?: boolean } = {}) {
+		previewUrls.forEach((url) => URL.revokeObjectURL(url));
+		previewUrls = [];
+		files = [];
 		warn = '';
 		if (!keepError) err = '';
-		// bubble up so parent can also react if it wants
-		const e = new CustomEvent('clear');
-		dispatchEvent(e);
+	}
+
+	function addPreview(f: File) {
+		const url = URL.createObjectURL(f);
+		previewUrls = [...previewUrls, url];
+		files = [...files, f];
+	}
+
+	function removeAt(index: number) {
+		const url = previewUrls[index];
+		if (url) URL.revokeObjectURL(url);
+		previewUrls = previewUrls.filter((_, i) => i !== index);
+		files = files.filter((_, i) => i !== index);
 	}
 
 	function toCanvasBlob(
@@ -138,31 +142,36 @@
 		});
 	}
 
-	async function handleFile(f: File) {
+	async function handleFiles(list: FileList | File[]) {
 		warn = '';
-		if (!ALLOWED_IMAGE_TYPES.includes(f.type)) {
-			clearFile({ keepError: true });
-			err = 'Unsupported image type. Use a JPG or PNG.';
-			return;
-		}
-		if (f.size > MAX_IMAGE_SIZE) {
-			warn = 'Large image — we will compress it. If it still fails, use a smaller file.';
-		}
-
 		err = '';
+		const incoming = Array.from(list);
+		if (incoming.length === 0) return;
 		compressing = true;
 		try {
-			const optimized = await optimizeImage(f);
-			if (optimized.size > MAX_IMAGE_SIZE) {
-				clearFile({ keepError: true });
-				err = 'Image is still too large. Use a smaller file.';
-				return;
+			for (const f of incoming) {
+				if (files.length >= MAX_IMAGE_COUNT) {
+					warn = `You can add up to ${MAX_IMAGE_COUNT} photos.`;
+					break;
+				}
+				if (!ALLOWED_IMAGE_TYPES.includes(f.type)) {
+					err = 'Unsupported image type. Use a JPG or PNG.';
+					continue;
+				}
+				if (f.size > MAX_IMAGE_SIZE) {
+					warn = 'Large image — we will compress it. If it still fails, use a smaller file.';
+				}
+				try {
+					const optimized = await optimizeImage(f);
+					if (optimized.size > MAX_IMAGE_SIZE) {
+						err = 'Image is still too large. Use a smaller file.';
+						continue;
+					}
+					addPreview(optimized);
+				} catch {
+					err = 'Unsupported image type. Use a JPG or PNG.';
+				}
 			}
-			file = optimized;
-			setPreview(optimized);
-		} catch {
-			clearFile({ keepError: true });
-			err = 'Unsupported image type. Use a JPG or PNG.';
 		} finally {
 			compressing = false;
 		}
@@ -170,22 +179,23 @@
 
 	async function onFileChange(e: Event) {
 		const input = e.currentTarget as HTMLInputElement;
-		const f = input.files?.[0];
-		if (!f) return clearFile();
-		await handleFile(f);
+		const list = input.files;
+		if (!list || list.length === 0) return;
+		await handleFiles(list);
+		input.value = '';
 	}
 
 	async function onDrop(e: DragEvent) {
 		e.preventDefault();
-		const f = e.dataTransfer?.files?.[0];
-		if (!f) return;
-		await handleFile(f);
+		const list = e.dataTransfer?.files;
+		if (!list || list.length === 0) return;
+		await handleFiles(list);
 	}
 
 	$: formatted =
 		priceType === 'poa'
 			? 'POA'
-			: priceType === 'free' || isFree || Number(price) === 0
+			: priceType === 'free' || Number(price) === 0
 				? 'Free'
 				: price !== ''
 					? new Intl.NumberFormat(locale, {
@@ -194,9 +204,6 @@
 							maximumFractionDigits: 0
 						}).format(Number(price))
 					: '';
-
-	// expose actions to parent via element binding if needed
-	export { clearFile };
 </script>
 
 <div
@@ -205,41 +212,47 @@
 	on:dragover|preventDefault
 	on:drop={onDrop}
 	role="button"
-	aria-label="Drop image here"
+	aria-label="Drop photos here"
 	tabindex="0"
 >
-	{#if previewUrl}
-		<!-- Banner header above image (centered) -->
+	{#if previewUrls.length}
 		<div class="banner" style="--banner:{bannerBase}">
 			<span class="banner__icon">{bannerIcon}</span>
 			<span class="banner__label">{(category || '').toUpperCase()}</span>
 		</div>
 
-		<!-- Square image, no overlays/chips -->
-		<div class="media square">
-			<img
-				bind:this={imgEl}
-				src={previewUrl}
-				alt=""
-				class:loaded={imgLoaded}
-				on:load={() => (imgLoaded = true)}
-				on:error={() => (imgLoaded = false)}
-			/>
+		<div class="grid">
+			{#each previewUrls as url, i}
+				<div class="thumb">
+					<img src={url} alt="" />
+					<button type="button" class="remove" on:click={() => removeAt(i)}>
+						Remove
+					</button>
+				</div>
+			{/each}
 		</div>
+
 		<h3 class="title--standalone">{title || 'Your catchy title'}</h3>
 		{#if formatted}
 			<div class="price-row">
 				<span class="price-badge">{formatted}</span>
 			</div>
 		{/if}
+
+		<p class="count">
+			{previewUrls.length} / {MAX_IMAGE_COUNT} photos
+			{#if minPhotos > 1}(min {minPhotos}){/if}
+		</p>
+
 		<div class="row actions">
-			<button type="button" class="btn ghost" on:click={clearFile}>Remove image</button>
 			<label class="btn">
-				Replace
+				Add photos
 				<input
 					type="file"
 					accept="image/*"
+					multiple
 					on:change={onFileChange}
+					disabled={compressing || previewUrls.length >= MAX_IMAGE_COUNT}
 					hidden
 				/>
 			</label>
@@ -250,44 +263,52 @@
 					accept="image/*"
 					capture="environment"
 					on:change={onFileChange}
+					disabled={compressing || previewUrls.length >= MAX_IMAGE_COUNT}
 					hidden
 				/>
 			</label>
+			<button type="button" class="btn ghost" on:click={() => clearAll()}>
+				Remove all
+			</button>
 		</div>
-		{#if warn}<p class="warn">{warn}</p>{/if}
 	{:else}
-	<div class="empty">
-		<div class="icon">🖼️</div>
-		<p>Drag an image here, or</p>
-		<div class="choice-row">
-			<label class="btn">
-				Choose photo
-				<input
-					type="file"
-					accept="image/*"
-					on:change={onFileChange}
-					disabled={compressing}
-					hidden
-				/>
-			</label>
-			<label class="btn ghost">
-				Use camera
-				<input
-					type="file"
-					accept="image/*"
-					capture="environment"
-					on:change={onFileChange}
-					disabled={compressing}
-					hidden
-				/>
-			</label>
+		<div class="empty">
+			<div class="icon">🖼️</div>
+			<p>Drag photos here, or</p>
+			<div class="choice-row">
+				<label class="btn">
+					Choose photos
+					<input
+						type="file"
+						accept="image/*"
+						multiple
+						on:change={onFileChange}
+						disabled={compressing}
+						hidden
+					/>
+				</label>
+				<label class="btn ghost">
+					Use camera
+					<input
+						type="file"
+						accept="image/*"
+						capture="environment"
+						on:change={onFileChange}
+						disabled={compressing}
+						hidden
+					/>
+				</label>
+			</div>
+			<small>Min {minPhotos} photos. Up to {MAX_IMAGE_COUNT}.</small>
 		</div>
-		<small>1 photo</small>
-		{#if compressing}<p class="hint">Compressing image…</p>{/if}
-		{#if warn}<p class="warn">{warn}</p>{/if}
-		{#if err}<p class="error">{err}</p>{/if}
-	</div>
 	{/if}
+
+	{#if showErrors && previewUrls.length < minPhotos}
+		<p class="error">Add at least {minPhotos} photo{minPhotos === 1 ? '' : 's'}.</p>
+	{/if}
+	{#if compressing}<p class="hint">Compressing image…</p>{/if}
+	{#if warn}<p class="warn">{warn}</p>{/if}
+	{#if err}<p class="error">{err}</p>{/if}
 </div>
 
 <style>
@@ -320,25 +341,34 @@
 		font-size: 0.95rem;
 	}
 
-	/* Square media (no overlay) */
-	.media {
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+		gap: 10px;
+	}
+	.thumb {
 		position: relative;
-		border-radius: 14px;
+		border-radius: 12px;
 		overflow: hidden;
 		background: color-mix(in srgb, var(--fg) 6%, transparent);
-	}
-	.media.square {
 		aspect-ratio: 1 / 1;
 	}
-	.media img {
+	.thumb img {
 		width: 100%;
 		height: 100%;
-		object-fit: cover; /* square crop */
-		opacity: 0;
-		transition: opacity 0.2s ease;
+		object-fit: cover;
+		display: block;
 	}
-	.media img.loaded {
-		opacity: 1;
+	.remove {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		padding: 4px 8px;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+		background: var(--surface);
+		font-weight: 700;
+		cursor: pointer;
 	}
 
 	.title--standalone {
@@ -349,12 +379,20 @@
 		color: var(--fg);
 		text-align: center; /* matches banner alignment */
 	}
+	.count {
+		margin: 8px 0 0;
+		text-align: center;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+		font-weight: 600;
+	}
 	/* Actions row */
 	.row.actions {
 		display: flex;
 		gap: 10px;
 		align-items: center;
 		margin-top: 10px;
+		flex-wrap: wrap;
+		justify-content: center;
 	}
 	.choice-row {
 		display: flex;
@@ -397,12 +435,6 @@
 		border-radius: 10px;
 		padding: 8px 10px;
 		font-weight: 700;
-	}
-	.row.actions {
-		display: flex;
-		gap: 10px;
-		align-items: center;
-		margin-top: 8px;
 	}
 	.hint {
 		color: color-mix(in srgb, var(--fg) 70%, transparent);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateAdMeta } from './ads-validation';
+import { validateAdImages, validateAdMeta } from './ads-validation';
 
 describe('validateAdMeta (price rules)', () => {
 	it('accepts fixed price over 0', () => {
@@ -70,5 +70,17 @@ describe('validateAdMeta (price rules)', () => {
 			priceType: 'poa'
 		});
 		expect(result).toBe('Do not enter a price for POA listings.');
+	});
+});
+
+describe('validateAdImages (min photos)', () => {
+	it('requires 3 photos for Electronics', () => {
+		const result = validateAdImages({ category: 'Electronics', imageCount: 2 });
+		expect(result).toBe('Add at least 3 photos.');
+	});
+
+	it('allows 1 photo for Free / Giveaway', () => {
+		const result = validateAdImages({ category: 'Free / Giveaway', imageCount: 1 });
+		expect(result).toBeNull();
 	});
 });

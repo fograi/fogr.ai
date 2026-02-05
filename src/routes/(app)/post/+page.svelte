@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { type Category, type PriceType, POA_CATEGORY_SET } from '$lib/constants';
+	import {
+		type Category,
+		type PriceType,
+		POA_CATEGORY_SET,
+		getMinPhotosForCategory
+	} from '$lib/constants';
 
 	import PostFields from '$lib/components/post/PostFields.svelte';
 	import ImageDrop from '$lib/components/post/ImageDrop.svelte';
@@ -21,22 +26,23 @@
 	let step = 1;
 	const totalSteps = 3;
 	let showErrors = false;
+	let minPhotos = 1;
 
-	// one image (optional)
-	let file: File | null = null;
-	let previewUrl: string | null = null;
+	// images (optional until min required)
+	let files: File[] = [];
+	let previewUrls: string[] = [];
 
 	// moderation
 	const mod = createModerationClient();
 	let debounce: number | undefined;
 
 	// derived
-	$: isFree = priceType === 'free' || category === 'Free / Giveaway';
 	$: if (category === 'Free / Giveaway' && priceType !== 'free') priceType = 'free';
 	$: if (priceType === 'poa' && category && !POA_CATEGORY_SET.has(category)) priceType = 'fixed';
 	$: if (priceType === 'free' && price !== 0) price = 0;
 	$: if (priceType === 'poa') price = '';
 	$: if (priceType === 'fixed' && price === 0) price = '';
+	$: minPhotos = getMinPhotosForCategory(category);
 
 	// live moderation check while typing
 	$: {
@@ -98,8 +104,15 @@
 		return '';
 	}
 
+	function validateImages() {
+		if (!category) return 'Choose a category.';
+		if (files.length < minPhotos)
+			return `Add at least ${minPhotos} photo${minPhotos === 1 ? '' : 's'}.`;
+		return '';
+	}
+
 	function validateAll() {
-		return validateBasics() || validateDetails();
+		return validateBasics() || validateDetails() || validateImages();
 	}
 
 	function goNext() {
@@ -160,7 +173,7 @@
 			form.append('currency', currency);
 			form.append('locale', locale);
 			form.append('age_confirmed', ageConfirmed ? '1' : '0');
-			if (file) form.append('image', file);
+			for (const f of files) form.append('images', f);
 
 			const res = await fetch('/api/ads', { method: 'POST', body: form });
 			const raw = await res.text();
@@ -184,10 +197,10 @@
 			description = '';
 			category = '';
 			price = '';
-			// clear image
-			if (previewUrl) URL.revokeObjectURL(previewUrl);
-			previewUrl = null;
-			file = null;
+			// clear images
+			previewUrls.forEach((url) => URL.revokeObjectURL(url));
+			previewUrls = [];
+			files = [];
 		} catch (e: unknown) {
 			err = e instanceof Error ? e.message : 'We could not post your ad. Try again.';
 		} finally {
@@ -287,15 +300,16 @@
 	{#if step === 3}
 		<section class="panel">
 			<ImageDrop
-				bind:file
-				bind:previewUrl
+				bind:files
+				bind:previewUrls
 				{title}
 				{category}
-				{isFree}
 				{priceType}
 				{price}
 				{currency}
 				{locale}
+				{minPhotos}
+				{showErrors}
 			/>
 			<div class="actions">
 				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>

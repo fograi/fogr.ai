@@ -17,7 +17,7 @@ import {
 	MAX_TOTAL_IMAGE_SIZE
 } from '$lib/constants';
 import { bannedWords } from '$lib/banned-words';
-import { validateAdMeta } from '$lib/server/ads-validation';
+import { validateAdImages, validateAdMeta } from '$lib/server/ads-validation';
 import { isSameOrigin } from '$lib/server/csrf';
 import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
 import { getPagination } from '$lib/server/pagination';
@@ -327,6 +327,8 @@ export const POST: RequestHandler = async (event) => {
 		}
 		const metaError = validateAdMeta({ category, currency, priceStr, priceType });
 		if (metaError) return errorResponse(metaError, 400, requestId);
+		const imageError = validateAdImages({ category, imageCount: files.length });
+		if (imageError) return errorResponse(imageError, 400, requestId);
 		const price =
 			priceType?.toLowerCase() === 'poa' ? null : Number(priceStr ?? 0);
 

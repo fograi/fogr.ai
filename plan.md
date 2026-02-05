@@ -81,11 +81,11 @@
 - Server enforcement: `src/lib/server/ads-validation.ts`, `src/routes/api/ads/+server.ts`.
 - Types + fixtures: `src/types/ad-types.d.ts`, `src/lib/supabase.types.ts`, `src/data/mock-ads.ts`.
 
-- [ ] Define required fields per category and minimum photo counts.
-- [ ] Update post wizard to enforce required fields and photo minimums.
-- [ ] Add lightweight client checks with clear error copy.
-- [ ] Enforce server-side validation to block publish without required fields.
-- [ ] Add or update tests for required fields and photo minimums.
+- [x] Define required fields per category and minimum photo counts.
+- [x] Update post wizard to enforce required fields and photo minimums.
+- [x] Add lightweight client checks with clear error copy.
+- [x] Enforce server-side validation to block publish without required fields.
+- [x] Add or update tests for required fields and photo minimums.
 
 ### P0.3 Structured First Message + Offer Controls
 

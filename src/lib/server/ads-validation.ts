@@ -1,4 +1,10 @@
-import { CATEGORIES, POA_CATEGORY_SET, type Category, type PriceType } from '$lib/constants';
+import {
+	CATEGORIES,
+	POA_CATEGORY_SET,
+	getMinPhotosForCategory,
+	type Category,
+	type PriceType
+} from '$lib/constants';
 
 type AdValidationInput = {
 	category: string;
@@ -43,5 +49,18 @@ export function validateAdMeta({
 	if (priceType === 'free' && n !== 0) return 'Free items must have a price of 0.';
 	if (isFreeCategory && n !== 0) return 'Free items must have a price of 0.';
 
+	return null;
+}
+
+type AdImageValidationInput = {
+	category: string;
+	imageCount: number;
+};
+
+export function validateAdImages({ category, imageCount }: AdImageValidationInput): string | null {
+	if (!category) return 'Category is required.';
+	if (!CATEGORIES.includes(category as Category)) return 'Invalid category.';
+	const min = getMinPhotosForCategory(category as Category);
+	if (imageCount < min) return `Add at least ${min} photo${min === 1 ? '' : 's'}.`;
 	return null;
 }
