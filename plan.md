@@ -50,7 +50,23 @@
 
 ## P0-ish Tasks (High Signal, Low Ops)
 
+### Recommended Build Sequence (Dependencies First)
+
+1. P0.2 Honest Pricing Rules (new price states + filter/UI + API validation).
+2. P0.3 Listing Quality Gates (required fields + photo minimums).
+3. P0.1 Structured Messaging (message composer + minimal thread + offer controls).
+4. P0.4 Privacy-First Messaging (switch CTA and gate phone reveal).
+5. P0.5 Scam Warnings (hook into message send + UI banner).
+
 ### P0.1 Structured First Message + Offer Controls
+
+- UI entry point: `src/routes/(public)/ad/[slug]/+page.svelte` (replace/augment contact CTA with in-app message composer).
+- New UI components (suggested): `src/lib/components/messages/MessageComposer.svelte`, `src/lib/components/messages/OfferControls.svelte`, `src/lib/components/messages/Thread.svelte`.
+- Seller controls surface (owner view): `src/routes/(public)/ad/[slug]/+page.svelte` (owner-only panel) or a new `src/routes/(app)/ads/+page.svelte` for listing management.
+- API endpoints (suggested): `src/routes/api/messages/+server.ts`, `src/routes/api/messages/[threadId]/+server.ts`, `src/routes/api/offers/+server.ts`.
+- Server validation: `src/lib/server/message-validation.ts` (new), `src/lib/server/ads-validation.ts` (offer rules).
+- DB/schema: new migrations for `conversations`, `messages`, `ad_offer_rules` (min_offer, firm_price), and optional `offer_events`.
+- Types: update `src/types/ad-types.d.ts` and `src/lib/supabase.types.ts`.
 
 - [ ] Define structured message templates and required fields (availability, offer amount, timing, pickup/shipping).
 - [ ] Update message composer UI to enforce structure and capture metadata.
@@ -61,6 +77,13 @@
 
 ### P0.2 Honest Pricing Rules (Free/POA)
 
+- Rules/config: `src/lib/constants.ts` (price states per category).
+- Post flow UI: `src/lib/components/post/PostFields.svelte`, `src/routes/(app)/post/+page.svelte`.
+- Server validation: `src/lib/server/ads-validation.ts`, `src/routes/api/ads/+server.ts`.
+- Search/filter UI + query: `src/routes/+page.svelte`, `src/routes/+page.server.ts`, `src/routes/api/ads/+server.ts` (filters).
+- Listing display: `src/lib/components/AdCard.svelte`, `src/lib/components/AdCardWide.svelte`.
+- Types + fixtures: `src/types/ad-types.d.ts`, `src/lib/supabase.types.ts`, `src/data/mock-ads.ts`, `src/lib/server/e2e-mocks.ts`.
+
 - [ ] Define category rules for real price vs Free/POA (config or constants).
 - [ ] Update listing form validation for price rules and Free/POA states.
 - [ ] Update search/filter UI to include Free/POA as explicit filter states.
@@ -70,6 +93,11 @@
 
 ### P0.3 Listing Quality Gates
 
+- Required fields + photo minimums config: `src/lib/constants.ts`.
+- Post flow UI enforcement: `src/lib/components/post/PostFields.svelte`, `src/lib/components/post/ImageDrop.svelte`, `src/routes/(app)/post/+page.svelte`.
+- Server enforcement: `src/lib/server/ads-validation.ts`, `src/routes/api/ads/+server.ts`.
+- Types + fixtures: `src/types/ad-types.d.ts`, `src/lib/supabase.types.ts`, `src/data/mock-ads.ts`.
+
 - [ ] Define required fields per category and minimum photo counts.
 - [ ] Update post wizard to enforce required fields and photo minimums.
 - [ ] Add lightweight client checks with clear error copy.
@@ -78,6 +106,11 @@
 
 ### P0.4 Privacy-First Messaging
 
+- Contact CTA update: `src/lib/components/AdCardWide.svelte`, `src/routes/(public)/ad/[slug]/+page.svelte`.
+- Reveal gating UI (if supported): same as above + new messaging components from P0.1.
+- API endpoint (suggested): `src/routes/api/ads/[id]/reveal/+server.ts` or add to messages API.
+- DB/schema: add `contact_preference` / `phone_reveal_state` fields on ads or users; update `src/lib/supabase.types.ts`.
+
 - [ ] Default to in-app messaging; remove phone reveal from initial contact flow.
 - [ ] Add optional phone reveal gating (opt-in toggle or after defined actions).
 - [ ] Update listing/contact UI copy to set expectations.
@@ -85,6 +118,11 @@
 - [ ] Add or update tests for contact flow and reveal gating.
 
 ### P0.5 Scam Pattern Warnings
+
+- Detection rules: `src/lib/server/scam-patterns.ts` (new).
+- Trigger on send: `src/routes/api/messages/+server.ts` (or message create handler).
+- UI warning banner: `src/lib/components/messages/Thread.svelte` or message composer.
+- Logging/flags: new DB table for `message_flags` (optional).
 
 - [ ] Define initial keyword/heuristic patterns (WhatsApp, courier, deposit pressure, PayPal friends and family).
 - [ ] Implement in-chat warning banner with report CTA for suspicious messages.
@@ -96,6 +134,13 @@
 - Add or edit unit and e2e tests as needed for each task.
 - Run the relevant tests after each step to catch and prevent regressions.
 - Keep changes incremental and measurable (track the core metrics above).
+
+## Tests To Add/Update (Per Step)
+
+- Unit: validation helpers (price rules, required fields, offer rules, scam patterns).
+- E2E: posting flow with required fields, price state selection, and blocked submits.
+- E2E: message send with structured template and offer auto-decline.
+- E2E: contact CTA -> in-app message flow, no phone/email exposed by default.
 
 ## UX Overhaul: Jobs and Metrics
 
