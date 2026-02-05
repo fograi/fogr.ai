@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import AdCardWide from '$lib/components/AdCardWide.svelte';
 	import type { AdCard, ModerationAction } from '../../../../types/ad-types';
 	export let data: { ad: AdCard; moderation?: ModerationAction | null };
@@ -25,7 +26,8 @@
 	let reportCopied = false;
 	let reportCopyError = '';
 	const MIN_APPEAL_DETAILS = 20;
-	let reportPanel: HTMLDetailsElement | null = null;
+
+	let reportPanel: HTMLElement | null = null;
 	let moderationPanel: HTMLDetailsElement | null = null;
 
 	let appealOpen = false;
@@ -60,12 +62,14 @@
 		}
 	}
 
-	function openPanel(kind: 'report' | 'moderation') {
+	async function openPanel(kind: 'report' | 'moderation') {
 		if (kind === 'report') {
 			reportOpen = true;
+			await tick();
 			reportPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		} else {
 			moderationOpen = true;
+			await tick();
 			moderationPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		}
 	}
@@ -197,8 +201,8 @@
 
 		<section class="action-rail" aria-label="Listing actions">
 			<button type="button" class="btn primary" on:click={share}>Share listing</button>
-			<button type="button" class="btn" on:click={() => openPanel('report')}>
-				Report this ad
+			<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
+				Report listing
 			</button>
 			{#if data.moderation}
 				<button type="button" class="btn ghost" on:click={() => openPanel('moderation')}>
@@ -207,85 +211,94 @@
 			{/if}
 		</section>
 
-		<details class="panel" bind:this={reportPanel} bind:open={reportOpen}>
-			<summary>Report details</summary>
-			<div class="report-card">
-				<p class="report-intro">
-					Report content that is illegal or against our rules. We review reports quickly.
-				</p>
-
-				{#if reportSuccess}
-					<p class="report-success" aria-live="polite">
-						Thanks - we received your report{reportId ? ` (ref: ${reportId})` : ''}.
+		{#if reportOpen}
+			<section class="panel report-panel" bind:this={reportPanel}>
+				<div class="panel-head">
+					<h2>Report listing</h2>
+					<button type="button" class="panel-close" on:click={() => (reportOpen = false)}>
+						Close
+					</button>
+				</div>
+				<div class="report-card">
+					<p class="report-intro">
+						Report content that is illegal or against our rules. We review reports quickly.
 					</p>
-					{#if reportId}
-						<div class="report-actions">
-							<button type="button" class="report-copy" on:click={copyReportId}>
-								{reportCopied ? 'Copied' : 'Copy report ID'}
-							</button>
-							{#if reportCopyError}
-								<p class="report-error" aria-live="assertive">{reportCopyError}</p>
-							{/if}
-						</div>
-					<p class="report-followup">
-						Track it on
-						<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
-					</p>
-					{/if}
-					<p class="report-note">
-						We review reports quickly. Some decisions may use automated tools.
-					</p>
-				{:else}
-					<form class="report-form" on:submit|preventDefault={submitReport}>
-						<label for="report-name">Your name</label>
-						<input id="report-name" type="text" bind:value={reportName} autocomplete="name" />
 
-						<label for="report-email">Your email</label>
-						<input
-							id="report-email"
-							type="email"
-							bind:value={reportEmail}
-							autocomplete="email"
-						/>
+					{#if reportSuccess}
+						<p class="report-success" aria-live="polite">
+							Thanks - we received your report{reportId ? ` (ref: ${reportId})` : ''}.
+						</p>
+						{#if reportId}
+							<div class="report-actions">
+								<button type="button" class="report-copy" on:click={copyReportId}>
+									{reportCopied ? 'Copied' : 'Copy report ID'}
+								</button>
+								{#if reportCopyError}
+									<p class="report-error" aria-live="assertive">{reportCopyError}</p>
+								{/if}
+							</div>
+							<p class="report-followup">
+								Track it on
+								<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
+							</p>
+						{/if}
+						<p class="report-note">
+							We review reports quickly. Some decisions may use automated tools.
+						</p>
+					{:else}
+						<form class="report-form" on:submit|preventDefault={submitReport}>
+							<label for="report-name">Your name</label>
+							<input id="report-name" type="text" bind:value={reportName} autocomplete="name" />
 
-						<label for="report-reason">Reason</label>
-						<select id="report-reason" bind:value={reportReason}>
-							{#each reportReasons as reason}
-								<option value={reason.value}>{reason.label}</option>
-							{/each}
-						</select>
+							<label for="report-email">Your email</label>
+							<input
+								id="report-email"
+								type="email"
+								bind:value={reportEmail}
+								autocomplete="email"
+							/>
 
-						<label for="report-details">
-							Details
-							<span class="field-meta">
-								<span class="hint">Tell us what is wrong and why.</span>
-								<span class="char-count">
-									{reportDetailsCount}/{MIN_REPORT_DETAILS} min
+							<label for="report-reason">Reason</label>
+							<select id="report-reason" bind:value={reportReason}>
+								{#each reportReasons as reason}
+									<option value={reason.value}>{reason.label}</option>
+								{/each}
+							</select>
+
+							<label for="report-details">
+								Details
+								<span class="field-meta">
+									<span class="hint">Tell us what is wrong and why.</span>
+									<span class="char-count">
+										{reportDetailsCount}/{MIN_REPORT_DETAILS} min
+									</span>
 								</span>
-							</span>
-						</label>
-						<textarea
-							id="report-details"
-							rows="5"
-							bind:value={reportDetails}
-							minlength={MIN_REPORT_DETAILS}
-							placeholder="Describe the issue and where it appears."
-						></textarea>
+							</label>
+							<textarea
+								id="report-details"
+								rows="5"
+								bind:value={reportDetails}
+								minlength={MIN_REPORT_DETAILS}
+								placeholder="Describe the issue and where it appears."
+							></textarea>
 
-						<label class="checkbox">
-							<input type="checkbox" bind:checked={reportGoodFaith} />
-							<span>I confirm this report is made in good faith.</span>
-						</label>
+							<label class="checkbox">
+								<input type="checkbox" bind:checked={reportGoodFaith} />
+								<span>I confirm this report is made in good faith.</span>
+							</label>
 
-						{#if reportError}<p class="report-error" aria-live="assertive">{reportError}</p>{/if}
+							{#if reportError}
+								<p class="report-error" aria-live="assertive">{reportError}</p>
+							{/if}
 
-						<button type="submit" class="report-submit" disabled={reportSending}>
-							{reportSending ? 'Sending...' : 'Submit report'}
-						</button>
-					</form>
-				{/if}
-			</div>
-		</details>
+							<button type="submit" class="report-submit" disabled={reportSending}>
+								{reportSending ? 'Sending...' : 'Submit report'}
+							</button>
+						</form>
+					{/if}
+				</div>
+			</section>
+		{/if}
 
 		{#if data.moderation}
 			<details class="panel" bind:this={moderationPanel} bind:open={moderationOpen}>
@@ -428,6 +441,27 @@
 	.panel[open] summary {
 		border-color: var(--fg);
 		box-shadow: 0 0 0 2px color-mix(in srgb, var(--fg) 12%, transparent);
+	}
+	.panel-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 10px 12px;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--surface);
+	}
+	.panel-head h2 {
+		margin: 0;
+		font-size: 1rem;
+	}
+	.panel-close {
+		border: 0;
+		background: transparent;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+		font-weight: 700;
+		cursor: pointer;
 	}
 	.moderation-card {
 		margin-top: 12px;

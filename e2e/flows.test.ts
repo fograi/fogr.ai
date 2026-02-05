@@ -51,7 +51,7 @@ test('ad detail page renders with mocked data', async ({ page }) => {
 
 test('report form submits and shows reference', async ({ page }) => {
 	await page.goto('/ad/e2e-ad-1');
-	await page.getByRole('button', { name: 'Report this ad' }).click();
+	await page.getByRole('button', { name: 'Report listing' }).click();
 
 	await page.route('**/api/ads/e2e-ad-1/report', async (route) => {
 		if (route.request().method() !== 'POST') return route.continue();

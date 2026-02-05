@@ -226,8 +226,8 @@
 
 	{#if step === 1}
 		<section class="panel">
-			<h2>Basics</h2>
-			<p class="hint">Title, category, and price. Keep it simple.</p>
+			<h2>Title & price</h2>
+			<p class="hint">Be specific so people know what it is at a glance.</p>
 			<PostFields
 				step={1}
 				bind:category
@@ -248,8 +248,8 @@
 
 	{#if step === 2}
 		<section class="panel">
-			<h2>Details</h2>
-			<p class="hint">Share the key details buyers need.</p>
+			<h2>Description</h2>
+			<p class="hint">Condition, size, pickup details—whatever matters most.</p>
 			<PostFields
 				step={2}
 				bind:category
@@ -273,8 +273,8 @@
 
 	{#if step === 3}
 		<section class="panel">
-			<h2>Photo + review</h2>
-			<p class="hint">Add a photo, then review before posting.</p>
+			<h2>Photo & review</h2>
+			<p class="hint">Optional photo, then check your listing before posting.</p>
 			<div class="review-grid">
 				<div class="review-card">
 					<h3>Ad preview</h3>
