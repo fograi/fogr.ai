@@ -52,30 +52,13 @@
 
 ### Recommended Build Sequence (Dependencies First)
 
-1. P0.2 Honest Pricing Rules (new price states + filter/UI + API validation).
-2. P0.3 Listing Quality Gates (required fields + photo minimums).
-3. P0.1 Structured Messaging (message composer + minimal thread + offer controls).
+1. P0.1 Honest Pricing Rules (new price states + filter/UI + API validation).
+2. P0.2 Listing Quality Gates (required fields + photo minimums).
+3. P0.3 Structured Messaging (message composer + minimal thread + offer controls).
 4. P0.4 Privacy-First Messaging (switch CTA and gate phone reveal).
 5. P0.5 Scam Warnings (hook into message send + UI banner).
 
-### P0.1 Structured First Message + Offer Controls
-
-- UI entry point: `src/routes/(public)/ad/[slug]/+page.svelte` (replace/augment contact CTA with in-app message composer).
-- New UI components (suggested): `src/lib/components/messages/MessageComposer.svelte`, `src/lib/components/messages/OfferControls.svelte`, `src/lib/components/messages/Thread.svelte`.
-- Seller controls surface (owner view): `src/routes/(public)/ad/[slug]/+page.svelte` (owner-only panel) or a new `src/routes/(app)/ads/+page.svelte` for listing management.
-- API endpoints (suggested): `src/routes/api/messages/+server.ts`, `src/routes/api/messages/[threadId]/+server.ts`, `src/routes/api/offers/+server.ts`.
-- Server validation: `src/lib/server/message-validation.ts` (new), `src/lib/server/ads-validation.ts` (offer rules).
-- DB/schema: new migrations for `conversations`, `messages`, `ad_offer_rules` (min_offer, firm_price), and optional `offer_events`.
-- Types: update `src/types/ad-types.d.ts` and `src/lib/supabase.types.ts`.
-
-- [ ] Define structured message templates and required fields (availability, offer amount, timing, pickup/shipping).
-- [ ] Update message composer UI to enforce structure and capture metadata.
-- [ ] Add seller controls: minimum offer, firm price flag, auto-decline message.
-- [ ] Validate offers server-side against floor/firm rules with clear errors.
-- [ ] Track metrics: lowball rate, time-to-first-serious-inquiry, offer acceptance rate.
-- [ ] Add or update unit and e2e tests for message flow and offer validation.
-
-### P0.2 Honest Pricing Rules (Free/POA)
+### P0.1 Honest Pricing Rules (Free/POA)
 
 - Rules/config: `src/lib/constants.ts` (price states per category).
 - Post flow UI: `src/lib/components/post/PostFields.svelte`, `src/routes/(app)/post/+page.svelte`.
@@ -91,7 +74,7 @@
 - [ ] Update listing detail UI to display Free/POA clearly.
 - [ ] Add or update unit and e2e tests for price validation and filters.
 
-### P0.3 Listing Quality Gates
+### P0.2 Listing Quality Gates
 
 - Required fields + photo minimums config: `src/lib/constants.ts`.
 - Post flow UI enforcement: `src/lib/components/post/PostFields.svelte`, `src/lib/components/post/ImageDrop.svelte`, `src/routes/(app)/post/+page.svelte`.
@@ -103,6 +86,23 @@
 - [ ] Add lightweight client checks with clear error copy.
 - [ ] Enforce server-side validation to block publish without required fields.
 - [ ] Add or update tests for required fields and photo minimums.
+
+### P0.3 Structured First Message + Offer Controls
+
+- UI entry point: `src/routes/(public)/ad/[slug]/+page.svelte` (replace/augment contact CTA with in-app message composer).
+- New UI components (suggested): `src/lib/components/messages/MessageComposer.svelte`, `src/lib/components/messages/OfferControls.svelte`, `src/lib/components/messages/Thread.svelte`.
+- Seller controls surface (owner view): `src/routes/(public)/ad/[slug]/+page.svelte` (owner-only panel) or a new `src/routes/(app)/ads/+page.svelte` for listing management.
+- API endpoints (suggested): `src/routes/api/messages/+server.ts`, `src/routes/api/messages/[threadId]/+server.ts`, `src/routes/api/offers/+server.ts`.
+- Server validation: `src/lib/server/message-validation.ts` (new), `src/lib/server/ads-validation.ts` (offer rules).
+- DB/schema: new migrations for `conversations`, `messages`, `ad_offer_rules` (min_offer, firm_price), and optional `offer_events`.
+- Types: update `src/types/ad-types.d.ts` and `src/lib/supabase.types.ts`.
+
+- [ ] Define structured message templates and required fields (availability, offer amount, timing, pickup/shipping).
+- [ ] Update message composer UI to enforce structure and capture metadata.
+- [ ] Add seller controls: minimum offer, firm price flag, auto-decline message.
+- [ ] Validate offers server-side against floor/firm rules with clear errors.
+- [ ] Track metrics: lowball rate, time-to-first-serious-inquiry, offer acceptance rate.
+- [ ] Add or update unit and e2e tests for message flow and offer validation.
 
 ### P0.4 Privacy-First Messaging
 
