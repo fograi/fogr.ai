@@ -133,15 +133,22 @@
 	.fields {
 		display: grid;
 		gap: 12px;
+		width: 100%;
 	}
 	.field {
 		display: grid;
 		gap: 6px;
+		width: 100%;
 	}
 	.row {
 		display: flex;
 		gap: 12px;
 		align-items: flex-end;
+		width: 100%;
+	}
+	.row > .field {
+		flex: 1 1 auto;
+		min-width: 0;
 	}
 	.checkbox {
 		display: inline-flex;
@@ -165,6 +172,7 @@
 		border-radius: 10px;
 		padding: 10px 12px;
 		font: inherit;
+		width: 100%;
 	}
 	.muted {
 		color: color-mix(in srgb, var(--fg) 55%, transparent);

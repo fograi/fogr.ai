@@ -373,12 +373,14 @@
 		background: var(--surface);
 		display: grid;
 		gap: 12px;
+		width: 100%;
 	}
 
 	.actions {
 		display: flex;
 		gap: 10px;
 		justify-content: flex-end;
+		width: 100%;
 	}
 	.btn {
 		display: inline-grid;
