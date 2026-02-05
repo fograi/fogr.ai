@@ -74,12 +74,12 @@ describe('validateAdMeta (price rules)', () => {
 });
 
 describe('validateAdImages (min photos)', () => {
-	it('requires 3 photos for Electronics', () => {
-		const result = validateAdImages({ category: 'Electronics', imageCount: 2 });
-		expect(result).toBe('Add at least 3 photos.');
+	it('allows zero photos for Electronics', () => {
+		const result = validateAdImages({ category: 'Electronics', imageCount: 0 });
+		expect(result).toBeNull();
 	});
 
-	it('allows 1 photo for Free / Giveaway', () => {
+	it('allows one photo for Free / Giveaway', () => {
 		const result = validateAdImages({ category: 'Free / Giveaway', imageCount: 1 });
 		expect(result).toBeNull();
 	});
