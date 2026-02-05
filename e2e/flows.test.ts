@@ -66,7 +66,7 @@ test('report form submits and shows reference', async ({ page }) => {
 	await page.fill('#report-email', 'reporter@example.com');
 	await page.selectOption('#report-reason', 'spam');
 	await page.fill('#report-details', 'This is a test report with enough detail to pass validation.');
-	await page.getByLabel('I confirm this report is made in good faith and the information is accurate.').check();
+	await page.getByRole('checkbox', { name: /good faith/i }).check();
 
 	await page.getByRole('button', { name: 'Submit report' }).click();
 	await expect(page.getByText(/received your report/i)).toBeVisible();
