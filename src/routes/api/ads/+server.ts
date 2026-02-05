@@ -210,7 +210,7 @@ export const POST: RequestHandler = async (event) => {
 			PUBLIC_R2_BASE?: string;
 			OPENAI_API_KEY?: string;
 			RATE_LIMIT?: KVNamespace;
-			SUPABASE_URL?: string;
+			PUBLIC_SUPABASE_URL?: string;
 			SUPABASE_SERVICE_ROLE_KEY?: string;
 		};
 		const rateLimitKv = env?.RATE_LIMIT;
@@ -341,7 +341,7 @@ export const POST: RequestHandler = async (event) => {
 		const nextDay = new Date(dayStart);
 		nextDay.setUTCDate(dayStart.getUTCDate() + 1);
 
-		const supabaseUrl = env?.SUPABASE_URL?.replace(/\/$/, '');
+			const supabaseUrl = env?.PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
 		const serviceKey = env?.SUPABASE_SERVICE_ROLE_KEY;
 		const limiterClient =
 			supabaseUrl && serviceKey

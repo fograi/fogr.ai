@@ -7,7 +7,7 @@ import type {
 import OpenAI from 'openai';
 
 type Env = {
-	SUPABASE_URL?: string;
+	PUBLIC_SUPABASE_URL?: string;
 	SUPABASE_SERVICE_ROLE_KEY?: string;
 	OPENAI_API_KEY?: string;
 	ADS_BUCKET?: R2Bucket;
@@ -132,7 +132,7 @@ async function moderateSingleImage(
 }
 
 async function fetchPendingAds(env: Env): Promise<PendingAd[]> {
-	const url = new URL('/rest/v1/ads', env.SUPABASE_URL);
+	const url = new URL('/rest/v1/ads', env.PUBLIC_SUPABASE_URL);
 	url.searchParams.set('select', 'id,title,description,image_keys,user_id');
 	url.searchParams.set('status', `eq.${PENDING_STATUS}`);
 	url.searchParams.set('order', 'created_at.asc');
@@ -147,7 +147,7 @@ async function fetchPendingAds(env: Env): Promise<PendingAd[]> {
 }
 
 async function updateAdStatus(env: Env, id: string, status: string): Promise<void> {
-	const url = new URL('/rest/v1/ads', env.SUPABASE_URL);
+	const url = new URL('/rest/v1/ads', env.PUBLIC_SUPABASE_URL);
 	url.searchParams.set('id', `eq.${id}`);
 	const res = await fetch(url, {
 		method: 'PATCH',
@@ -160,7 +160,7 @@ async function updateAdStatus(env: Env, id: string, status: string): Promise<voi
 }
 
 async function expireActiveAds(env: Env): Promise<void> {
-	const url = new URL('/rest/v1/ads', env.SUPABASE_URL);
+	const url = new URL('/rest/v1/ads', env.PUBLIC_SUPABASE_URL);
 	url.searchParams.set('select', 'id');
 	url.searchParams.set('status', `eq.${ACTIVE_STATUS}`);
 	url.searchParams.set('expires_at', `lte.${new Date().toISOString()}`);
@@ -208,7 +208,7 @@ async function retryPendingAds(env: Env): Promise<void> {
 	const missing: string[] = [];
 	if (!publicBucket) missing.push('ADS_BUCKET');
 	if (!pendingBucket) missing.push('ADS_PENDING_BUCKET');
-	if (!env.SUPABASE_URL) missing.push('SUPABASE_URL');
+		if (!env.PUBLIC_SUPABASE_URL) missing.push('PUBLIC_SUPABASE_URL');
 	if (!env.SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY');
 	if (!env.OPENAI_API_KEY) missing.push('OPENAI_API_KEY');
 	if (missing.length > 0) {
@@ -280,7 +280,7 @@ export default {
 		ctx.waitUntil(
 			(async () => {
 				try {
-					if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+					if (!env.PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
 						console.warn('cron_missing_supabase_env');
 						return;
 					}

@@ -87,7 +87,7 @@ export const POST: RequestHandler = async ({ params, request, url, platform, loc
 
 	const env = platform?.env as {
 		RATE_LIMIT?: KVNamespace;
-		SUPABASE_URL?: string;
+		PUBLIC_SUPABASE_URL?: string;
 		SUPABASE_SERVICE_ROLE_KEY?: string;
 	};
 	const rateLimitKv = env?.RATE_LIMIT;
@@ -144,7 +144,7 @@ export const POST: RequestHandler = async ({ params, request, url, platform, loc
 		warnedMissingRateLimit = true;
 	}
 
-	const baseUrl = env?.SUPABASE_URL?.replace(/\/$/, '');
+	const baseUrl = env?.PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
 	const serviceKey = env?.SUPABASE_SERVICE_ROLE_KEY;
 	if (!baseUrl || !serviceKey) {
 		return errorResponse('Server misconfigured.', 500);

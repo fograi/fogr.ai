@@ -16,7 +16,7 @@ const ACTION_TO_STATUS: Record<string, string> = {
 };
 
 type Env = {
-	SUPABASE_URL?: string;
+	PUBLIC_SUPABASE_URL?: string;
 	SUPABASE_SERVICE_ROLE_KEY?: string;
 	ADMIN_EMAILS?: string;
 	ADMIN_EMAIL?: string;
@@ -34,7 +34,7 @@ const requireAdmin = async (locals: App.Locals, env?: Env, redirectTo?: string) 
 };
 
 const getAdminClient = (env?: Env) => {
-	const baseUrl = env?.SUPABASE_URL?.replace(/\/$/, '');
+	const baseUrl = env?.PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
 	const serviceKey = env?.SUPABASE_SERVICE_ROLE_KEY;
 	if (!baseUrl || !serviceKey) {
 		throw error(500, 'Server misconfigured');

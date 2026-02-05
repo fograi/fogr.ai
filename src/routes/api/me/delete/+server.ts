@@ -18,10 +18,10 @@ export const POST: RequestHandler = async ({ locals, platform, request, url }) =
 	}
 
 	const env = platform?.env as {
-		SUPABASE_URL?: string;
+		PUBLIC_SUPABASE_URL?: string;
 		SUPABASE_SERVICE_ROLE_KEY?: string;
 	};
-	const baseUrl = env?.SUPABASE_URL?.replace(/\/$/, '');
+	const baseUrl = env?.PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
 	const serviceKey = env?.SUPABASE_SERVICE_ROLE_KEY;
 
 	if (!baseUrl || !serviceKey) {
