@@ -127,6 +127,8 @@
 							{fmt(item.msg.createdAt)}
 							{#if item.msg.isMine && item.msg.id === lastMineId && hasBeenSeen(item.msg.createdAt)}
 								<span class="seen">Seen</span>
+							{:else if item.msg.isMine && item.msg.id === lastMineId}
+								<span class="delivered">Delivered</span>
 							{/if}
 						</span>
 					</div>
@@ -221,6 +223,10 @@
 	.seen {
 		font-weight: 700;
 		color: color-mix(in srgb, var(--fg) 70%, transparent);
+	}
+	.delivered {
+		font-weight: 700;
+		color: color-mix(in srgb, var(--fg) 60%, transparent);
 	}
 	.composer {
 		display: grid;

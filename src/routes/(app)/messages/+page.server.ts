@@ -12,6 +12,7 @@ type ConversationView = {
 	lastMessageAt: string;
 	preview: string;
 	unread: boolean;
+	unreadCount: number;
 };
 
 export const load: PageServerLoad = async ({ locals, url, platform }) => {
@@ -19,19 +20,20 @@ export const load: PageServerLoad = async ({ locals, url, platform }) => {
 		return {
 			conversations: [
 				{
-					id: E2E_MOCK_CONVERSATION.id,
-					adId: E2E_MOCK_AD.id,
-					adTitle: E2E_MOCK_AD.title,
-					adPrice: E2E_MOCK_AD.price,
-					adCurrency: E2E_MOCK_AD.currency,
-					role: 'buyer',
-					lastMessageAt: E2E_MOCK_CONVERSATION.last_message_at,
-					preview: E2E_MOCK_MESSAGES[E2E_MOCK_MESSAGES.length - 1]?.body ?? '',
-					unread: true
-				}
-			] satisfies ConversationView[]
-		};
-	}
+				id: E2E_MOCK_CONVERSATION.id,
+				adId: E2E_MOCK_AD.id,
+				adTitle: E2E_MOCK_AD.title,
+				adPrice: E2E_MOCK_AD.price,
+				adCurrency: E2E_MOCK_AD.currency,
+				role: 'buyer',
+				lastMessageAt: E2E_MOCK_CONVERSATION.last_message_at,
+				preview: E2E_MOCK_MESSAGES[E2E_MOCK_MESSAGES.length - 1]?.body ?? '',
+				unread: true,
+				unreadCount: 2
+			}
+		] satisfies ConversationView[]
+	};
+}
 
 	const user = await locals.getUser();
 	if (!user) {
@@ -60,12 +62,29 @@ export const load: PageServerLoad = async ({ locals, url, platform }) => {
 		}
 	}
 
+	const convoList = conversations ?? [];
+	const unreadCounts = await Promise.all(
+		convoList.map(async (c) => {
+			const isSeller = c.seller_id === user.id;
+			const lastReadAt = isSeller ? c.seller_last_read_at : c.buyer_last_read_at;
+			let query = locals.supabase
+				.from('messages')
+				.select('id', { count: 'exact', head: true })
+				.eq('conversation_id', c.id)
+				.neq('sender_id', user.id);
+			if (lastReadAt) query = query.gt('created_at', lastReadAt);
+			const { count } = await query;
+			return count ?? 0;
+		})
+	);
+
 	return {
-		conversations: (conversations ?? []).map((c) => {
+		conversations: convoList.map((c, idx) => {
 			const ad = adMap.get(c.ad_id);
 			const isSeller = c.seller_id === user.id;
 			const lastReadAt = isSeller ? c.seller_last_read_at : c.buyer_last_read_at;
-			const unread = !lastReadAt || c.last_message_at > lastReadAt;
+			const unreadCount = unreadCounts[idx] ?? 0;
+			const unread = unreadCount > 0 || (!lastReadAt || c.last_message_at > lastReadAt);
 			return {
 				id: c.id,
 				adId: c.ad_id,
@@ -75,7 +94,8 @@ export const load: PageServerLoad = async ({ locals, url, platform }) => {
 				role: isSeller ? 'seller' : 'buyer',
 				lastMessageAt: c.last_message_at,
 				preview: '',
-				unread
+				unread,
+				unreadCount
 			} satisfies ConversationView;
 		})
 	};

@@ -11,6 +11,7 @@
 		lastMessageAt: string;
 		preview: string;
 		unread: boolean;
+		unreadCount: number;
 	};
 
 	export let data: { conversations: ConversationView[] };
@@ -48,8 +49,8 @@
 								<span class="preview">{convo.preview}</span>
 							{/if}
 						</div>
-						{#if convo.unread}
-							<span class="badge">Unread</span>
+						{#if convo.unreadCount > 0}
+							<span class="badge">{convo.unreadCount}</span>
 						{/if}
 					</a>
 				</li>
@@ -129,7 +130,11 @@
 		position: absolute;
 		top: 12px;
 		right: 12px;
-		padding: 4px 8px;
+		min-width: 22px;
+		height: 22px;
+		display: inline-grid;
+		place-items: center;
+		padding: 0 6px;
 		border-radius: 999px;
 		background: color-mix(in srgb, var(--fg) 12%, var(--bg));
 		font-weight: 700;
