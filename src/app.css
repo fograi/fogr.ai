@@ -84,7 +84,7 @@ h3 {
 		box-shadow 0.2s ease,
 		background-color 0.2s ease;
 }
-:where(input, textarea):where(:user-valid):not(:placeholder-shown):not(:focus) {
+:where(input, textarea):not([aria-invalid='true']):where(:user-valid):not(:placeholder-shown):not(:focus) {
 	border-color: var(--accent-green);
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
 }
@@ -97,8 +97,8 @@ h3 {
 }
 
 @supports not selector(:user-valid) {
-	:where(input, textarea):where(:valid):not(:placeholder-shown):not(:focus),
-	:where(select):where(:valid):not(:focus) {
+	:where(input, textarea):where(:valid):not([aria-invalid='true']):not(:placeholder-shown):not(:focus),
+	:where(select):where(:valid):not([aria-invalid='true']):not(:focus) {
 		border-color: var(--accent-green);
 		box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
 	}

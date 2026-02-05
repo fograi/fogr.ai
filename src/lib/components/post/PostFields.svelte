@@ -64,6 +64,7 @@
 				id="title"
 				type="text"
 				bind:value={title}
+				minlength={MIN_TITLE_LENGTH}
 				maxlength={MAX_TITLE_LENGTH}
 				placeholder="e.g., IKEA MALM desk — great condition"
 				required
@@ -103,6 +104,7 @@
 			<textarea
 				id="description"
 				bind:value={description}
+				minlength={MIN_DESC_LENGTH}
 				maxlength={MAX_DESC_LENGTH}
 				rows="6"
 				placeholder="Key details, pickup area, condition…"
