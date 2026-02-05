@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.ico';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/stores';
 
 	const year = new Date().getFullYear();
 	let { children } = $props();
@@ -25,12 +26,25 @@
 			<span class="dot">•</span>
 			<span>© {year}</span>
 		</div>
-		<nav class="legal" aria-label="Legal">
-			<a href={resolve('/(public)/about')}>About</a>
-			<a href={resolve('/(public)/terms')}>Terms</a>
-			<a href={resolve('/(public)/privacy')}>Privacy</a>
-			<a href={resolve('/(public)/report-status')}>Report status</a>
-		</nav>
+		<div class="link-grid">
+			<nav class="link-group" aria-label="Company">
+				<p class="label">Company</p>
+				<a href={resolve('/(public)/about')}>About</a>
+				<a href={resolve('/(public)/terms')}>Terms</a>
+				<a href={resolve('/(public)/privacy')}>Privacy</a>
+			</nav>
+			<nav class="link-group" aria-label="Support">
+				<p class="label">Support</p>
+				<a href={resolve('/(public)/report-status')}>Report status</a>
+			</nav>
+			{#if $page.data.isAdmin}
+				<nav class="link-group" aria-label="Admin">
+					<p class="label">Admin</p>
+					<a href={resolve('/(app)/admin/reports')}>Reports</a>
+					<a href={resolve('/(app)/admin/appeals')}>Appeals</a>
+				</nav>
+			{/if}
+		</div>
 	</div>
 </footer>
 
@@ -46,11 +60,9 @@
 		max-width: var(--page-max);
 		margin: 0 auto;
 		padding: 1.25rem var(--page-pad) 2rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		align-items: center;
-		justify-content: space-between;
+		display: grid;
+		gap: 1.25rem;
+		align-items: start;
 	}
 	.brand-line {
 		display: inline-flex;
@@ -65,20 +77,36 @@
 	.dot {
 		opacity: 0.4;
 	}
-	.legal {
-		display: inline-flex;
-		gap: 1rem;
+	.link-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 1.25rem;
 	}
-	.legal a {
+	.link-group {
+		display: grid;
+		gap: 0.35rem;
+		justify-items: start;
+	}
+	.link-group .label {
+		margin: 0 0 0.25rem;
+		font-size: 0.75rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--fg) 55%, transparent);
+	}
+	.link-group a {
 		text-decoration: none;
 		color: color-mix(in srgb, var(--fg) 75%, transparent);
 	}
-	.legal a:hover {
+	.link-group a:hover {
 		color: var(--fg);
 	}
 	@media (min-width: 768px) {
 		.site-footer .wrap {
-			flex-direction: row;
+			grid-template-columns: auto 1fr;
+		}
+		.link-grid {
+			justify-items: end;
 		}
 	}
 </style>
