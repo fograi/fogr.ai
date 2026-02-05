@@ -84,7 +84,7 @@
 				placeholder="Search listings"
 			/>
 			<label class="sr-only" for="search-category">Category</label>
-			<select id="search-category" name="category" value={category} on:change={submitFilters}>
+			<select id="search-category" name="category" value={category} onchange={submitFilters}>
 				<option value="">All categories</option>
 				{#each CATEGORIES as cat}
 					<option value={cat}>{cat}</option>
@@ -95,7 +95,7 @@
 				id="search-price-state"
 				name="price_state"
 				value={priceState}
-				on:change={submitFilters}
+				onchange={submitFilters}
 			>
 				<option value="">Any price</option>
 				<option value="fixed">Fixed price</option>
