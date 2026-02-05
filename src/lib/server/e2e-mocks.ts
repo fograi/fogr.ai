@@ -28,7 +28,9 @@ export const E2E_MOCK_CONVERSATION = {
 	ad_id: E2E_MOCK_AD.id,
 	buyer_id: '11111111-1111-1111-1111-111111111111',
 	seller_id: E2E_MOCK_AD.user_id,
-	last_message_at: new Date().toISOString()
+	last_message_at: new Date().toISOString(),
+	buyer_last_read_at: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+	seller_last_read_at: new Date(Date.now() - 1000 * 60 * 10).toISOString()
 };
 
 export const E2E_MOCK_MESSAGES = [

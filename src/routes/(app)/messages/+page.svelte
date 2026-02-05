@@ -10,6 +10,7 @@
 		role: 'buyer' | 'seller';
 		lastMessageAt: string;
 		preview: string;
+		unread: boolean;
 	};
 
 	export let data: { conversations: ConversationView[] };
@@ -47,6 +48,9 @@
 								<span class="preview">{convo.preview}</span>
 							{/if}
 						</div>
+						{#if convo.unread}
+							<span class="badge">Unread</span>
+						{/if}
 					</a>
 				</li>
 			{/each}
@@ -91,6 +95,7 @@
 		background: var(--surface);
 		text-decoration: none;
 		color: inherit;
+		position: relative;
 	}
 	.meta {
 		display: flex;
@@ -119,6 +124,16 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		max-width: 70%;
+	}
+	.badge {
+		position: absolute;
+		top: 12px;
+		right: 12px;
+		padding: 4px 8px;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--fg) 12%, var(--bg));
+		font-weight: 700;
+		font-size: 0.75rem;
 	}
 	.empty {
 		padding: 24px;

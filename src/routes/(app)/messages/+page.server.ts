@@ -11,6 +11,7 @@ type ConversationView = {
 	role: 'buyer' | 'seller';
 	lastMessageAt: string;
 	preview: string;
+	unread: boolean;
 };
 
 export const load: PageServerLoad = async ({ locals, url, platform }) => {
@@ -25,7 +26,8 @@ export const load: PageServerLoad = async ({ locals, url, platform }) => {
 					adCurrency: E2E_MOCK_AD.currency,
 					role: 'buyer',
 					lastMessageAt: E2E_MOCK_CONVERSATION.last_message_at,
-					preview: E2E_MOCK_MESSAGES[E2E_MOCK_MESSAGES.length - 1]?.body ?? ''
+					preview: E2E_MOCK_MESSAGES[E2E_MOCK_MESSAGES.length - 1]?.body ?? '',
+					unread: true
 				}
 			] satisfies ConversationView[]
 		};
@@ -38,7 +40,7 @@ export const load: PageServerLoad = async ({ locals, url, platform }) => {
 
 	const { data: conversations, error: convoError } = await locals.supabase
 		.from('conversations')
-		.select('id, ad_id, buyer_id, seller_id, last_message_at')
+		.select('id, ad_id, buyer_id, seller_id, last_message_at, buyer_last_read_at, seller_last_read_at')
 		.or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
 		.order('last_message_at', { ascending: false });
 
@@ -61,15 +63,19 @@ export const load: PageServerLoad = async ({ locals, url, platform }) => {
 	return {
 		conversations: (conversations ?? []).map((c) => {
 			const ad = adMap.get(c.ad_id);
+			const isSeller = c.seller_id === user.id;
+			const lastReadAt = isSeller ? c.seller_last_read_at : c.buyer_last_read_at;
+			const unread = !lastReadAt || c.last_message_at > lastReadAt;
 			return {
 				id: c.id,
 				adId: c.ad_id,
 				adTitle: ad?.title ?? 'Listing',
 				adPrice: ad?.price ?? null,
 				adCurrency: ad?.currency ?? null,
-				role: c.seller_id === user.id ? 'seller' : 'buyer',
+				role: isSeller ? 'seller' : 'buyer',
 				lastMessageAt: c.last_message_at,
-				preview: ''
+				preview: '',
+				unread
 			} satisfies ConversationView;
 		})
 	};

@@ -200,6 +200,8 @@ export type Database = {
 					ad_id: string;
 					buyer_id: string;
 					seller_id: string;
+					buyer_last_read_at: string | null;
+					seller_last_read_at: string | null;
 					created_at: string;
 					updated_at: string;
 					last_message_at: string;
@@ -209,6 +211,8 @@ export type Database = {
 					ad_id: string;
 					buyer_id: string;
 					seller_id: string;
+					buyer_last_read_at?: string | null;
+					seller_last_read_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
 					last_message_at?: string;
@@ -218,6 +222,8 @@ export type Database = {
 					ad_id?: string;
 					buyer_id?: string;
 					seller_id?: string;
+					buyer_last_read_at?: string | null;
+					seller_last_read_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
 					last_message_at?: string;

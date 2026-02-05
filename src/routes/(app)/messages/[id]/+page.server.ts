@@ -18,6 +18,11 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 				adId: E2E_MOCK_AD.id,
 				adTitle: E2E_MOCK_AD.title
 			},
+			readMeta: {
+				viewerRole: 'buyer',
+				otherLastReadAt: E2E_MOCK_CONVERSATION.seller_last_read_at,
+				viewerLastReadAt: new Date().toISOString()
+			},
 			messages: E2E_MOCK_MESSAGES.map((m) => ({
 				id: m.id,
 				body: m.body,
@@ -46,6 +51,11 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 	if (!convo) throw error(404, 'Conversation not found.');
 	if (convo.buyer_id !== user.id && convo.seller_id !== user.id) throw error(403, 'Not allowed.');
 
+	const isSeller = convo.seller_id === user.id;
+	const nowIso = new Date().toISOString();
+	const updateData = isSeller ? { seller_last_read_at: nowIso } : { buyer_last_read_at: nowIso };
+	await locals.supabase.from('conversations').update(updateData).eq('id', convo.id);
+
 	const { data: ad } = await locals.supabase
 		.from('ads')
 		.select('id, title')
@@ -65,6 +75,11 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 			id: convo.id,
 			adId: convo.ad_id,
 			adTitle: ad?.title ?? 'Listing'
+		},
+		readMeta: {
+			viewerRole: isSeller ? 'seller' : 'buyer',
+			otherLastReadAt: isSeller ? convo.buyer_last_read_at ?? null : convo.seller_last_read_at ?? null,
+			viewerLastReadAt: nowIso
 		},
 		messages: (messages ?? []).map((m) => ({
 			id: m.id,

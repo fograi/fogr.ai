@@ -11,6 +11,7 @@
 
 	export let data: {
 		conversation: { id: string; adId: string; adTitle: string };
+		readMeta: { viewerRole: 'buyer' | 'seller'; otherLastReadAt: string | null; viewerLastReadAt: string };
 		messages: MessageView[];
 	};
 
@@ -20,6 +21,44 @@
 	let ok = '';
 	let messages = data.messages;
 	$: isTyping = message.trim().length > 0;
+
+	const dateKey = (iso: string) => new Date(iso).toDateString();
+	const dateLabel = (iso: string) => {
+		const d = new Date(iso);
+		const today = new Date();
+		const yesterday = new Date();
+		yesterday.setDate(today.getDate() - 1);
+		if (d.toDateString() === today.toDateString()) return 'Today';
+		if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+		return new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium' }).format(d);
+	};
+
+	type ThreadItem =
+		| { type: 'divider'; id: string; label: string }
+		| { type: 'message'; id: string; msg: MessageView };
+
+	$: items = (() => {
+		const list: ThreadItem[] = [];
+		let lastDay = '';
+		for (const msg of messages) {
+			const day = dateKey(msg.createdAt);
+			if (day !== lastDay) {
+				list.push({ type: 'divider', id: `day-${day}`, label: dateLabel(msg.createdAt) });
+				lastDay = day;
+			}
+			list.push({ type: 'message', id: msg.id, msg });
+		}
+		return list;
+	})();
+
+	$: lastMineId = (() => {
+		for (let i = messages.length - 1; i >= 0; i--) {
+			if (messages[i]?.isMine) return messages[i].id;
+		}
+		return null;
+	})();
+	const hasBeenSeen = (createdAt: string) =>
+		data.readMeta.otherLastReadAt ? data.readMeta.otherLastReadAt >= createdAt : false;
 
 	const fmt = (iso: string) =>
 		new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium', timeStyle: 'short' }).format(
@@ -78,11 +117,20 @@
 				<p class="muted">Start the conversation below.</p>
 			</div>
 		{:else}
-			{#each messages as msg (msg.id)}
-				<div class={`bubble ${msg.isMine ? 'mine' : 'theirs'}`}>
-					<p class="body">{msg.body}</p>
-					<span class="meta">{fmt(msg.createdAt)}</span>
-				</div>
+			{#each items as item (item.id)}
+				{#if item.type === 'divider'}
+					<div class="divider">{item.label}</div>
+				{:else}
+					<div class={`bubble ${item.msg.isMine ? 'mine' : 'theirs'}`}>
+						<p class="body">{item.msg.body}</p>
+						<span class="meta">
+							{fmt(item.msg.createdAt)}
+							{#if item.msg.isMine && item.msg.id === lastMineId && hasBeenSeen(item.msg.createdAt)}
+								<span class="seen">Seen</span>
+							{/if}
+						</span>
+					</div>
+				{/if}
 			{/each}
 		{/if}
 	</div>
@@ -130,6 +178,11 @@
 		display: grid;
 		gap: 10px;
 	}
+	.divider {
+		text-align: center;
+		font-weight: 700;
+		color: color-mix(in srgb, var(--fg) 60%, transparent);
+	}
 	.empty {
 		border: 1px dashed var(--hairline);
 		border-radius: 12px;
@@ -161,6 +214,13 @@
 	.meta {
 		font-size: 0.8rem;
 		color: color-mix(in srgb, var(--fg) 60%, transparent);
+		display: inline-flex;
+		gap: 8px;
+		align-items: center;
+	}
+	.seen {
+		font-weight: 700;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
 	}
 	.composer {
 		display: grid;
