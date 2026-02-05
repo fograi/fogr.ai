@@ -8,6 +8,7 @@
 	export let firmPrice = false;
 	export let minOffer: number | null = null;
 	export let autoDeclineMessage: string | null = null;
+	export let directContactEnabled = false;
 
 	type Kind = 'availability' | 'offer' | 'pickup' | 'question';
 	let kind: Kind = 'availability';
@@ -21,6 +22,10 @@
 	let warning = '';
 	let autoDeclined = false;
 	let autoDeclineText = '';
+	let hasMessaged = false;
+	let revealLoading = false;
+	let revealError = '';
+	let contactEmail: string | null = null;
 
 	const formatMoney = (value: number) =>
 		new Intl.NumberFormat('en-IE', {
@@ -99,6 +104,7 @@
 				return;
 			}
 			ok = 'Message sent.';
+			hasMessaged = true;
 			autoDeclined = data?.autoDeclined ?? false;
 			autoDeclineText = data?.autoDeclineMessage || '';
 			if (data?.scamWarning) warning = data?.scamReason || 'Be careful with off-platform payment requests.';
@@ -107,6 +113,30 @@
 			if (kind === 'offer') offerAmount = '';
 		} finally {
 			loading = false;
+		}
+	}
+
+	async function revealContact() {
+		revealError = '';
+		revealLoading = true;
+		try {
+			const res = await fetch(`/api/ads/${adId}/reveal`, {
+				method: 'POST',
+				credentials: 'same-origin'
+			});
+			const data = (await res.json().catch(() => ({}))) as {
+				success?: boolean;
+				message?: string;
+				email?: string | null;
+			};
+			if (!res.ok || data?.success === false) {
+				revealError = data?.message || 'Could not reveal contact info.';
+				return;
+			}
+			contactEmail = data?.email ?? null;
+			if (!contactEmail) revealError = 'Contact info is not available.';
+		} finally {
+			revealLoading = false;
 		}
 	}
 </script>
@@ -127,6 +157,35 @@
 			<p class="rule muted">Auto-decline: "{autoDeclineMessage}"</p>
 		{/if}
 	</div>
+
+	{#if directContactEnabled}
+		<div class="contact-box">
+			<p class="muted">
+				Direct contact can be revealed after the first message.
+			</p>
+			{#if contactEmail}
+				<p class="rule">
+					Email:
+					<a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+				</p>
+			{:else}
+				<button
+					type="button"
+					class="btn"
+					on:click={revealContact}
+					disabled={revealLoading}
+				>
+					{revealLoading ? 'Revealing…' : 'Reveal email'}
+				</button>
+				{#if !hasMessaged}
+					<p class="muted">Send a message first to unlock contact details.</p>
+				{/if}
+				{#if revealError}
+					<p class="notice error" role="alert">{revealError}</p>
+				{/if}
+			{/if}
+		</div>
+	{/if}
 
 	<div class="kind">
 		<button type="button" class:active={kind === 'availability'} on:click={() => (kind = 'availability')}>

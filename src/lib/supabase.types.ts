@@ -138,6 +138,7 @@ export type Database = {
 					email: string | null;
 					expires_at: string;
 					firm_price: boolean;
+					direct_contact_enabled: boolean;
 					id: string;
 					image_keys: string[];
 					images_count: number | null;
@@ -158,6 +159,7 @@ export type Database = {
 					email?: string | null;
 					expires_at?: string;
 					firm_price?: boolean;
+					direct_contact_enabled?: boolean;
 					id?: string;
 					image_keys?: string[];
 					images_count?: number | null;
@@ -178,6 +180,7 @@ export type Database = {
 					email?: string | null;
 					expires_at?: string;
 					firm_price?: boolean;
+					direct_contact_enabled?: boolean;
 					id?: string;
 					image_keys?: string[];
 					images_count?: number | null;

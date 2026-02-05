@@ -50,7 +50,7 @@ export const GET: RequestHandler = async ({ params, locals, url, platform }) => 
 	const query = locals.supabase
 		.from('ads')
 		.select(
-			'id, user_id, title, description, category, price, currency, image_keys, status, created_at, updated_at, expires_at, firm_price, min_offer, auto_decline_message'
+			'id, user_id, title, description, category, price, currency, image_keys, status, created_at, updated_at, expires_at, firm_price, min_offer, auto_decline_message, direct_contact_enabled'
 		)
 		.eq('id', id);
 	if (!authedUser) {

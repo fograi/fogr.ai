@@ -12,6 +12,9 @@
 			minOffer?: number | null;
 			autoDeclineMessage?: string | null;
 		};
+		contactRules?: {
+			directContactEnabled?: boolean;
+		};
 	};
 
 	const reportReasons = [
@@ -237,6 +240,7 @@
 				firmPrice={data.offerRules?.firmPrice ?? false}
 				minOffer={data.offerRules?.minOffer ?? null}
 				autoDeclineMessage={data.offerRules?.autoDeclineMessage ?? null}
+				directContactEnabled={data.contactRules?.directContactEnabled ?? false}
 				on:flag={() => openPanel('report')}
 			/>
 		{/if}

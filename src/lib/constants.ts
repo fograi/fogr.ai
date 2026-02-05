@@ -51,6 +51,8 @@ export const MAX_IMAGE_COUNT = 1;
 export const MAX_TOTAL_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+export const CONTACT_REVEAL_DEFAULT = false;
+
 export const MIN_PHOTOS_BY_CATEGORY: Record<Category, number> = {
 	'Home & Garden': 0,
 	Electronics: 0,

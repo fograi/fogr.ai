@@ -112,10 +112,10 @@
 - DB/schema: add `contact_preference` / `phone_reveal_state` fields on ads or users; update `src/lib/supabase.types.ts`.
 
 - [x] Default to in-app messaging; remove phone reveal from initial contact flow.
-- [ ] Add optional phone reveal gating (opt-in toggle or after defined actions).
+- [x] Add optional phone reveal gating (opt-in toggle or after defined actions).
 - [x] Update listing/contact UI copy to set expectations.
-- [ ] Enforce server-side rules around phone reveal.
-- [ ] Add or update tests for contact flow and reveal gating.
+- [x] Enforce server-side rules around phone reveal.
+- [x] Add or update tests for contact flow and reveal gating.
 
 ### P0.5 Scam Pattern Warnings
 
