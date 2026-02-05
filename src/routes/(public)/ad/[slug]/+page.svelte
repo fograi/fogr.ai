@@ -1,7 +1,7 @@
 <script lang="ts">
 	import AdCardWide from '$lib/components/AdCardWide.svelte';
-	import type { AdCard } from '../../../../types/ad-types';
-	export let data: { ad: AdCard };
+	import type { AdCard, ModerationAction } from '../../../../types/ad-types';
+	export let data: { ad: AdCard; moderation?: ModerationAction | null };
 
 	const reportReasons = [
 		{ value: 'illegal', label: 'Illegal content' },
@@ -22,6 +22,13 @@
 	let reportSuccess = false;
 	let reportError = '';
 	let reportId = '';
+
+	const formatDecisionDate = (iso?: string) =>
+		iso
+			? new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium', timeStyle: 'short' }).format(
+					new Date(iso)
+				)
+			: '';
 
 	async function submitReport() {
 		reportError = '';
@@ -96,6 +103,25 @@
 			</div>
 		{/if}
 		<AdCardWide {...data.ad} />
+		{#if data.moderation}
+			<section class="moderation">
+				<h2>Moderation decision</h2>
+				<p class="moderation-meta">
+					{data.moderation.action_type.replace('_', ' ')} on
+					{formatDecisionDate(data.moderation.created_at)}
+				</p>
+				<p><strong>Reason category:</strong> {data.moderation.reason_category}</p>
+				<p class="moderation-details">{data.moderation.reason_details}</p>
+				{#if data.moderation.legal_basis}
+					<p class="moderation-legal">
+						<strong>Legal or policy basis:</strong> {data.moderation.legal_basis}
+					</p>
+				{/if}
+				<p class="moderation-meta">
+					Decision type: {data.moderation.automated ? 'Automated' : 'Manual'}
+				</p>
+			</section>
+		{/if}
 		<section class="report">
 			<button
 				type="button"
@@ -192,6 +218,29 @@
 		max-width: 960px;
 		margin: 12px auto 32px;
 		padding: 0 16px;
+	}
+	.moderation {
+		max-width: 960px;
+		margin: 12px auto 16px;
+		padding: 14px 16px;
+		border: 1px solid var(--hairline);
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--fg) 4%, var(--bg));
+	}
+	.moderation h2 {
+		margin: 0 0 8px;
+		font-size: 1.1rem;
+	}
+	.moderation-meta {
+		margin: 0 0 8px;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+	}
+	.moderation-details {
+		margin: 0 0 8px;
+		white-space: pre-wrap;
+	}
+	.moderation-legal {
+		margin: 0 0 8px;
 	}
 	.report-toggle {
 		width: 100%;

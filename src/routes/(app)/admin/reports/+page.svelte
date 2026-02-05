@@ -19,6 +19,19 @@
 		{ value: 'actioned', label: 'Actioned' },
 		{ value: 'dismissed', label: 'Dismissed' }
 	];
+	const actionOptions = [
+		{ value: 'reject', label: 'Reject (remove from listings)' },
+		{ value: 'expire', label: 'Expire (hide as expired)' },
+		{ value: 'restore', label: 'Restore (make active)' }
+	];
+	const reasonOptions = [
+		{ value: 'illegal', label: 'Illegal content' },
+		{ value: 'prohibited', label: 'Prohibited item' },
+		{ value: 'scam', label: 'Scam or fraud' },
+		{ value: 'spam', label: 'Spam or misleading' },
+		{ value: 'other', label: 'Other' }
+	];
+	const minReasonLength = 20;
 
 	const formatDate = (iso: string) =>
 		new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium', timeStyle: 'short' }).format(
@@ -74,6 +87,56 @@
 							View ad
 						</a>
 					</div>
+
+					<details class="action-panel">
+						<summary>Take action on ad</summary>
+						<form method="post" action="?/takeAction" class="action-form">
+							<input type="hidden" name="report_id" value={report.id} />
+							<input type="hidden" name="ad_id" value={report.ad_id} />
+
+							<label>
+								Action
+								<select name="action_type" required>
+									{#each actionOptions as option}
+										<option value={option.value}>{option.label}</option>
+									{/each}
+								</select>
+							</label>
+
+							<label>
+								Reason category
+								<select name="reason_category" required>
+									{#each reasonOptions as option}
+										<option value={option.value} selected={option.value === report.reason_category}>
+											{option.label}
+										</option>
+									{/each}
+								</select>
+							</label>
+
+							<label>
+								Statement of reasons
+								<textarea
+									name="reason_details"
+									rows="4"
+									minlength={minReasonLength}
+									required
+									placeholder="Explain the facts and reasoning behind the decision."
+								></textarea>
+							</label>
+
+							<label>
+								Legal or policy basis (optional)
+								<input
+									type="text"
+									name="legal_basis"
+									placeholder="e.g. Terms section 4.2, Prohibited items policy"
+								/>
+							</label>
+
+							<button type="submit">Apply action</button>
+						</form>
+					</details>
 				</article>
 			{/each}
 		</div>
@@ -190,5 +253,32 @@
 	.link {
 		color: inherit;
 		text-decoration: underline;
+	}
+	.action-panel {
+		border-top: 1px solid var(--hairline);
+		padding-top: 10px;
+	}
+	.action-panel summary {
+		cursor: pointer;
+		font-weight: 600;
+	}
+	.action-form {
+		margin-top: 10px;
+		display: grid;
+		gap: 10px;
+	}
+	.action-form label {
+		display: grid;
+		gap: 6px;
+		font-weight: 600;
+	}
+	.action-form textarea,
+	.action-form input,
+	.action-form select {
+		padding: 8px 10px;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--bg);
+		color: var(--fg);
 	}
 </style>

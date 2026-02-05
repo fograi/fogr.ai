@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import type { ApiAdRow, AdCard } from '../../../../types/ad-types';
+import type { ApiAdRow, AdCard, ModerationAction } from '../../../../types/ad-types';
 
 export const load: PageServerLoad = async ({ params, fetch }) => {
 	const res = await fetch(`/api/ads/${params.slug}`);
@@ -8,7 +8,10 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 	if (res.status === 404) throw error(404, 'Ad not found');
 	if (!res.ok) throw error(500, 'Failed to load ad');
 
-	const { ad } = (await res.json()) as { ad: ApiAdRow };
+	const { ad, moderation } = (await res.json()) as {
+		ad: ApiAdRow;
+		moderation?: ModerationAction | null;
+	};
 
 	const mapped: AdCard = {
 		id: ad.id,
@@ -22,5 +25,5 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		expiresAt: ad.expires_at ?? undefined
 	};
 
-	return { ad: mapped };
+	return { ad: mapped, moderation: moderation ?? null };
 };

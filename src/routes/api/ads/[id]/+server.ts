@@ -100,8 +100,27 @@ export const GET: RequestHandler = async ({ params, locals, url, platform }) => 
 		);
 	}
 
+	let moderation: {
+		action_type: string;
+		reason_category: string;
+		reason_details: string;
+		legal_basis: string | null;
+		automated: boolean;
+		created_at: string;
+	} | null = null;
+	if (authedUser && data.user_id === authedUser.id) {
+		const { data: mod } = await locals.supabase
+			.from('ad_moderation_actions')
+			.select('action_type, reason_category, reason_details, legal_basis, automated, created_at')
+			.eq('ad_id', id)
+			.order('created_at', { ascending: false })
+			.limit(1)
+			.maybeSingle();
+		moderation = mod ?? null;
+	}
+
 	const resp = json(
-		{ ad: data },
+		{ ad: data, moderation },
 		{
 			status: 200,
 			headers: {

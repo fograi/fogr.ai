@@ -5,6 +5,15 @@ import type { Database } from '$lib/supabase.types';
 import { isAdminUser } from '$lib/server/admin';
 
 const STATUS_OPTIONS = new Set(['open', 'in_review', 'actioned', 'dismissed']);
+const ACTION_TYPES = new Set(['reject', 'expire', 'restore']);
+const REASON_CATEGORIES = new Set(['illegal', 'prohibited', 'scam', 'spam', 'other']);
+const MIN_REASON_LENGTH = 20;
+
+const ACTION_TO_STATUS: Record<string, string> = {
+	reject: 'rejected',
+	expire: 'expired',
+	restore: 'active'
+};
 
 type Env = {
 	SUPABASE_URL?: string;
@@ -76,6 +85,64 @@ export const actions: Actions = {
 
 		if (updateError) {
 			return fail(500, { message: 'Failed to update report.' });
+		}
+
+		return { success: true };
+	},
+	takeAction: async ({ request, locals, platform, url }) => {
+		const env = platform?.env as Env | undefined;
+		const adminUser = await requireAdmin(locals, env, url.pathname);
+
+		const form = await request.formData();
+		const reportId = (form.get('report_id') ?? '').toString().trim();
+		const adId = (form.get('ad_id') ?? '').toString().trim();
+		const actionType = (form.get('action_type') ?? '').toString().trim();
+		const reasonCategory = (form.get('reason_category') ?? '').toString().trim();
+		const reasonDetails = (form.get('reason_details') ?? '').toString().trim();
+		const legalBasis = (form.get('legal_basis') ?? '').toString().trim();
+
+		if (!adId || !ACTION_TYPES.has(actionType)) {
+			return fail(400, { message: 'Invalid action.' });
+		}
+		if (!REASON_CATEGORIES.has(reasonCategory)) {
+			return fail(400, { message: 'Invalid reason category.' });
+		}
+		if (reasonDetails.length < MIN_REASON_LENGTH) {
+			return fail(400, { message: `Reason must be at least ${MIN_REASON_LENGTH} characters.` });
+		}
+
+		const admin = getAdminClient(env);
+		const status = ACTION_TO_STATUS[actionType];
+
+		const { error: adError } = await admin.from('ads').update({ status }).eq('id', adId);
+		if (adError) {
+			return fail(500, { message: 'Failed to update ad.' });
+		}
+
+		const { error: actionError } = await admin.from('ad_moderation_actions').insert({
+			ad_id: adId,
+			report_id: reportId || null,
+			action_type: actionType,
+			reason_category: reasonCategory,
+			reason_details: reasonDetails,
+			legal_basis: legalBasis || null,
+			automated: false,
+			actor_user_id: adminUser.id,
+			actor_email: adminUser.email ?? null
+		});
+
+		if (actionError) {
+			return fail(500, { message: 'Failed to record moderation action.' });
+		}
+
+		if (reportId) {
+			const { error: reportError } = await admin
+				.from('ad_reports')
+				.update({ status: 'actioned' })
+				.eq('id', reportId);
+			if (reportError) {
+				return fail(500, { message: 'Action saved, but report status update failed.' });
+			}
 		}
 
 		return { success: true };

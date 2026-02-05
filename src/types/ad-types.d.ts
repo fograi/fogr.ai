@@ -11,6 +11,15 @@ export interface AdCard {
 	expiresAt?: string;
 }
 
+export type ModerationAction = {
+	action_type: string;
+	reason_category: string;
+	reason_details: string;
+	legal_basis: string | null;
+	automated: boolean;
+	created_at: string;
+};
+
 export type ApiAdRow = {
 	id: string;
 	user_id: string;

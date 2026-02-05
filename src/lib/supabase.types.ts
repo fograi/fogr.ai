@@ -56,6 +56,48 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			ad_moderation_actions: {
+				Row: {
+					action_type: string;
+					ad_id: string;
+					actor_email: string | null;
+					actor_user_id: string | null;
+					automated: boolean;
+					created_at: string;
+					id: string;
+					legal_basis: string | null;
+					reason_category: string;
+					reason_details: string;
+					report_id: string | null;
+				};
+				Insert: {
+					action_type: string;
+					ad_id: string;
+					actor_email?: string | null;
+					actor_user_id?: string | null;
+					automated?: boolean;
+					created_at?: string;
+					id?: string;
+					legal_basis?: string | null;
+					reason_category: string;
+					reason_details: string;
+					report_id?: string | null;
+				};
+				Update: {
+					action_type?: string;
+					ad_id?: string;
+					actor_email?: string | null;
+					actor_user_id?: string | null;
+					automated?: boolean;
+					created_at?: string;
+					id?: string;
+					legal_basis?: string | null;
+					reason_category?: string;
+					reason_details?: string;
+					report_id?: string | null;
+				};
+				Relationships: [];
+			};
 			ads: {
 				Row: {
 					category: string;
