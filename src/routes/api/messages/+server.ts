@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { isSameOrigin } from '$lib/server/csrf';
 import { detectScamPatterns } from '$lib/server/scam-patterns';
 import { E2E_MOCK_MESSAGES, isE2eMock } from '$lib/server/e2e-mocks';
+import { recordMetric } from '$lib/server/metrics';
 
 const ALLOWED_KINDS = new Set(['availability', 'offer', 'pickup', 'question']);
 
@@ -174,26 +175,34 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 		.update({ last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() })
 		.eq('id', activeConversationId);
 
-	const log = (event: string, extra: Record<string, unknown> = {}) =>
-		console.info(
-			JSON.stringify({
-				event,
-				adId: ad.id,
-				conversationId: activeConversationId,
-				userId: user.id,
-				kind,
-				...extra
-			})
-		);
-	if (isFirstMessage) log('conversation_started');
-	log('message_sent', {
-		autoDeclined,
-		scamWarning: scam.warning,
-		offerAmount: kind === 'offer' ? Number(offerAmount) : null
+	if (isFirstMessage) {
+		await recordMetric(locals.supabase, {
+			eventName: 'conversation_started',
+			userId: user.id,
+			adId: ad.id,
+			conversationId: activeConversationId,
+			properties: { kind }
+		});
+	}
+	await recordMetric(locals.supabase, {
+		eventName: 'message_sent',
+		userId: user.id,
+		adId: ad.id,
+		conversationId: activeConversationId,
+		properties: {
+			kind,
+			autoDeclined,
+			scamWarning: scam.warning,
+			offerAmount: kind === 'offer' ? Number(offerAmount) : null
+		}
 	});
 	if (autoDeclined) {
-		log('offer_auto_declined', {
-			reason: ad.firm_price ? 'firm_price' : ad.min_offer ? 'below_min' : 'unknown'
+		await recordMetric(locals.supabase, {
+			eventName: 'offer_auto_declined',
+			userId: user.id,
+			adId: ad.id,
+			conversationId: activeConversationId,
+			properties: { reason: ad.firm_price ? 'firm_price' : ad.min_offer ? 'below_min' : 'unknown' }
 		});
 	}
 

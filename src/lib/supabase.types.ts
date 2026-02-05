@@ -275,6 +275,36 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			event_metrics: {
+				Row: {
+					id: string;
+					event_name: string;
+					user_id: string | null;
+					ad_id: string | null;
+					conversation_id: string | null;
+					properties: Json | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					event_name: string;
+					user_id?: string | null;
+					ad_id?: string | null;
+					conversation_id?: string | null;
+					properties?: Json | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					event_name?: string;
+					user_id?: string | null;
+					ad_id?: string | null;
+					conversation_id?: string | null;
+					properties?: Json | null;
+					created_at?: string;
+				};
+				Relationships: [];
+			};
 			user_age_confirmations: {
 				Row: {
 					age_confirmed_at: string;

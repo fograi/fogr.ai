@@ -20,6 +20,7 @@ import { bannedWords } from '$lib/banned-words';
 import { validateAdImages, validateAdMeta, validateOfferRules } from '$lib/server/ads-validation';
 import { isSameOrigin } from '$lib/server/csrf';
 import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
+import { recordMetric } from '$lib/server/metrics';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
 import type { Database } from '$lib/supabase.types';
@@ -537,6 +538,17 @@ export const POST: RequestHandler = async (event) => {
 
 		// === NEW === 4) Return the id so the client can redirect
 		log('info', 'ads_post_success', { userId: user.id, adId, images: image_keys.length });
+		await recordMetric(locals.supabase, {
+			eventName: 'ad_created',
+			userId: user.id,
+			adId,
+			properties: {
+				category,
+				priceState: normalizedPriceType,
+				imageCount: image_keys.length,
+				status
+			}
+		});
 		const responseMessage = moderationUnavailable ? 'Ad submitted and pending review.' : 'Ad submitted.';
 		return json(
 			{

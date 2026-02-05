@@ -2,6 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { isSameOrigin } from '$lib/server/csrf';
 import { isE2eMock } from '$lib/server/e2e-mocks';
+import { recordMetric } from '$lib/server/metrics';
 
 const errorResponse = (message: string, status = 400) =>
 	json({ success: false, message }, { status });
@@ -42,6 +43,12 @@ export const POST: RequestHandler = async ({ params, request, url, locals, platf
 			.or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
 			.maybeSingle();
 		if (!convo) return errorResponse('Send a message first to unlock contact info.', 403);
+		await recordMetric(locals.supabase, {
+			eventName: 'contact_revealed',
+			userId: user.id,
+			adId: ad.id,
+			conversationId: convo.id
+		});
 	}
 
 	return json({ success: true, email: ad.email ?? null }, { status: 200 });
