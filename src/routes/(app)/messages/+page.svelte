@@ -29,6 +29,7 @@
 	{#if data.conversations.length === 0}
 		<div class="empty">
 			<p>No messages yet.</p>
+			<p class="muted">Message a seller and your conversation will appear here.</p>
 			<a class="btn" href={resolve('/')}>Browse listings</a>
 		</div>
 	{:else}
@@ -67,6 +68,10 @@
 		font-weight: 800;
 	}
 	.sub {
+		margin: 0;
+		color: color-mix(in srgb, var(--fg) 60%, transparent);
+	}
+	.muted {
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 60%, transparent);
 	}

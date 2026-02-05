@@ -19,6 +19,7 @@
 	let err = '';
 	let ok = '';
 	let messages = data.messages;
+	$: isTyping = message.trim().length > 0;
 
 	const fmt = (iso: string) =>
 		new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium', timeStyle: 'short' }).format(
@@ -71,12 +72,19 @@
 	</header>
 
 	<div class="messages">
-		{#each messages as msg (msg.id)}
-			<div class={`bubble ${msg.isMine ? 'mine' : 'theirs'}`}>
-				<p class="body">{msg.body}</p>
-				<span class="meta">{fmt(msg.createdAt)}</span>
+		{#if messages.length === 0}
+			<div class="empty">
+				<p>No messages yet.</p>
+				<p class="muted">Start the conversation below.</p>
 			</div>
-		{/each}
+		{:else}
+			{#each messages as msg (msg.id)}
+				<div class={`bubble ${msg.isMine ? 'mine' : 'theirs'}`}>
+					<p class="body">{msg.body}</p>
+					<span class="meta">{fmt(msg.createdAt)}</span>
+				</div>
+			{/each}
+		{/if}
 	</div>
 
 	<form class="composer" on:submit|preventDefault={send}>
@@ -90,6 +98,9 @@
 		<div class="actions">
 			{#if err}<p class="notice error" role="alert">{err}</p>{/if}
 			{#if ok}<p class="notice ok" role="status">{ok}</p>{/if}
+			{#if isTyping && !sending}
+				<span class="typing" aria-live="polite">Typing…</span>
+			{/if}
 			<button type="submit" class="btn primary" disabled={sending}>
 				{sending ? 'Sending…' : 'Send'}
 			</button>
@@ -118,6 +129,18 @@
 	.messages {
 		display: grid;
 		gap: 10px;
+	}
+	.empty {
+		border: 1px dashed var(--hairline);
+		border-radius: 12px;
+		padding: 16px;
+		text-align: center;
+		display: grid;
+		gap: 4px;
+	}
+	.muted {
+		margin: 0;
+		color: color-mix(in srgb, var(--fg) 60%, transparent);
 	}
 	.bubble {
 		max-width: 70%;
@@ -162,6 +185,10 @@
 		justify-content: space-between;
 		align-items: center;
 		gap: 10px;
+	}
+	.typing {
+		color: color-mix(in srgb, var(--fg) 60%, transparent);
+		font-weight: 600;
 	}
 	.notice {
 		margin: 0;
