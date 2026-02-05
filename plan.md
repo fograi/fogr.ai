@@ -39,7 +39,7 @@
 - [x] Convert posting into a short step-by-step wizard with progressive disclosure
 - [x] Redesign ad detail with a single primary action rail and collapsible secondary info
 - [x] Overhaul copy and error messaging for clarity and consistency
-- [ ] Update shared UI tokens (typography, spacing, buttons) for simpler hierarchy
+- [x] Update shared UI tokens (typography, spacing, buttons) for simpler hierarchy
 
 ## UX Overhaul: Jobs and Metrics
 

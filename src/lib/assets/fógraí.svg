@@ -2,7 +2,7 @@
   <style>
     .base {
       fill: currentColor;
-      font: 700 120px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      font: 700 120px/1 "Sora", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
     }
 
     .accent-o {
