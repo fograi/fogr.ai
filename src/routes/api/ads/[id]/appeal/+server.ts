@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ params, request, url, locals, platf
 		data: { user },
 		error: authError
 	} = await locals.supabase.auth.getUser();
-	if (authError || !user) return errorResponse('Auth required', 401);
+	if (authError || !user) return errorResponse('Sign-in required.', 401);
 
 	let body: Body = {};
 	try {
@@ -33,9 +33,9 @@ export const POST: RequestHandler = async ({ params, request, url, locals, platf
 
 	const adId = (params.id ?? '').trim();
 	const details = (body.details ?? '').trim();
-	if (!adId) return errorResponse('Missing ad id.', 400);
+	if (!adId) return errorResponse('Missing ad ID.', 400);
 	if (details.length < MIN_DETAILS_LENGTH) {
-		return errorResponse(`Please provide at least ${MIN_DETAILS_LENGTH} characters.`, 400);
+		return errorResponse(`Add at least ${MIN_DETAILS_LENGTH} characters.`, 400);
 	}
 
 	const env = platform?.env as {
@@ -60,7 +60,7 @@ export const POST: RequestHandler = async ({ params, request, url, locals, platf
 
 	if (adError) {
 		console.warn('Appeal ad lookup failed', adError);
-		return errorResponse('Failed to submit appeal.', 500);
+		return errorResponse('We could not submit your appeal. Try again.', 500);
 	}
 	if (!ad) return errorResponse('Ad not found.', 404);
 	if (ad.user_id !== user.id) return errorResponse('Forbidden', 403);
@@ -74,7 +74,7 @@ export const POST: RequestHandler = async ({ params, request, url, locals, platf
 		.maybeSingle();
 
 	if (!action?.id) {
-		return errorResponse('No moderation decision to appeal.', 400);
+		return errorResponse('No moderation decision to appeal yet.', 400);
 	}
 
 	const { data: appeal, error: appealError } = await admin
@@ -90,7 +90,7 @@ export const POST: RequestHandler = async ({ params, request, url, locals, platf
 
 	if (appealError || !appeal) {
 		console.warn('Appeal insert failed', appealError);
-		return errorResponse('Failed to submit appeal.', 500);
+		return errorResponse('We could not submit your appeal. Try again.', 500);
 	}
 
 	return json({ success: true, appealId: appeal.id }, { status: 200 });

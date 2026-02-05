@@ -21,15 +21,15 @@
 		err = '';
 		const normalized = email.trim().toLowerCase();
 		if (!normalized) {
-			err = 'Enter your email';
+			err = 'Enter your email address.';
 			return;
 		}
 		if (isDisposableEmail(normalized)) {
-			err = 'Disposable email addresses aren’t allowed. Use a real inbox.';
+			err = 'Disposable email addresses are not supported. Use a real inbox.';
 			return;
 		}
 		if (!ageConfirmed) {
-			err = 'You must confirm you are 18 or older.';
+			err = 'Confirm you are 18 or older.';
 			return;
 		}
 		try {
@@ -48,7 +48,7 @@
 		});
 		const body = (await res.json().catch(() => ({}))) as MagicLinkResponse;
 		if (!res.ok || body.success === false) {
-			err = body.message || 'Failed to send login link.';
+			err = body.message || 'We could not send the link. Try again.';
 		} else {
 			success = true;
 		}
@@ -122,12 +122,14 @@
 				<h2>✅</h2>
 			{:else}
 				<h1>Login</h1>
-				<p class="sub">We'll email you a link to login.</p>
+				<p class="sub">We'll email you a one-time sign-in link.</p>
 			{/if}
 		</header>
 
 		{#if success}
-			<p class="success" aria-live="polite">We've emailed you a link to login.</p>
+			<p class="success" aria-live="polite">
+				We emailed you a sign-in link. It expires shortly.
+			</p>
 		{:else}
 			<form on:submit|preventDefault={sendLink} aria-busy={sending} class="form">
 				<label for="email" class="sr-only">Email</label>

@@ -69,7 +69,7 @@ test('report form submits and shows reference', async ({ page }) => {
 	await page.getByLabel('I confirm this report is made in good faith and the information is accurate.').check();
 
 	await page.getByRole('button', { name: 'Submit report' }).click();
-	await expect(page.getByText(/report has been received/i)).toBeVisible();
+	await expect(page.getByText(/received your report/i)).toBeVisible();
 	await expect(page.getByRole('button', { name: /copy report id/i })).toBeVisible();
 });
 

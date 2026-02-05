@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 
 	const res = await fetch(`/api/ads?${params.toString()}`);
 	if (!res.ok) {
-		let message = 'Failed to load ads';
+		let message = 'Could not load listings.';
 		let requestId: string | undefined;
 		try {
 			const body = (await res.json()) as { message?: string; requestId?: string };

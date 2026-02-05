@@ -38,11 +38,11 @@
 		copied = false;
 		copyError = '';
 		if (!reportId.trim()) {
-			error = 'Report ID is required.';
+			error = 'Enter your report ID.';
 			return;
 		}
 		if (!email.trim()) {
-			error = 'Email is required.';
+			error = 'Enter the email used on the report.';
 			return;
 		}
 		loading = true;
@@ -60,7 +60,7 @@
 				decision?: any;
 			};
 			if (!res.ok || body.success === false) {
-				error = body.message || 'Unable to fetch report status.';
+				error = body.message || 'We could not find that report. Check the ID and email.';
 			} else {
 				result = {
 					report: body.report,
@@ -69,7 +69,7 @@
 				};
 			}
 		} catch {
-			error = 'Unable to fetch report status.';
+			error = 'We could not find that report. Check the ID and email.';
 		} finally {
 			loading = false;
 		}
@@ -84,7 +84,7 @@
 			await navigator.clipboard?.writeText(id);
 			copied = true;
 		} catch {
-			copyError = 'Unable to copy. Please copy the reference manually.';
+			copyError = 'Could not copy. Please copy the ID manually.';
 		}
 	}
 </script>
@@ -92,18 +92,16 @@
 <section class="report-status">
 	<header>
 		<h1>Report status</h1>
-		<p class="sub">
-			Enter your report reference and email to check the status of your notice.
-		</p>
+		<p class="sub">Enter your report ID and email to check status.</p>
 	</header>
 
 	<form class="lookup" on:submit|preventDefault={lookup}>
-		<label for="report-id">Report reference</label>
+		<label for="report-id">Report ID</label>
 		<input id="report-id" type="text" bind:value={reportId} autocomplete="off" />
 
 		<label for="report-email">Your email</label>
 		<input id="report-email" type="email" bind:value={email} autocomplete="email" />
-		<p class="hint">Use the same email you provided in the report.</p>
+		<p class="hint">Use the same email you used in the report.</p>
 
 		{#if error}<p class="error" aria-live="assertive">{error}</p>{/if}
 
@@ -149,7 +147,7 @@
 					<p class="meta">Decisions may involve automated tools.</p>
 				</div>
 			{:else}
-				<p class="meta">No decision yet. We will update this page once reviewed.</p>
+				<p class="meta">No decision yet. Check back later.</p>
 			{/if}
 		</div>
 	{/if}

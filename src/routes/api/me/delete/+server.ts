@@ -14,7 +14,7 @@ export const POST: RequestHandler = async ({ locals, platform, request, url }) =
 
 	const { data, error } = await locals.supabase.auth.getUser();
 	if (error || !data.user) {
-		return json({ success: false, message: 'Auth required' }, { status: 401 });
+		return json({ success: false, message: 'Sign-in required.' }, { status: 401 });
 	}
 
 	const env = platform?.env as {
@@ -25,7 +25,7 @@ export const POST: RequestHandler = async ({ locals, platform, request, url }) =
 	const serviceKey = env?.SUPABASE_SERVICE_ROLE_KEY;
 
 	if (!baseUrl || !serviceKey) {
-		return json({ success: false, message: 'Server misconfigured' }, { status: 500 });
+		return json({ success: false, message: 'Server misconfigured.' }, { status: 500 });
 	}
 
 	const res = await fetch(`${baseUrl}/auth/v1/admin/users/${data.user.id}`, {
@@ -37,7 +37,10 @@ export const POST: RequestHandler = async ({ locals, platform, request, url }) =
 	});
 
 	if (!res.ok) {
-		return json({ success: false, message: 'Failed to delete account' }, { status: 500 });
+		return json(
+			{ success: false, message: 'We could not delete the account. Try again.' },
+			{ status: 500 }
+		);
 	}
 
 	await locals.supabase.auth.signOut();

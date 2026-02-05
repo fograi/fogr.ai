@@ -52,10 +52,10 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	const reportId = (body.reportId ?? '').trim();
 	const email = (body.email ?? '').trim().toLowerCase();
 
-	if (!reportId) return errorResponse('Report ID is required.', 400);
-	if (!email) return errorResponse('Email is required.', 400);
+	if (!reportId) return errorResponse('Enter your report ID.', 400);
+	if (!email) return errorResponse('Enter your email address.', 400);
 	if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
-		return errorResponse('Email looks invalid.', 400);
+		return errorResponse('Enter a valid email address.', 400);
 
 	const env = platform?.env as {
 		RATE_LIMIT?: KVNamespace;
@@ -127,10 +127,10 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 
 	if (reportError) {
 		console.warn('Report lookup failed', reportError);
-		return errorResponse('Failed to lookup report.', 500);
+		return errorResponse('We could not look up that report. Try again.', 500);
 	}
 	if (!report || report.reporter_email.toLowerCase() !== email) {
-		return errorResponse('Report not found.', 404);
+		return errorResponse('Report not found. Check the ID and email.', 404);
 	}
 
 	const { data: action } = await admin

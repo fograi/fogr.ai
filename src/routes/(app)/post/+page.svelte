@@ -62,10 +62,12 @@
 
 	function validateBasics() {
 		if (!category) return 'Choose a category.';
-		if (!title.trim()) return 'Title is required.';
-		if (title.trim().length < MIN_TITLE_LENGTH) return `Title must be ≥ ${MIN_TITLE_LENGTH} chars.`;
-		if (title.length > MAX_TITLE_LENGTH) return `Title ≤ ${MAX_TITLE_LENGTH} chars.`;
-		if (!isFree && price === '') return 'Price is required.';
+		if (!title.trim()) return 'Add a title.';
+		if (title.trim().length < MIN_TITLE_LENGTH)
+			return `Title must be at least ${MIN_TITLE_LENGTH} characters.`;
+		if (title.length > MAX_TITLE_LENGTH)
+			return `Title must be no more than ${MAX_TITLE_LENGTH} characters.`;
+		if (!isFree && price === '') return 'Enter a price.';
 		if (!isFree) {
 			const n = Number(price);
 			if (Number.isNaN(n) || n < 0) return 'Price must be 0 or more.';
@@ -74,11 +76,12 @@
 	}
 
 	function validateDetails() {
-		if (!description.trim()) return 'Description is required.';
+		if (!description.trim()) return 'Add a description.';
 		if (description.trim().length < MIN_DESC_LENGTH)
-			return `Description must be ≥ ${MIN_DESC_LENGTH} chars.`;
-		if (description.length > MAX_DESC_LENGTH) return `Description ≤ ${MAX_DESC_LENGTH} chars.`;
-		if (!ageConfirmed) return 'You must confirm you are 18 or older.';
+			return `Description must be at least ${MIN_DESC_LENGTH} characters.`;
+		if (description.length > MAX_DESC_LENGTH)
+			return `Description must be no more than ${MAX_DESC_LENGTH} characters.`;
+		if (!ageConfirmed) return 'Confirm you are 18 or older.';
 		return '';
 	}
 
@@ -124,7 +127,7 @@
 			// client-side moderation preflight
 			const flagged = await mod.check(`${title ?? ''} ${description ?? ''}`);
 			if (flagged) {
-				err = 'Your ad likely violates our language rules. Please edit and resubmit.';
+				err = 'That text may break our language rules. Edit it and try again.';
 				return;
 			}
 
@@ -151,14 +154,15 @@
 			} catch {
 				data = { message: raw };
 			}
-			if (!res.ok || data?.success === false) throw new Error(data?.message || 'Failed to post.');
+			if (!res.ok || data?.success === false)
+				throw new Error(data?.message || 'We could not post your ad. Try again.');
 
 			if (data?.id) {
 				window.location.href = `/ad/${data.id}`;
 				return;
 			}
 
-			ok = data?.message || 'Ad submitted successfully!';
+			ok = data?.message || 'Ad submitted. You can post another if you like.';
 			// reset
 			title = '';
 			description = '';
@@ -169,7 +173,7 @@
 			previewUrl = null;
 			file = null;
 		} catch (e: unknown) {
-			err = e instanceof Error ? e.message : 'Failed to post. Try again.';
+			err = e instanceof Error ? e.message : 'We could not post your ad. Try again.';
 		} finally {
 			loading = false;
 		}
@@ -189,7 +193,7 @@
 <form class="post" on:submit|preventDefault={handleFormSubmit} aria-busy={loading}>
 	<header class="head">
 		<h1>Post an ad</h1>
-		<p class="sub">Step {step} of {totalSteps} • Keep it short, clear, and real.</p>
+		<p class="sub">Step {step} of {totalSteps} • Clear, honest listings get the best response.</p>
 	</header>
 
 	<ol class="steps" aria-label="Posting steps">
@@ -223,7 +227,7 @@
 	{#if step === 1}
 		<section class="panel">
 			<h2>Basics</h2>
-			<p class="hint">Title, category, and price — the essentials.</p>
+			<p class="hint">Title, category, and price. Keep it simple.</p>
 			<PostFields
 				step={1}
 				bind:category
@@ -245,7 +249,7 @@
 	{#if step === 2}
 		<section class="panel">
 			<h2>Details</h2>
-			<p class="hint">Share enough detail for real buyers.</p>
+			<p class="hint">Share the key details buyers need.</p>
 			<PostFields
 				step={2}
 				bind:category
@@ -270,7 +274,7 @@
 	{#if step === 3}
 		<section class="panel">
 			<h2>Photo + review</h2>
-			<p class="hint">Optional photo, then publish.</p>
+			<p class="hint">Add a photo, then review before posting.</p>
 			<div class="review-grid">
 				<div class="review-card">
 					<h3>Ad preview</h3>

@@ -140,12 +140,11 @@
 		warn = '';
 		if (!ALLOWED_IMAGE_TYPES.includes(f.type)) {
 			clearFile({ keepError: true });
-			err = 'That image format isn’t supported yet. Try a JPEG or PNG.';
+			err = 'Unsupported image type. Use a JPG or PNG.';
 			return;
 		}
 		if (f.size > MAX_IMAGE_SIZE) {
-			warn =
-				'Large image — we’ll try to optimize it. If it can’t be reduced enough, try a smaller one.';
+			warn = 'Large image — we will compress it. If it still fails, use a smaller file.';
 		}
 
 		err = '';
@@ -154,14 +153,14 @@
 			const optimized = await optimizeImage(f);
 			if (optimized.size > MAX_IMAGE_SIZE) {
 				clearFile({ keepError: true });
-				err = 'Image is still too large after optimization. Try a smaller one.';
+				err = 'Image is still too large. Use a smaller file.';
 				return;
 			}
 			file = optimized;
 			setPreview(optimized);
 		} catch {
 			clearFile({ keepError: true });
-			err = 'That image format isn’t supported yet. Try a JPEG or PNG.';
+			err = 'Unsupported image type. Use a JPG or PNG.';
 		} finally {
 			compressing = false;
 		}
@@ -244,9 +243,9 @@
 	{:else}
 	<div class="empty">
 		<div class="icon">🖼️</div>
-		<p>Drag & drop an image, or</p>
+		<p>Drag an image here, or</p>
 		<label class="btn">
-			Choose file
+			Choose photo
 			<input
 					type="file"
 					accept="image/*"
@@ -256,8 +255,8 @@
 					hidden
 				/>
 		</label>
-		<small>1 image</small>
-		{#if compressing}<p class="hint">Optimizing image…</p>{/if}
+		<small>1 photo</small>
+		{#if compressing}<p class="hint">Compressing image…</p>{/if}
 		{#if warn}<p class="warn">{warn}</p>{/if}
 		{#if err}<p class="error">{err}</p>{/if}
 	</div>

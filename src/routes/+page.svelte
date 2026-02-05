@@ -89,7 +89,7 @@
 
 {#if data?.error}
 	<div class="error-banner" role="alert">
-		<strong>Couldn’t load ads.</strong>
+		<strong>Could not load listings.</strong>
 		<span>{data.error.message}</span>
 		{#if data.error.requestId}
 			<span class="req">Request ID: {data.error.requestId}</span>

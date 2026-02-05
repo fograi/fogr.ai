@@ -440,7 +440,7 @@ export const POST: RequestHandler = async (event) => {
 			.select('id')
 			.single();
 		if (insErr || !inserted) {
-			return errorResponse('Failed to save ad (insert).', 500, requestId);
+			return errorResponse('We could not save your ad. Try again.', 500, requestId);
 		}
 
 		const adId: string = inserted.id;
@@ -458,7 +458,7 @@ export const POST: RequestHandler = async (event) => {
 					`${bucketLabel} R2 bucket binding missing/invalid. Run with \`wrangler dev\` so bindings exist.`
 				);
 				await locals.supabase.from('ads').delete().eq('id', adId);
-				return errorResponse('Storage temporarily unavailable', 503, requestId);
+				return errorResponse('Storage temporarily unavailable. Try again later.', 503, requestId);
 			}
 
 			const uploads = files.map(async (file, idx) => {
@@ -491,7 +491,7 @@ export const POST: RequestHandler = async (event) => {
 			if (results.some((r) => r.status === 'rejected')) {
 				await Promise.allSettled(image_keys.map((key) => targetBucket.delete(key)));
 				await locals.supabase.from('ads').delete().eq('id', adId);
-				return errorResponse('Failed to upload images.', 500, requestId);
+				return errorResponse('We could not upload the image. Try again.', 500, requestId);
 			}
 
 			// === NEW === 3) Update row with image keys
@@ -503,15 +503,13 @@ export const POST: RequestHandler = async (event) => {
 			if (updErr) {
 				await Promise.allSettled(image_keys.map((key) => targetBucket.delete(key)));
 				await locals.supabase.from('ads').delete().eq('id', adId);
-				return errorResponse('Saved ad but failed to attach images.', 500, requestId);
+				return errorResponse('Ad saved, but the image upload failed.', 500, requestId);
 			}
 		}
 
 		// === NEW === 4) Return the id so the client can redirect
 		log('info', 'ads_post_success', { userId: user.id, adId, images: image_keys.length });
-		const responseMessage = moderationUnavailable
-			? 'Ad submitted and pending review.'
-			: 'Ad submitted successfully!';
+		const responseMessage = moderationUnavailable ? 'Ad submitted and pending review.' : 'Ad submitted.';
 		return json(
 			{
 				success: true,

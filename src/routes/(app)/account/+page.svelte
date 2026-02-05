@@ -13,7 +13,7 @@
 		exporting = true;
 		try {
 			const res = await fetch('/api/me/export');
-			if (!res.ok) throw new Error('Failed to export your data.');
+			if (!res.ok) throw new Error('We could not export your data. Try again.');
 			const blob = await res.blob();
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement('a');
@@ -25,9 +25,9 @@
 			a.click();
 			a.remove();
 			URL.revokeObjectURL(url);
-			ok = 'Your export is downloading.';
+			ok = 'Export ready. Your download has started.';
 		} catch (e: unknown) {
-			err = e instanceof Error ? e.message : 'Failed to export your data.';
+			err = e instanceof Error ? e.message : 'We could not export your data. Try again.';
 		} finally {
 			exporting = false;
 		}
@@ -42,12 +42,12 @@
 			const res = await fetch('/api/me/delete', { method: 'POST' });
 			const body = await res.json().catch(() => ({}));
 			if (!res.ok || body?.success === false) {
-				throw new Error(body?.message || 'Failed to delete account.');
+				throw new Error(body?.message || 'We could not delete the account. Try again.');
 			}
 			ok = 'Account deleted. Redirecting…';
 			window.location.replace('/');
 		} catch (e: unknown) {
-			err = e instanceof Error ? e.message : 'Failed to delete account.';
+			err = e instanceof Error ? e.message : 'We could not delete the account. Try again.';
 		} finally {
 			deleting = false;
 		}
@@ -57,7 +57,7 @@
 <section class="account">
 	<header class="head">
 		<h1>Account</h1>
-		<p class="sub">Manage your data and delete your account.</p>
+	<p class="sub">Manage your data or delete your account.</p>
 	</header>
 
 	<div class="card">

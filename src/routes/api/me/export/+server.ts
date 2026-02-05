@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ locals, platform }) => {
 
 	const { data, error } = await locals.supabase.auth.getUser();
 	if (error || !data.user) {
-		return json({ success: false, message: 'Auth required' }, { status: 401 });
+		return json({ success: false, message: 'Sign-in required.' }, { status: 401 });
 	}
 
 	const user = data.user;
@@ -47,7 +47,7 @@ export const GET: RequestHandler = async ({ locals, platform }) => {
 		.order('created_at', { ascending: false });
 
 	if (adsError) {
-		return json({ success: false, message: 'Failed to fetch ads' }, { status: 500 });
+		return json({ success: false, message: 'We could not fetch ads. Try again.' }, { status: 500 });
 	}
 
 	const { data: ageConfirmation } = await locals.supabase

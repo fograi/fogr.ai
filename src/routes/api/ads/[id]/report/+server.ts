@@ -69,15 +69,15 @@ export const POST: RequestHandler = async ({ params, request, url, platform, loc
 	const details = (body.details ?? '').trim();
 	const goodFaith = body.goodFaith === true;
 
-	if (!name) return errorResponse('Name is required.', 400);
-	if (!email) return errorResponse('Email is required.', 400);
+	if (!name) return errorResponse('Enter your name.', 400);
+	if (!email) return errorResponse('Enter your email address.', 400);
 	if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
-		return errorResponse('Email looks invalid.', 400);
+		return errorResponse('Enter a valid email address.', 400);
 	if (!REASON_CATEGORIES.has(reasonCategory))
-		return errorResponse('Invalid report category.', 400);
+		return errorResponse('Choose a valid reason.', 400);
 	if (details.length < MIN_DETAILS_LENGTH)
-		return errorResponse(`Please provide at least ${MIN_DETAILS_LENGTH} characters.`, 400);
-	if (!goodFaith) return errorResponse('You must confirm good faith.', 400);
+		return errorResponse(`Add at least ${MIN_DETAILS_LENGTH} characters.`, 400);
+	if (!goodFaith) return errorResponse('Confirm this report is made in good faith.', 400);
 
 	const ip =
 		request.headers.get('CF-Connecting-IP') ??
@@ -162,7 +162,7 @@ export const POST: RequestHandler = async ({ params, request, url, platform, loc
 
 	if (adError) {
 		console.warn('Report ad lookup failed', adError);
-		return errorResponse('Failed to submit report.', 500);
+		return errorResponse('We could not submit your report. Try again.', 500);
 	}
 	if (!ad) return errorResponse('Ad not found.', 404);
 
@@ -190,7 +190,7 @@ export const POST: RequestHandler = async ({ params, request, url, platform, loc
 
 	if (reportError || !report) {
 		console.warn('Report insert failed', reportError);
-		return errorResponse('Failed to submit report.', 500);
+		return errorResponse('We could not submit your report. Try again.', 500);
 	}
 
 	return json({ success: true, reportId: report.id }, { status: 200 });

@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 	const res = await fetch(`/api/ads/${params.slug}`);
 
 	if (res.status === 404) throw error(404, 'Ad not found');
-	if (!res.ok) throw error(500, 'Failed to load ad');
+	if (!res.ok) throw error(500, 'Could not load listing.');
 
 	const { ad, moderation } = (await res.json()) as {
 		ad: ApiAdRow;

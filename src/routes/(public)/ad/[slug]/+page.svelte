@@ -90,23 +90,23 @@
 		reportCopyError = '';
 
 		if (!reportName.trim()) {
-			reportError = 'Name is required.';
+			reportError = 'Enter your name.';
 			return;
 		}
 		if (!reportEmail.trim()) {
-			reportError = 'Email is required.';
+			reportError = 'Enter your email address.';
 			return;
 		}
 		if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(reportEmail.trim())) {
-			reportError = 'Email looks invalid.';
+			reportError = 'Enter a valid email address.';
 			return;
 		}
 		if (reportDetails.trim().length < MIN_REPORT_DETAILS) {
-			reportError = `Please provide at least ${MIN_REPORT_DETAILS} characters.`;
+			reportError = `Add at least ${MIN_REPORT_DETAILS} characters.`;
 			return;
 		}
 		if (!reportGoodFaith) {
-			reportError = 'You must confirm good faith.';
+			reportError = 'Confirm this report is made in good faith.';
 			return;
 		}
 
@@ -130,7 +130,7 @@
 				reportId?: string;
 			};
 			if (!res.ok || body.success === false) {
-				reportError = body.message || 'Failed to submit report.';
+				reportError = body.message || 'We could not send your report. Try again.';
 			} else {
 				reportSuccess = true;
 				reportId = body.reportId || '';
@@ -138,7 +138,7 @@
 				reportGoodFaith = false;
 			}
 		} catch {
-			reportError = 'Failed to submit report.';
+			reportError = 'We could not send your report. Try again.';
 		} finally {
 			reportSending = false;
 		}
@@ -150,7 +150,7 @@
 		appealId = '';
 
 		if (appealDetails.trim().length < MIN_APPEAL_DETAILS) {
-			appealError = `Please provide at least ${MIN_APPEAL_DETAILS} characters.`;
+			appealError = `Add at least ${MIN_APPEAL_DETAILS} characters.`;
 			return;
 		}
 
@@ -168,14 +168,14 @@
 				appealId?: string;
 			};
 			if (!res.ok || body.success === false) {
-				appealError = body.message || 'Failed to submit appeal.';
+				appealError = body.message || 'We could not send your appeal. Try again.';
 			} else {
 				appealSuccess = true;
 				appealId = body.appealId || '';
 				appealDetails = '';
 			}
 		} catch {
-			appealError = 'Failed to submit appeal.';
+			appealError = 'We could not send your appeal. Try again.';
 		} finally {
 			appealSending = false;
 		}
@@ -211,12 +211,12 @@
 			<summary>Report details</summary>
 			<div class="report-card">
 				<p class="report-intro">
-					Use this form to report illegal or inappropriate content. We review reports promptly.
+					Report content that is illegal or against our rules. We review reports quickly.
 				</p>
 
 				{#if reportSuccess}
 					<p class="report-success" aria-live="polite">
-						Thanks - your report has been received{reportId ? ` (ref: ${reportId})` : ''}.
+						Thanks - we received your report{reportId ? ` (ref: ${reportId})` : ''}.
 					</p>
 					{#if reportId}
 						<div class="report-actions">
@@ -227,13 +227,13 @@
 								<p class="report-error" aria-live="assertive">{reportCopyError}</p>
 							{/if}
 						</div>
-						<p class="report-followup">
-							Check status at
-							<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
-						</p>
+					<p class="report-followup">
+						Track it on
+						<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
+					</p>
 					{/if}
 					<p class="report-note">
-						We review reports promptly. Decisions may involve automated tools.
+						We review reports quickly. Some decisions may use automated tools.
 					</p>
 				{:else}
 					<form class="report-form" on:submit|preventDefault={submitReport}>
@@ -258,9 +258,7 @@
 						<label for="report-details">
 							Details
 							<span class="field-meta">
-								<span class="hint">
-									Explain why this listing is illegal or against our rules.
-								</span>
+								<span class="hint">Tell us what is wrong and why.</span>
 								<span class="char-count">
 									{reportDetailsCount}/{MIN_REPORT_DETAILS} min
 								</span>
@@ -271,14 +269,12 @@
 							rows="5"
 							bind:value={reportDetails}
 							minlength={MIN_REPORT_DETAILS}
-							placeholder="Explain why this listing is illegal or inappropriate."
+							placeholder="Describe the issue and where it appears."
 						></textarea>
 
 						<label class="checkbox">
 							<input type="checkbox" bind:checked={reportGoodFaith} />
-							<span>
-								I confirm this report is made in good faith and the information is accurate.
-							</span>
+							<span>I confirm this report is made in good faith.</span>
 						</label>
 
 						{#if reportError}<p class="report-error" aria-live="assertive">{reportError}</p>{/if}
@@ -295,9 +291,7 @@
 			<details class="panel" bind:this={moderationPanel} bind:open={moderationOpen}>
 				<summary>Moderation decision</summary>
 				<div class="moderation-card">
-					<p class="moderation-meta">
-						This section is only visible to the ad owner when signed in.
-					</p>
+					<p class="moderation-meta">Only visible to the ad owner when signed in.</p>
 					<p class="moderation-meta">Decision source: {decisionSource}</p>
 					<p class="moderation-meta">
 						{data.moderation.action_type.replace('_', ' ')} on
@@ -318,10 +312,10 @@
 					<details class="appeal">
 						<summary>Challenge this decision</summary>
 						<div class="appeal-body">
-							<p class="appeal-intro">
-								If you believe this decision is incorrect, you can submit an appeal. We will
-								review it as soon as possible.
-							</p>
+						<p class="appeal-intro">
+							If you think this decision is wrong, submit an appeal. We will review it as soon as
+							we can.
+						</p>
 							{#if appealSuccess}
 								<p class="appeal-success" aria-live="polite">
 									Appeal received{appealId ? ` (ref: ${appealId})` : ''}.
@@ -331,9 +325,7 @@
 									<label for="appeal-details">
 										Your explanation
 										<span class="field-meta">
-											<span class="hint">
-												Explain why you believe the decision should be changed.
-											</span>
+											<span class="hint">Explain why you think this should be changed.</span>
 											<span class="char-count">
 												{appealDetailsCount}/{MIN_APPEAL_DETAILS} min
 											</span>
@@ -344,7 +336,7 @@
 										rows="4"
 										bind:value={appealDetails}
 										minlength={MIN_APPEAL_DETAILS}
-										placeholder="Provide any facts or context you want us to reconsider."
+										placeholder="Share any facts or context we should reconsider."
 									></textarea>
 
 									{#if appealError}

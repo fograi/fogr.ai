@@ -17,7 +17,7 @@ export const POST: RequestHandler = async ({ locals, request, url, platform }) =
 		error
 	} = await locals.supabase.auth.getUser();
 	if (error || !user) {
-		return json({ success: false, message: 'Auth required' }, { status: 401 });
+		return json({ success: false, message: 'Sign-in required.' }, { status: 401 });
 	}
 
 	const ip =
@@ -38,7 +38,10 @@ export const POST: RequestHandler = async ({ locals, request, url, platform }) =
 		);
 
 	if (upsertError) {
-		return json({ success: false, message: 'Failed to persist confirmation' }, { status: 500 });
+		return json(
+			{ success: false, message: 'We could not save your confirmation.' },
+			{ status: 500 }
+		);
 	}
 
 	return json({ success: true }, { status: 200 });
