@@ -21,6 +21,7 @@
 - [x] Block disposable email domains at login
 - [x] Rate-limit magic link requests
 - [x] Enforce 1 free ad per user per day
+- [ ] Add public report/flag feature for ads (DSA notice-and-action workflow)
 - [ ] Implement payment system (Stripe or alternative) + checkout flow
 - [ ] Decide paid upsells and pricing (extra images, extra text, extended duration, local pin)
 - [ ] Finalize refund/withdrawal flow at checkout (no refunds except required by law)
