@@ -355,6 +355,7 @@
 		gap: 10px;
 		align-items: center;
 		flex-wrap: wrap;
+		justify-content: center;
 	}
 
 	/* Buttons (unchanged) */
