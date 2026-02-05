@@ -305,6 +305,30 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			event_metrics_daily: {
+				Row: {
+					day: string;
+					event_name: string;
+					count: number;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					day: string;
+					event_name: string;
+					count: number;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					day?: string;
+					event_name?: string;
+					count?: number;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [];
+			};
 			user_age_confirmations: {
 				Row: {
 					age_confirmed_at: string;
