@@ -79,7 +79,9 @@
 					<option value={cat}>{cat}</option>
 				{/each}
 			</select>
-			<button type="submit">Search</button>
+			<button type="submit" aria-label="Search">
+				<span class="icon" aria-hidden="true">🔍</span>
+			</button>
 			{#if q || category}
 				<a class="clear" href={resolve('/')} rel="external">Clear</a>
 			{/if}
