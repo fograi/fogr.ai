@@ -16,6 +16,9 @@
 	export let description = '';
 	export let price: number | '' = '';
 	export let priceType: PriceType = 'fixed';
+	export let firmPrice = false;
+	export let minOffer: number | '' = '';
+	export let autoDeclineMessage = '';
 	export let ageConfirmed = false;
 	export let step = 1;
 	export let showErrors = false;
@@ -37,6 +40,14 @@
 		((priceType === 'fixed' &&
 			(price === '' || Number.isNaN(Number(price)) || Number(price) <= 0)) ||
 			(priceType === 'free' && Number(price) !== 0));
+	$: minOfferInvalid =
+		showErrors &&
+		priceType === 'fixed' &&
+		!firmPrice &&
+		minOffer !== '' &&
+		(Number.isNaN(Number(minOffer)) ||
+			Number(minOffer) <= 0 ||
+			(price !== '' && Number(minOffer) >= Number(price)));
 	$: descriptionInvalid =
 		showErrors &&
 		(!description.trim() ||
@@ -120,6 +131,46 @@
 				/>
 			</div>
 		</div>
+
+		{#if priceType === 'fixed'}
+			<div class="field">
+				<label class="checkbox">
+					<input type="checkbox" bind:checked={firmPrice} disabled={loading} />
+					<span>Firm price (no offers)</span>
+				</label>
+				<small class="muted">Turn this on to auto-decline offers.</small>
+			</div>
+			{#if !firmPrice}
+				<div class="field">
+					<label for="min-offer">Minimum offer (optional)</label>
+					<input
+						id="min-offer"
+						type="number"
+						min="1"
+						step="1"
+						inputmode="numeric"
+						pattern="[0-9]*"
+						bind:value={minOffer}
+						disabled={loading}
+						placeholder="e.g., 40"
+						aria-invalid={showErrors ? minOfferInvalid : undefined}
+					/>
+					<small class="muted">Auto-decline lower offers.</small>
+				</div>
+			{/if}
+			{#if firmPrice || minOffer !== ''}
+				<div class="field">
+					<label for="auto-decline">Auto-decline message (optional)</label>
+					<input
+						id="auto-decline"
+						type="text"
+						bind:value={autoDeclineMessage}
+						disabled={loading}
+						placeholder="e.g., Thanks — price is firm."
+					/>
+				</div>
+			{/if}
+		{/if}
 	{/if}
 
 	{#if step === 2}

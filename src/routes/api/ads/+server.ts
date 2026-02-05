@@ -17,7 +17,7 @@ import {
 	MAX_TOTAL_IMAGE_SIZE
 } from '$lib/constants';
 import { bannedWords } from '$lib/banned-words';
-import { validateAdImages, validateAdMeta } from '$lib/server/ads-validation';
+import { validateAdImages, validateAdMeta, validateOfferRules } from '$lib/server/ads-validation';
 import { isSameOrigin } from '$lib/server/csrf';
 import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
 import { getPagination } from '$lib/server/pagination';
@@ -284,6 +284,13 @@ export const POST: RequestHandler = async (event) => {
 		const description = form.get('description')?.toString() || '';
 		const priceStr = form.get('price')?.toString() ?? null;
 		const priceType = form.get('price_type')?.toString() ?? null;
+		const firmPrice = form.get('firm_price')?.toString() === '1';
+		const minOfferStr = form.get('min_offer')?.toString() ?? null;
+		const autoDeclineMessageRaw = form.get('auto_decline_message')?.toString() ?? null;
+		const autoDeclineMessage =
+			autoDeclineMessageRaw && autoDeclineMessageRaw.trim().length > 0
+				? autoDeclineMessageRaw.trim()
+				: null;
 		const ageConfirmed = form.get('age_confirmed')?.toString() === '1';
 		// === NEW === optional passthroughs for DB
 		const currencyRaw = form.get('currency')?.toString() || 'EUR';
@@ -329,8 +336,20 @@ export const POST: RequestHandler = async (event) => {
 		if (metaError) return errorResponse(metaError, 400, requestId);
 		const imageError = validateAdImages({ category, imageCount: files.length });
 		if (imageError) return errorResponse(imageError, 400, requestId);
+		const offerError = validateOfferRules({
+			priceType,
+			priceStr,
+			firmPrice,
+			minOfferStr
+		});
+		if (offerError) return errorResponse(offerError, 400, requestId);
+		const normalizedPriceType = priceType?.toLowerCase();
 		const price =
-			priceType?.toLowerCase() === 'poa' ? null : Number(priceStr ?? 0);
+			normalizedPriceType === 'poa' ? null : Number(priceStr ?? 0);
+		const minOffer =
+			normalizedPriceType === 'fixed' && minOfferStr && minOfferStr.trim() !== ''
+				? Number(minOfferStr)
+				: null;
 
 		if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.', 400, requestId);
 		if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413, requestId);
@@ -439,7 +458,10 @@ export const POST: RequestHandler = async (event) => {
 				currency,
 				image_keys: [],
 				email,
-				status
+				status,
+				firm_price: normalizedPriceType === 'fixed' ? firmPrice : true,
+				min_offer: normalizedPriceType === 'fixed' ? minOffer : null,
+				auto_decline_message: autoDeclineMessage
 			})
 			.select('id')
 			.single();

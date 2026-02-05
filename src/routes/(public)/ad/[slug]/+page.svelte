@@ -1,8 +1,18 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import AdCardWide from '$lib/components/AdCardWide.svelte';
+	import MessageComposer from '$lib/components/messages/MessageComposer.svelte';
 	import type { AdCard, ModerationAction } from '../../../../types/ad-types';
-	export let data: { ad: AdCard; moderation?: ModerationAction | null };
+	export let data: {
+		ad: AdCard;
+		moderation?: ModerationAction | null;
+		isOwner?: boolean;
+		offerRules?: {
+			firmPrice?: boolean;
+			minOffer?: number | null;
+			autoDeclineMessage?: string | null;
+		};
+	};
 
 	const reportReasons = [
 		{ value: 'illegal', label: 'Illegal content' },
@@ -214,6 +224,22 @@
 				</button>
 			{/if}
 		</section>
+
+		{#if data.isOwner}
+			<section class="owner-note">
+				<p>You are the owner of this listing. Messages from buyers will appear here soon.</p>
+			</section>
+		{:else}
+			<MessageComposer
+				adId={data.ad.id}
+				price={data.ad.price ?? null}
+				currency={data.ad.currency ?? 'EUR'}
+				firmPrice={data.offerRules?.firmPrice ?? false}
+				minOffer={data.offerRules?.minOffer ?? null}
+				autoDeclineMessage={data.offerRules?.autoDeclineMessage ?? null}
+				on:flag={() => openPanel('report')}
+			/>
+		{/if}
 
 		{#if reportOpen}
 			<section class="panel report-panel" bind:this={reportPanel}>
@@ -459,6 +485,16 @@
 	}
 	.action-rail .btn.ghost {
 		background: transparent;
+	}
+	.owner-note {
+		max-width: 720px;
+		margin: 12px auto;
+		padding: 12px 14px;
+		border: 1px solid var(--hairline);
+		border-radius: 12px;
+		background: var(--surface);
+		text-align: center;
+		font-weight: 600;
 	}
 
 	.panel {

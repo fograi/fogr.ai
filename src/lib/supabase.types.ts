@@ -137,9 +137,12 @@ export type Database = {
 					description: string;
 					email: string | null;
 					expires_at: string;
+					firm_price: boolean;
 					id: string;
 					image_keys: string[];
 					images_count: number | null;
+					min_offer: number | null;
+					auto_decline_message: string | null;
 					price: number | null;
 					status: string;
 					title: string;
@@ -154,9 +157,12 @@ export type Database = {
 					description: string;
 					email?: string | null;
 					expires_at?: string;
+					firm_price?: boolean;
 					id?: string;
 					image_keys?: string[];
 					images_count?: number | null;
+					min_offer?: number | null;
+					auto_decline_message?: string | null;
 					price?: number | null;
 					status?: string;
 					title: string;
@@ -171,14 +177,92 @@ export type Database = {
 					description?: string;
 					email?: string | null;
 					expires_at?: string;
+					firm_price?: boolean;
 					id?: string;
 					image_keys?: string[];
 					images_count?: number | null;
+					min_offer?: number | null;
+					auto_decline_message?: string | null;
 					price?: number | null;
 					status?: string;
 					title?: string;
 					updated_at?: string;
 					user_id?: string;
+				};
+				Relationships: [];
+			};
+			conversations: {
+				Row: {
+					id: string;
+					ad_id: string;
+					buyer_id: string;
+					seller_id: string;
+					created_at: string;
+					updated_at: string;
+					last_message_at: string;
+				};
+				Insert: {
+					id?: string;
+					ad_id: string;
+					buyer_id: string;
+					seller_id: string;
+					created_at?: string;
+					updated_at?: string;
+					last_message_at?: string;
+				};
+				Update: {
+					id?: string;
+					ad_id?: string;
+					buyer_id?: string;
+					seller_id?: string;
+					created_at?: string;
+					updated_at?: string;
+					last_message_at?: string;
+				};
+				Relationships: [];
+			};
+			messages: {
+				Row: {
+					id: string;
+					conversation_id: string;
+					sender_id: string;
+					kind: string;
+					body: string;
+					offer_amount: number | null;
+					delivery_method: string | null;
+					timing: string | null;
+					auto_declined: boolean;
+					scam_warning: boolean;
+					scam_reason: string | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					conversation_id: string;
+					sender_id: string;
+					kind: string;
+					body: string;
+					offer_amount?: number | null;
+					delivery_method?: string | null;
+					timing?: string | null;
+					auto_declined?: boolean;
+					scam_warning?: boolean;
+					scam_reason?: string | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					conversation_id?: string;
+					sender_id?: string;
+					kind?: string;
+					body?: string;
+					offer_amount?: number | null;
+					delivery_method?: string | null;
+					timing?: string | null;
+					auto_declined?: boolean;
+					scam_warning?: boolean;
+					scam_reason?: string | null;
+					created_at?: string;
 				};
 				Relationships: [];
 			};

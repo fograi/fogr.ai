@@ -97,10 +97,10 @@
 - DB/schema: new migrations for `conversations`, `messages`, `ad_offer_rules` (min_offer, firm_price), and optional `offer_events`.
 - Types: update `src/types/ad-types.d.ts` and `src/lib/supabase.types.ts`.
 
-- [ ] Define structured message templates and required fields (availability, offer amount, timing, pickup/shipping).
-- [ ] Update message composer UI to enforce structure and capture metadata.
-- [ ] Add seller controls: minimum offer, firm price flag, auto-decline message.
-- [ ] Validate offers server-side against floor/firm rules with clear errors.
+- [x] Define structured message templates and required fields (availability, offer amount, timing, pickup/shipping).
+- [x] Update message composer UI to enforce structure and capture metadata.
+- [x] Add seller controls: minimum offer, firm price flag, auto-decline message.
+- [x] Validate offers server-side against floor/firm rules with clear errors.
 - [ ] Track metrics: lowball rate, time-to-first-serious-inquiry, offer acceptance rate.
 - [ ] Add or update unit and e2e tests for message flow and offer validation.
 
@@ -111,9 +111,9 @@
 - API endpoint (suggested): `src/routes/api/ads/[id]/reveal/+server.ts` or add to messages API.
 - DB/schema: add `contact_preference` / `phone_reveal_state` fields on ads or users; update `src/lib/supabase.types.ts`.
 
-- [ ] Default to in-app messaging; remove phone reveal from initial contact flow.
+- [x] Default to in-app messaging; remove phone reveal from initial contact flow.
 - [ ] Add optional phone reveal gating (opt-in toggle or after defined actions).
-- [ ] Update listing/contact UI copy to set expectations.
+- [x] Update listing/contact UI copy to set expectations.
 - [ ] Enforce server-side rules around phone reveal.
 - [ ] Add or update tests for contact flow and reveal gating.
 
@@ -124,10 +124,10 @@
 - UI warning banner: `src/lib/components/messages/Thread.svelte` or message composer.
 - Logging/flags: new DB table for `message_flags` (optional).
 
-- [ ] Define initial keyword/heuristic patterns (WhatsApp, courier, deposit pressure, PayPal friends and family).
-- [ ] Implement in-chat warning banner with report CTA for suspicious messages.
-- [ ] Add server-side logging/flagging to refine rules.
-- [ ] Add or update tests for warning triggers.
+- [x] Define initial keyword/heuristic patterns (WhatsApp, courier, deposit pressure, PayPal friends and family).
+- [x] Implement in-chat warning banner with report CTA for suspicious messages.
+- [x] Add server-side logging/flagging to refine rules.
+- [x] Add or update tests for warning triggers.
 
 ## Workflow Notes
 

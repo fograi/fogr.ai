@@ -64,3 +64,35 @@ export function validateAdImages({ category, imageCount }: AdImageValidationInpu
 	if (imageCount < min) return `Add at least ${min} photo${min === 1 ? '' : 's'}.`;
 	return null;
 }
+
+type OfferRulesInput = {
+	priceType?: string | null;
+	priceStr?: string | null;
+	firmPrice: boolean;
+	minOfferStr?: string | null;
+};
+
+export function validateOfferRules({
+	priceType,
+	priceStr,
+	firmPrice,
+	minOfferStr
+}: OfferRulesInput): string | null {
+	const normalizedType = (priceType ?? '').toLowerCase().trim();
+	if (normalizedType !== 'fixed') return null;
+	if (firmPrice && minOfferStr && minOfferStr.trim() !== '') {
+		return 'Firm price listings cannot set a minimum offer.';
+	}
+	if (!minOfferStr || minOfferStr.trim() === '') return null;
+	const minOffer = Number(minOfferStr);
+	if (!Number.isFinite(minOffer) || minOffer <= 0) {
+		return 'Minimum offer must be greater than 0.';
+	}
+	if (priceStr && priceStr.trim() !== '') {
+		const price = Number(priceStr);
+		if (Number.isFinite(price) && minOffer >= price) {
+			return 'Minimum offer must be less than the asking price.';
+		}
+	}
+	return null;
+}

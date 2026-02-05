@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateAdImages, validateAdMeta } from './ads-validation';
+import { validateAdImages, validateAdMeta, validateOfferRules } from './ads-validation';
 
 describe('validateAdMeta (price rules)', () => {
 	it('accepts fixed price over 0', () => {
@@ -82,5 +82,37 @@ describe('validateAdImages (min photos)', () => {
 	it('allows one photo for Free / Giveaway', () => {
 		const result = validateAdImages({ category: 'Free / Giveaway', imageCount: 1 });
 		expect(result).toBeNull();
+	});
+});
+
+describe('validateOfferRules', () => {
+	it('allows firm price without min offer', () => {
+		const result = validateOfferRules({
+			priceType: 'fixed',
+			priceStr: '100',
+			firmPrice: true,
+			minOfferStr: ''
+		});
+		expect(result).toBeNull();
+	});
+
+	it('rejects firm price with min offer', () => {
+		const result = validateOfferRules({
+			priceType: 'fixed',
+			priceStr: '100',
+			firmPrice: true,
+			minOfferStr: '50'
+		});
+		expect(result).toBe('Firm price listings cannot set a minimum offer.');
+	});
+
+	it('rejects min offer above price', () => {
+		const result = validateOfferRules({
+			priceType: 'fixed',
+			priceStr: '100',
+			firmPrice: false,
+			minOfferStr: '150'
+		});
+		expect(result).toBe('Minimum offer must be less than the asking price.');
 	});
 });

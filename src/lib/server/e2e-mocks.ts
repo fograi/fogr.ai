@@ -9,6 +9,9 @@ export const E2E_MOCK_AD: ApiAdRow = {
 	price: 12,
 	currency: 'EUR',
 	image_keys: [],
+	firm_price: false,
+	min_offer: null,
+	auto_decline_message: null,
 	status: 'active',
 	created_at: new Date().toISOString(),
 	updated_at: null

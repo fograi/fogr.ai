@@ -28,6 +28,9 @@ export type ApiAdRow = {
 	description: string;
 	category: string;
 	price: number | null;
+	firm_price?: boolean | null;
+	min_offer?: number | null;
+	auto_decline_message?: string | null;
 	currency: string | null;
 	image_keys: string[] | null;
 	status: string;

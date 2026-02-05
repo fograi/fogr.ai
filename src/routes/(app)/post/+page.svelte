@@ -19,6 +19,9 @@
 	let category: Category | '' = '';
 	let price: number | '' = '';
 	let priceType: PriceType = 'fixed';
+	let firmPrice = false;
+	let minOffer: number | '' = '';
+	let autoDeclineMessage = '';
 	let currency = 'EUR';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
@@ -40,6 +43,11 @@
 	$: if (priceType === 'free' && price !== 0) price = 0;
 	$: if (priceType === 'poa') price = '';
 	$: if (priceType === 'fixed' && price === 0) price = '';
+	$: if (priceType !== 'fixed') {
+		firmPrice = true;
+		minOffer = '';
+		autoDeclineMessage = '';
+	}
 
 	// live moderation check while typing
 	$: {
@@ -87,6 +95,18 @@
 		if (priceType === 'free') {
 			const n = Number(price);
 			if (Number.isNaN(n) || n !== 0) return 'Free listings must be 0.';
+		}
+		if (priceType === 'fixed') {
+			if (firmPrice && minOffer !== '') {
+				return 'Firm price listings cannot set a minimum offer.';
+			}
+			if (minOffer !== '') {
+				const m = Number(minOffer);
+				if (Number.isNaN(m) || m <= 0) return 'Minimum offer must be greater than 0.';
+				const n = Number(price);
+				if (Number.isFinite(n) && m >= n)
+					return 'Minimum offer must be less than the asking price.';
+			}
 		}
 		return '';
 	}
@@ -155,6 +175,13 @@
 			form.append('description', description.trim());
 			form.append('category', category as string);
 			form.append('price_type', priceType);
+			form.append('firm_price', priceType === 'fixed' && firmPrice ? '1' : '0');
+			if (priceType === 'fixed' && minOffer !== '') {
+				form.append('min_offer', String(minOffer));
+			}
+			if (priceType === 'fixed' && (firmPrice || minOffer !== '')) {
+				form.append('auto_decline_message', autoDeclineMessage.trim());
+			}
 			if (priceType === 'free') {
 				form.append('price', '0');
 			} else if (priceType === 'fixed' && price !== '') {
@@ -187,6 +214,9 @@
 			description = '';
 			category = '';
 			price = '';
+			firmPrice = false;
+			minOffer = '';
+			autoDeclineMessage = '';
 			// clear image
 			if (previewUrl) URL.revokeObjectURL(previewUrl);
 			previewUrl = null;
@@ -251,6 +281,9 @@
 					bind:description
 					bind:price
 					bind:priceType
+					bind:firmPrice
+					bind:minOffer
+					bind:autoDeclineMessage
 					bind:ageConfirmed
 					{loading}
 					{showErrors}
@@ -272,6 +305,9 @@
 					bind:description
 					bind:price
 					bind:priceType
+					bind:firmPrice
+					bind:minOffer
+					bind:autoDeclineMessage
 					bind:ageConfirmed
 					{loading}
 					{showErrors}
