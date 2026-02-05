@@ -142,6 +142,12 @@
 						<p class="report-success" aria-live="polite">
 							Thanks - your report has been received{reportId ? ` (ref: ${reportId})` : ''}.
 						</p>
+						{#if reportId}
+							<p class="report-followup">
+								Check status at
+								<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
+							</p>
+						{/if}
 					{:else}
 						<form class="report-form" on:submit|preventDefault={submitReport}>
 							<label for="report-name">Your name</label>
@@ -299,6 +305,9 @@
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 80%, transparent);
 		font-weight: 600;
+	}
+	.report-followup {
+		margin: 8px 0 0;
 	}
 	.report-submit {
 		height: 44px;
