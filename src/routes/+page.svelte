@@ -150,8 +150,9 @@
 		grid-template-columns: 1fr auto auto;
 		gap: 10px;
 		align-items: center;
-		width: min(100%, 720px);
-		margin: 0 auto;
+		width: 100%;
+		max-width: 720px;
+		justify-self: start;
 	}
 	.search__form input,
 	.search__form select {
@@ -161,6 +162,7 @@
 		border: 1px solid var(--hairline);
 		background: var(--surface);
 		color: var(--fg);
+		min-width: 0;
 	}
 	.search__form button {
 		height: 44px;
@@ -180,12 +182,12 @@
 	}
 	@media (max-width: 720px) {
 		.search__form {
-			grid-template-columns: 4fr 1fr;
+			grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
 			grid-template-areas:
 				'q btn'
 				'category category'
 				'clear clear';
-			width: min(100%, 360px);
+			max-width: 100%;
 		}
 		#search-q {
 			grid-area: q;
