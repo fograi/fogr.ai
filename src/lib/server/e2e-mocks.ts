@@ -20,7 +20,10 @@ export const E2E_MOCK_USER = {
 };
 
 export function isE2eMock(platform?: App.Platform): boolean {
-	if (!platform?.env) return false;
-	const env = platform.env as Record<string, unknown>;
-	return env.E2E_MOCK === '1';
+	const platformFlag = platform?.env
+		? (platform.env as Record<string, unknown>).E2E_MOCK === '1'
+		: false;
+	const processFlag =
+		typeof process !== 'undefined' && process.env?.E2E_MOCK === '1';
+	return platformFlag || processFlag;
 }

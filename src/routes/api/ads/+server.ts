@@ -536,6 +536,8 @@ export const GET: RequestHandler = async (event) => {
 	const requestId = makeRequestId();
 	const { page, limit, from, to } = getPagination(url.searchParams, 24, 100);
 	const nowIso = new Date().toISOString();
+	const q = (url.searchParams.get('q') ?? '').trim();
+	const category = (url.searchParams.get('category') ?? '').trim();
 
 	if (isE2eMock(platform)) {
 		return json(
@@ -567,11 +569,19 @@ export const GET: RequestHandler = async (event) => {
 		if (hit) return hit;
 	}
 
-	const { data, error } = await locals.supabase
+	let query = locals.supabase
 		.from('ads')
 		.select('id,title,description,price,currency,category,image_keys,created_at')
 		.eq('status', PUBLIC_AD_STATUS)
-		.gt('expires_at', nowIso)
+		.gt('expires_at', nowIso);
+
+	if (category) query = query.eq('category', category);
+	if (q.length >= 2) {
+		const needle = q.replace(/[%_]/g, '\\$&');
+		query = query.or(`title.ilike.%${needle}%,description.ilike.%${needle}%`);
+	}
+
+	const { data, error } = await query
 		.order('created_at', { ascending: false })
 		.range(from, to);
 

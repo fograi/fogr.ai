@@ -6,7 +6,16 @@ const DEFAULT_LIMIT = 24;
 
 export const load: PageServerLoad = async ({ fetch, url }) => {
 	const { page, limit } = getPagination(url.searchParams, DEFAULT_LIMIT, 100);
-	const res = await fetch(`/api/ads?page=${page}&limit=${limit}`);
+	const q = (url.searchParams.get('q') ?? '').trim();
+	const category = (url.searchParams.get('category') ?? '').trim();
+	const params = new URLSearchParams({
+		page: String(page),
+		limit: String(limit)
+	});
+	if (q) params.set('q', q);
+	if (category) params.set('category', category);
+
+	const res = await fetch(`/api/ads?${params.toString()}`);
 	if (!res.ok) {
 		let message = 'Failed to load ads';
 		let requestId: string | undefined;
@@ -17,7 +26,7 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 		} catch {
 			/* noop */
 		}
-		return { ads: [], page, error: { message, requestId } };
+		return { ads: [], page, q, category, error: { message, requestId } };
 	}
 
 	const { ads, nextPage, requestId } = (await res.json()) as {
@@ -36,5 +45,5 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 		currency: ad.currency ?? undefined
 	}));
 
-	return { ads: mapped, page, nextPage: nextPage ?? null, requestId };
+	return { ads: mapped, page, nextPage: nextPage ?? null, requestId, q, category };
 };
