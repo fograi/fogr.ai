@@ -16,7 +16,6 @@
 	export let description = '';
 	export let price: number | '' = '';
 	export let priceType: PriceType = 'fixed';
-	export let isFree = false;
 	export let ageConfirmed = false;
 	export let step = 1;
 	export let showErrors = false;

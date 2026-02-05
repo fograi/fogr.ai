@@ -249,7 +249,6 @@
 					bind:price
 					bind:priceType
 					bind:ageConfirmed
-					{isFree}
 					{loading}
 					{showErrors}
 				/>
@@ -271,7 +270,6 @@
 					bind:price
 					bind:priceType
 					bind:ageConfirmed
-					{isFree}
 					{loading}
 					{showErrors}
 				/>
