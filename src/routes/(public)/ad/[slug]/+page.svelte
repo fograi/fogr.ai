@@ -26,6 +26,8 @@
 	let reportCopied = false;
 	let reportCopyError = '';
 	const MIN_APPEAL_DETAILS = 20;
+	let reportAttempted = false;
+	let appealAttempted = false;
 
 	let reportPanel: HTMLElement | null = null;
 	let moderationPanel: HTMLDetailsElement | null = null;
@@ -92,6 +94,7 @@
 		reportId = '';
 		reportCopied = false;
 		reportCopyError = '';
+		reportAttempted = true;
 
 		if (!reportName.trim()) {
 			reportError = 'Enter your name.';
@@ -152,6 +155,7 @@
 		appealError = '';
 		appealSuccess = false;
 		appealId = '';
+		appealAttempted = true;
 
 		if (appealDetails.trim().length < MIN_APPEAL_DETAILS) {
 			appealError = `Add at least ${MIN_APPEAL_DETAILS} characters.`;
@@ -254,6 +258,7 @@
 								bind:value={reportName}
 								autocomplete="name"
 								required
+								aria-invalid={reportAttempted && !reportName.trim()}
 							/>
 
 							<label for="report-email">Your email</label>
@@ -263,10 +268,20 @@
 								bind:value={reportEmail}
 								autocomplete="email"
 								required
+								aria-invalid={
+									reportAttempted &&
+									(!reportEmail.trim() ||
+										!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(reportEmail.trim()))
+								}
 							/>
 
 							<label for="report-reason">Reason</label>
-							<select id="report-reason" bind:value={reportReason} required>
+							<select
+								id="report-reason"
+								bind:value={reportReason}
+								required
+								aria-invalid={reportAttempted && !reportReason}
+							>
 								{#each reportReasons as reason}
 									<option value={reason.value}>{reason.label}</option>
 								{/each}
@@ -288,10 +303,16 @@
 								minlength={MIN_REPORT_DETAILS}
 								required
 								placeholder="Describe the issue and where it appears."
+								aria-invalid={reportAttempted && reportDetails.trim().length < MIN_REPORT_DETAILS}
 							></textarea>
 
 							<label class="checkbox">
-								<input type="checkbox" bind:checked={reportGoodFaith} required />
+								<input
+									type="checkbox"
+									bind:checked={reportGoodFaith}
+									required
+									aria-invalid={reportAttempted && !reportGoodFaith}
+								/>
 								<span>I confirm this report is made in good faith.</span>
 							</label>
 
@@ -359,6 +380,7 @@
 										minlength={MIN_APPEAL_DETAILS}
 										required
 										placeholder="Share any facts or context we should reconsider."
+										aria-invalid={appealAttempted && appealDetails.trim().length < MIN_APPEAL_DETAILS}
 									></textarea>
 
 									{#if appealError}

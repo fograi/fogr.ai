@@ -19,6 +19,7 @@
 	let ageConfirmed = data?.ageConfirmed ?? false;
 	let step = 1;
 	const totalSteps = 3;
+	let showErrors = false;
 
 	// one image (optional)
 	let file: File | null = null;
@@ -92,6 +93,7 @@
 	function goNext() {
 		err = '';
 		ok = '';
+		showErrors = true;
 		const v = step === 1 ? validateBasics() : validateDetails();
 		if (v) {
 			err = v;
@@ -116,6 +118,7 @@
 	async function handleSubmit() {
 		err = '';
 		ok = '';
+		showErrors = true;
 		const v = validateAll();
 		if (v) {
 			err = v;
@@ -234,6 +237,7 @@
 				bind:ageConfirmed
 				{isFree}
 				{loading}
+				{showErrors}
 			/>
 			<div class="actions">
 				<button type="button" class="btn primary" on:click={goNext} disabled={loading}>
@@ -254,6 +258,7 @@
 				bind:ageConfirmed
 				{isFree}
 				{loading}
+				{showErrors}
 			/>
 			<div class="actions">
 				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>

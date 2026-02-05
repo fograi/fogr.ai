@@ -84,34 +84,29 @@ h3 {
 		box-shadow 0.2s ease,
 		background-color 0.2s ease;
 }
-:where(input, textarea, select)[aria-invalid='true'] {
-	border-color: var(--accent-orange);
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent);
-	background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
+:where(input, textarea):where(:user-valid):not(:placeholder-shown):not(:focus) {
+	border-color: var(--accent-green);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
 }
+:where(input, textarea, select)[aria-invalid='true'],
 :where(input, textarea):where(:user-invalid):not(:focus),
 :where(select):where(:user-invalid):not(:focus) {
 	border-color: var(--accent-orange);
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent);
 	background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
 }
-:where(input, textarea):where(:user-valid):not(:placeholder-shown):not(:focus),
-:where(select):where(:user-valid):not(:focus) {
-	border-color: var(--accent-green);
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
-}
 
 @supports not selector(:user-valid) {
+	:where(input, textarea):where(:valid):not(:placeholder-shown):not(:focus),
+	:where(select):where(:valid):not(:focus) {
+		border-color: var(--accent-green);
+		box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
+	}
 	:where(input, textarea):where(:invalid):not(:placeholder-shown):not(:focus),
 	:where(select):where(:invalid):not(:focus) {
 		border-color: var(--accent-orange);
 		box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent);
 		background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
-	}
-	:where(input, textarea):where(:valid):not(:placeholder-shown):not(:focus),
-	:where(select):where(:valid):not(:focus) {
-		border-color: var(--accent-green);
-		box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
 	}
 }
 

@@ -16,19 +16,41 @@
 	export let isFree = false;
 	export let ageConfirmed = false;
 	export let step = 1;
+	export let showErrors = false;
 
 	// validation messages from parent (optional)
 	export let loading = false;
 
 	$: titleLen = title.length;
 	$: descLen = description.length;
+	$: categoryInvalid = showErrors && !category;
+	$: titleInvalid =
+		showErrors &&
+		(!title.trim() ||
+			title.trim().length < MIN_TITLE_LENGTH ||
+			title.length > MAX_TITLE_LENGTH);
+	$: priceInvalid =
+		showErrors &&
+		!isFree &&
+		(price === '' || Number.isNaN(Number(price)) || Number(price) < 0);
+	$: descriptionInvalid =
+		showErrors &&
+		(!description.trim() ||
+			description.trim().length < MIN_DESC_LENGTH ||
+			description.length > MAX_DESC_LENGTH);
+	$: ageInvalid = showErrors && !ageConfirmed;
 </script>
 
 <section class="fields" aria-busy={loading}>
 	{#if step === 1}
 		<div class="field">
 			<label for="category">Category</label>
-			<select id="category" bind:value={category} disabled={loading}>
+			<select
+				id="category"
+				bind:value={category}
+				disabled={loading}
+				aria-invalid={categoryInvalid}
+			>
 				<option value="" disabled selected hidden>Choose…</option>
 				{#each CATEGORIES as c (c)}
 					<option value={c}>{c}</option>
@@ -46,6 +68,7 @@
 				placeholder="e.g., IKEA MALM desk — great condition"
 				required
 				disabled={loading}
+				aria-invalid={titleInvalid}
 			/>
 			<small class="muted">Min {MIN_TITLE_LENGTH}, max {MAX_TITLE_LENGTH}</small>
 		</div>
@@ -66,6 +89,7 @@
 					required={!isFree}
 					disabled={isFree || loading}
 					placeholder={isFree ? '0' : 'e.g., 50'}
+					aria-invalid={priceInvalid}
 				/>
 			</div>
 		</div>
@@ -84,13 +108,19 @@
 				placeholder="Key details, pickup area, condition…"
 				required
 				disabled={loading}
+				aria-invalid={descriptionInvalid}
 			></textarea>
 			<small class="muted">Min {MIN_DESC_LENGTH}, max {MAX_DESC_LENGTH}</small>
 		</div>
 
 		<div class="row">
 			<label class="checkbox">
-				<input type="checkbox" bind:checked={ageConfirmed} disabled={loading} />
+				<input
+					type="checkbox"
+					bind:checked={ageConfirmed}
+					disabled={loading}
+					aria-invalid={ageInvalid}
+				/>
 				<span>I am 18 or older.</span>
 			</label>
 		</div>
