@@ -1,38 +1,74 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { validateAdMeta } from './ads-validation';
 
-describe('validateAdMeta', () => {
-	it('rejects missing category', () => {
-		expect(validateAdMeta({ category: '', currency: 'EUR', priceStr: '10' })).toBe(
-			'Category is required.'
-		);
+describe('validateAdMeta (price rules)', () => {
+	it('accepts fixed price over 0', () => {
+		const result = validateAdMeta({
+			category: 'Electronics',
+			currency: 'EUR',
+			priceStr: '120',
+			priceType: 'fixed'
+		});
+		expect(result).toBeNull();
 	});
 
-	it('rejects invalid category', () => {
-		expect(
-			validateAdMeta({ category: 'Not a real category', currency: 'EUR', priceStr: '10' })
-		).toBe('Invalid category.');
+	it('rejects fixed price at 0', () => {
+		const result = validateAdMeta({
+			category: 'Electronics',
+			currency: 'EUR',
+			priceStr: '0',
+			priceType: 'fixed'
+		});
+		expect(result).toBe('Fixed price must be greater than 0.');
 	});
 
-	it('rejects invalid currency', () => {
-		expect(validateAdMeta({ category: 'Electronics', currency: 'eu', priceStr: '10' })).toBe(
-			'Invalid currency.'
-		);
+	it('accepts free price at 0', () => {
+		const result = validateAdMeta({
+			category: 'Electronics',
+			currency: 'EUR',
+			priceStr: '0',
+			priceType: 'free'
+		});
+		expect(result).toBeNull();
 	});
 
-	it('rejects invalid price', () => {
-		expect(validateAdMeta({ category: 'Electronics', currency: 'EUR', priceStr: '-1' })).toBe(
-			'Invalid price.'
-		);
+	it('rejects free price when not 0', () => {
+		const result = validateAdMeta({
+			category: 'Electronics',
+			currency: 'EUR',
+			priceStr: '10',
+			priceType: 'free'
+		});
+		expect(result).toBe('Free items must have a price of 0.');
 	});
 
-	it('enforces free category price', () => {
-		expect(validateAdMeta({ category: 'Free / Giveaway', currency: 'EUR', priceStr: '5' })).toBe(
-			'Free items must have a price of 0.'
-		);
+	it('accepts POA for allowed categories', () => {
+		const result = validateAdMeta({
+			category: 'Services & Gigs',
+			currency: 'EUR',
+			priceStr: null,
+			priceType: 'poa'
+		});
+		expect(result).toBeNull();
 	});
 
-	it('accepts valid inputs', () => {
-		expect(validateAdMeta({ category: 'Electronics', currency: 'EUR', priceStr: '10' })).toBeNull();
+	it('rejects POA for disallowed categories', () => {
+		const result = validateAdMeta({
+			category: 'Electronics',
+			currency: 'EUR',
+			priceStr: null,
+			priceType: 'poa'
+		});
+		expect(result).toBe('Price on application is not available for this category.');
+	});
+
+	it('rejects POA when price is provided', () => {
+		const result = validateAdMeta({
+			category: 'Services & Gigs',
+			currency: 'EUR',
+			priceStr: '20',
+			priceType: 'poa'
+		});
+		expect(result).toBe('Do not enter a price for POA listings.');
 	});
 });

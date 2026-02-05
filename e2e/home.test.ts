@@ -15,6 +15,8 @@ test('home page search submits query and category', async ({ page }) => {
 	await page.goto('/');
 	await page.fill('#search-q', 'bike');
 	await page.selectOption('#search-category', 'Sports & Bikes');
+	await page.selectOption('#search-price-state', 'free');
 	await page.getByRole('button', { name: 'Search' }).click();
 	await expect(page).toHaveURL(/category=Sports(?:\+|%20)%26(?:\+|%20)Bikes/);
+	await expect(page).toHaveURL(/price_state=free/);
 });

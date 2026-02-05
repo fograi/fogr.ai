@@ -283,6 +283,7 @@ export const POST: RequestHandler = async (event) => {
 		const title = form.get('title')?.toString() || '';
 		const description = form.get('description')?.toString() || '';
 		const priceStr = form.get('price')?.toString() ?? null;
+		const priceType = form.get('price_type')?.toString() ?? null;
 		const ageConfirmed = form.get('age_confirmed')?.toString() === '1';
 		// === NEW === optional passthroughs for DB
 		const currencyRaw = form.get('currency')?.toString() || 'EUR';
@@ -324,9 +325,10 @@ export const POST: RequestHandler = async (event) => {
 		if (ageConfirmError) {
 			log('warn', 'age_confirmation_upsert_failed', { error: ageConfirmError.message });
 		}
-		const metaError = validateAdMeta({ category, currency, priceStr });
+		const metaError = validateAdMeta({ category, currency, priceStr, priceType });
 		if (metaError) return errorResponse(metaError, 400, requestId);
-		const price = Number(priceStr ?? 0);
+		const price =
+			priceType?.toLowerCase() === 'poa' ? null : Number(priceStr ?? 0);
 
 		if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.', 400, requestId);
 		if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413, requestId);
@@ -536,6 +538,7 @@ export const GET: RequestHandler = async (event) => {
 	const nowIso = new Date().toISOString();
 	const q = (url.searchParams.get('q') ?? '').trim();
 	const category = (url.searchParams.get('category') ?? '').trim();
+	const priceState = (url.searchParams.get('price_state') ?? '').trim().toLowerCase();
 
 	if (isE2eMock(platform)) {
 		return json(
@@ -578,6 +581,9 @@ export const GET: RequestHandler = async (event) => {
 		const needle = q.replace(/[%_]/g, '\\$&');
 		query = query.or(`title.ilike.%${needle}%,description.ilike.%${needle}%`);
 	}
+	if (priceState === 'free') query = query.eq('price', 0);
+	if (priceState === 'poa') query = query.is('price', null);
+	if (priceState === 'fixed') query = query.gt('price', 0);
 
 	const { data, error } = await query
 		.order('created_at', { ascending: false })

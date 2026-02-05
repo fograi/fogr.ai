@@ -1,7 +1,7 @@
 export interface AdCard {
 	id: string;
 	title: string;
-	price: number;
+	price: number | null;
 	img: string;
 	description: string;
 	category: string;
@@ -27,7 +27,7 @@ export type ApiAdRow = {
 	title: string;
 	description: string;
 	category: string;
-	price: number;
+	price: number | null;
 	currency: string | null;
 	image_keys: string[] | null;
 	status: string;

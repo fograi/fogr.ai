@@ -10,6 +10,7 @@
 	let container: HTMLUListElement;
 	const q = $derived(data?.q ?? '');
 	const category = $derived(data?.category ?? '');
+	const priceState = $derived(data?.priceState ?? '');
 
 	function layout() {
 		if (!container) return;
@@ -79,10 +80,17 @@
 					<option value={cat}>{cat}</option>
 				{/each}
 			</select>
+			<label class="sr-only" for="search-price-state">Price</label>
+			<select id="search-price-state" name="price_state" value={priceState}>
+				<option value="">Any price</option>
+				<option value="fixed">Fixed price</option>
+				<option value="free">Free</option>
+				<option value="poa">POA</option>
+			</select>
 			<button type="submit" aria-label="Search">
 				<span class="icon" aria-hidden="true">🔍</span>
 			</button>
-			{#if q || category}
+			{#if q || category || priceState}
 				<a class="clear" href={resolve('/')} rel="external">Clear</a>
 			{/if}
 		</form>
@@ -109,7 +117,7 @@
 	{#if data.page > 1}
 		<a
 			class="pager__link"
-			href={`${resolve('/')}?page=${data.page - 1}${q ? `&q=${encodeURIComponent(q)}` : ''}${category ? `&category=${encodeURIComponent(category)}` : ''}`}
+			href={`${resolve('/')}?page=${data.page - 1}${q ? `&q=${encodeURIComponent(q)}` : ''}${category ? `&category=${encodeURIComponent(category)}` : ''}${priceState ? `&price_state=${encodeURIComponent(priceState)}` : ''}`}
 			rel="external"
 		>
 			Prev
@@ -118,7 +126,7 @@
 	{#if data.nextPage}
 		<a
 			class="pager__link"
-			href={`${resolve('/')}?page=${data.nextPage}${q ? `&q=${encodeURIComponent(q)}` : ''}${category ? `&category=${encodeURIComponent(category)}` : ''}`}
+			href={`${resolve('/')}?page=${data.nextPage}${q ? `&q=${encodeURIComponent(q)}` : ''}${category ? `&category=${encodeURIComponent(category)}` : ''}${priceState ? `&price_state=${encodeURIComponent(priceState)}` : ''}`}
 			rel="external"
 		>
 			Next
@@ -149,7 +157,7 @@
 	}
 	.search__form {
 		display: grid;
-		grid-template-columns: 1fr auto auto;
+		grid-template-columns: 1fr auto auto auto;
 		gap: 10px;
 		align-items: center;
 		width: 100%;
@@ -188,6 +196,7 @@
 			grid-template-areas:
 				'q btn'
 				'category category'
+				'price price'
 				'clear clear';
 			max-width: 100%;
 		}
@@ -196,6 +205,9 @@
 		}
 		#search-category {
 			grid-area: category;
+		}
+		#search-price-state {
+			grid-area: price;
 		}
 		.search__form button {
 			grid-area: btn;

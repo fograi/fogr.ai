@@ -3,7 +3,8 @@
 		ALLOWED_IMAGE_TYPES,
 		MAX_IMAGE_SIZE,
 		catBase,
-		catIcon
+		catIcon,
+		type PriceType
 	} from '$lib/constants';
 
 	// two-way bind from parent
@@ -13,6 +14,7 @@
 	export let title: string = '';
 	export let category: keyof typeof catBase | '' = '';
 	export let isFree = false;
+	export let priceType: PriceType = 'fixed';
 	export let price: number | '' = '';
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
@@ -181,13 +183,17 @@
 	}
 
 	$: formatted =
-		!isFree && price !== ''
-			? new Intl.NumberFormat(locale, {
-					style: 'currency',
-					currency,
-					maximumFractionDigits: 0
-				}).format(Number(price))
-			: '';
+		priceType === 'poa'
+			? 'POA'
+			: priceType === 'free' || isFree || Number(price) === 0
+				? 'Free'
+				: price !== ''
+					? new Intl.NumberFormat(locale, {
+							style: 'currency',
+							currency,
+							maximumFractionDigits: 0
+						}).format(Number(price))
+					: '';
 
 	// expose actions to parent via element binding if needed
 	export { clearFile };
@@ -221,9 +227,9 @@
 			/>
 		</div>
 		<h3 class="title--standalone">{title || 'Your catchy title'}</h3>
-		{#if isFree || formatted}
+		{#if formatted}
 			<div class="price-row">
-				<span class="price-badge">{isFree ? 'Free' : formatted}</span>
+				<span class="price-badge">{formatted}</span>
 			</div>
 		{/if}
 		<div class="row actions">

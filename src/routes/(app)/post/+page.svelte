@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { type Category } from '$lib/constants';
+	import { type Category, type PriceType, POA_CATEGORY_SET } from '$lib/constants';
 
 	import PostFields from '$lib/components/post/PostFields.svelte';
 	import ImageDrop from '$lib/components/post/ImageDrop.svelte';
@@ -14,6 +14,7 @@
 	let description = '';
 	let category: Category | '' = '';
 	let price: number | '' = '';
+	let priceType: PriceType = 'fixed';
 	let currency = 'EUR';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
@@ -30,8 +31,12 @@
 	let debounce: number | undefined;
 
 	// derived
-	$: isFree = category === 'Free / Giveaway';
-	$: if (isFree && price !== 0) price = 0;
+	$: isFree = priceType === 'free' || category === 'Free / Giveaway';
+	$: if (category === 'Free / Giveaway' && priceType !== 'free') priceType = 'free';
+	$: if (priceType === 'poa' && category && !POA_CATEGORY_SET.has(category)) priceType = 'fixed';
+	$: if (priceType === 'free' && price !== 0) price = 0;
+	$: if (priceType === 'poa') price = '';
+	$: if (priceType === 'fixed' && price === 0) price = '';
 
 	// live moderation check while typing
 	$: {
@@ -68,10 +73,17 @@
 			return `Title must be at least ${MIN_TITLE_LENGTH} characters.`;
 		if (title.length > MAX_TITLE_LENGTH)
 			return `Title must be no more than ${MAX_TITLE_LENGTH} characters.`;
-		if (!isFree && price === '') return 'Enter a price.';
-		if (!isFree) {
+		if (priceType === 'poa' && category && !POA_CATEGORY_SET.has(category)) {
+			return 'Price on application is not available for this category.';
+		}
+		if (priceType === 'fixed' && price === '') return 'Enter a price.';
+		if (priceType === 'fixed') {
 			const n = Number(price);
-			if (Number.isNaN(n) || n < 0) return 'Price must be 0 or more.';
+			if (Number.isNaN(n) || n <= 0) return 'Price must be greater than 0.';
+		}
+		if (priceType === 'free') {
+			const n = Number(price);
+			if (Number.isNaN(n) || n !== 0) return 'Free listings must be 0.';
 		}
 		return '';
 	}
@@ -139,9 +151,10 @@
 			form.append('title', title.trim());
 			form.append('description', description.trim());
 			form.append('category', category as string);
-			if (isFree) {
+			form.append('price_type', priceType);
+			if (priceType === 'free') {
 				form.append('price', '0');
-			} else if (price !== '') {
+			} else if (priceType === 'fixed' && price !== '') {
 				form.append('price', String(price));
 			}
 			form.append('currency', currency);
@@ -228,17 +241,18 @@
 
 	{#if step === 1}
 		<section class="panel">
-			<PostFields
-				step={1}
-				bind:category
-				bind:title
-				bind:description
-				bind:price
-				bind:ageConfirmed
-				{isFree}
-				{loading}
-				{showErrors}
-			/>
+				<PostFields
+					step={1}
+					bind:category
+					bind:title
+					bind:description
+					bind:price
+					bind:priceType
+					bind:ageConfirmed
+					{isFree}
+					{loading}
+					{showErrors}
+				/>
 			<div class="actions">
 				<button type="button" class="btn primary" on:click={goNext} disabled={loading}>
 					Continue
@@ -249,17 +263,18 @@
 
 	{#if step === 2}
 		<section class="panel">
-			<PostFields
-				step={2}
-				bind:category
-				bind:title
-				bind:description
-				bind:price
-				bind:ageConfirmed
-				{isFree}
-				{loading}
-				{showErrors}
-			/>
+				<PostFields
+					step={2}
+					bind:category
+					bind:title
+					bind:description
+					bind:price
+					bind:priceType
+					bind:ageConfirmed
+					{isFree}
+					{loading}
+					{showErrors}
+				/>
 			<div class="actions">
 				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>
 					Back
@@ -279,6 +294,7 @@
 				{title}
 				{category}
 				{isFree}
+				{priceType}
 				{price}
 				{currency}
 				{locale}

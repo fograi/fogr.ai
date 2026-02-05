@@ -12,6 +12,12 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
+export const PRICE_TYPES = ['fixed', 'free', 'poa'] as const;
+export type PriceType = (typeof PRICE_TYPES)[number];
+
+export const POA_CATEGORIES = ['Services & Gigs', 'Lessons & Tutoring'] as const;
+export const POA_CATEGORY_SET = new Set<Category>(POA_CATEGORIES);
+
 export const catBase: Record<Category, string> = {
 	'Home & Garden': '#5A9C3E',
 	Electronics: '#117AB5',

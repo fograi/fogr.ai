@@ -5,7 +5,7 @@
 
 	// Props
 	export let title: string;
-	export let price: number;
+	export let price: number | null;
 	export let img: string;
 	export let description: string;
 	export let category: string;
@@ -19,25 +19,18 @@
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
 	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
-	$: formattedPrice =
-		typeof price === 'number'
-			? new Intl.NumberFormat(locale, {
-					style: 'currency',
-					currency,
-					maximumFractionDigits: 0
-				}).format(price)
-			: null;
-
 	$: displayedPrice =
-		category === 'Free / Giveaway'
-			? 'Free'
-			: typeof price === 'number'
-				? new Intl.NumberFormat(locale, {
-						style: 'currency',
-						currency,
-						maximumFractionDigits: 0
-					}).format(price)
-				: '';
+		price === null
+			? 'POA'
+			: price === 0 || category === 'Free / Giveaway'
+				? 'Free'
+				: typeof price === 'number'
+					? new Intl.NumberFormat(locale, {
+							style: 'currency',
+							currency,
+							maximumFractionDigits: 0
+						}).format(price)
+					: '';
 
 	$: expiresLabel = expiresAt
 		? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(expiresAt))

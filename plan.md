@@ -67,12 +67,12 @@
 - Listing display: `src/lib/components/AdCard.svelte`, `src/lib/components/AdCardWide.svelte`.
 - Types + fixtures: `src/types/ad-types.d.ts`, `src/lib/supabase.types.ts`, `src/data/mock-ads.ts`, `src/lib/server/e2e-mocks.ts`.
 
-- [ ] Define category rules for real price vs Free/POA (config or constants).
-- [ ] Update listing form validation for price rules and Free/POA states.
-- [ ] Update search/filter UI to include Free/POA as explicit filter states.
-- [ ] Enforce server-side validation for price rules.
-- [ ] Update listing detail UI to display Free/POA clearly.
-- [ ] Add or update unit and e2e tests for price validation and filters.
+- [x] Define category rules for real price vs Free/POA (config or constants).
+- [x] Update listing form validation for price rules and Free/POA states.
+- [x] Update search/filter UI to include Free/POA as explicit filter states.
+- [x] Enforce server-side validation for price rules.
+- [x] Update listing detail UI to display Free/POA clearly.
+- [x] Add or update unit and e2e tests for price validation and filters.
 
 ### P0.2 Listing Quality Gates
 

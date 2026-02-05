@@ -8,12 +8,14 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 	const { page, limit } = getPagination(url.searchParams, DEFAULT_LIMIT, 100);
 	const q = (url.searchParams.get('q') ?? '').trim();
 	const category = (url.searchParams.get('category') ?? '').trim();
+	const priceState = (url.searchParams.get('price_state') ?? '').trim();
 	const params = new URLSearchParams({
 		page: String(page),
 		limit: String(limit)
 	});
 	if (q) params.set('q', q);
 	if (category) params.set('category', category);
+	if (priceState) params.set('price_state', priceState);
 
 	const res = await fetch(`/api/ads?${params.toString()}`);
 	if (!res.ok) {
@@ -38,12 +40,12 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 	const mapped: AdCard[] = ads.map((ad) => ({
 		id: ad.id,
 		title: ad.title,
-		price: Number(ad.price ?? -1),
+		price: ad.price ?? null,
 		img: ad.image_keys?.[0] ?? '',
 		description: ad.description ?? '',
 		category: ad.category ?? '',
 		currency: ad.currency ?? undefined
 	}));
 
-	return { ads: mapped, page, nextPage: nextPage ?? null, requestId, q, category };
+	return { ads: mapped, page, nextPage: nextPage ?? null, requestId, q, category, priceState };
 };

@@ -5,21 +5,25 @@
 
 	export let id: number | string;
 	export let title: string;
-	export let price: number;
+	export let price: number | null;
 	export let img: string | undefined;
 	export let description: string;
 	export let category: string;
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 
-	$: formattedPrice =
-		typeof price === 'number' && price > -1
-			? new Intl.NumberFormat(locale, {
-					style: 'currency',
-					currency,
-					maximumFractionDigits: 0
-				}).format(price)
-			: null;
+	$: priceLabel =
+		price === null
+			? 'POA'
+			: price === 0
+				? 'Free'
+				: typeof price === 'number'
+					? new Intl.NumberFormat(locale, {
+							style: 'currency',
+							currency,
+							maximumFractionDigits: 0
+						}).format(price)
+					: null;
 
 	let isPortrait = false;
 	let hasImageError = false;
@@ -92,8 +96,8 @@
 			{#if description}<p class="desc">{description}</p>{/if}
 
 			<!-- Price pinned to bottom-right -->
-			{#if formattedPrice}
-				<span class="price">{formattedPrice}</span>
+			{#if priceLabel}
+				<span class="price">{priceLabel}</span>
 			{/if}
 		</div>
 	</a>

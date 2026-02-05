@@ -2,6 +2,8 @@
 	import {
 		CATEGORIES,
 		type Category,
+		type PriceType,
+		POA_CATEGORY_SET,
 		MIN_TITLE_LENGTH,
 		MAX_TITLE_LENGTH,
 		MIN_DESC_LENGTH,
@@ -13,6 +15,7 @@
 	export let title = '';
 	export let description = '';
 	export let price: number | '' = '';
+	export let priceType: PriceType = 'fixed';
 	export let isFree = false;
 	export let ageConfirmed = false;
 	export let step = 1;
@@ -29,10 +32,12 @@
 		(!title.trim() ||
 			title.trim().length < MIN_TITLE_LENGTH ||
 			title.length > MAX_TITLE_LENGTH);
+	$: poaAllowed = category ? POA_CATEGORY_SET.has(category) : false;
 	$: priceInvalid =
 		showErrors &&
-		!isFree &&
-		(price === '' || Number.isNaN(Number(price)) || Number(price) < 0);
+		((priceType === 'fixed' &&
+			(price === '' || Number.isNaN(Number(price)) || Number(price) <= 0)) ||
+			(priceType === 'free' && Number(price) !== 0));
 	$: descriptionInvalid =
 		showErrors &&
 		(!description.trim() ||
@@ -76,8 +81,30 @@
 
 		<div class="row">
 			<div class="field">
+				<label for="price-type">Price type</label>
+				<select
+					id="price-type"
+					bind:value={priceType}
+					disabled={loading || category === 'Free / Giveaway'}
+				>
+					<option value="fixed">Fixed price</option>
+					<option value="free">Free</option>
+					{#if poaAllowed}
+						<option value="poa">Price on application</option>
+					{/if}
+				</select>
+				{#if category === 'Free / Giveaway'}
+					<small class="muted">Free / Giveaway always uses Free pricing.</small>
+				{/if}
+			</div>
+			<div class="field">
 				<label for="price">
-					Price {#if isFree}<span class="muted">(set to €0 for Free / Giveaway)</span>{/if}
+					Price
+					{#if priceType === 'free'}
+						<span class="muted">(shown as Free)</span>
+					{:else if priceType === 'poa'}
+						<span class="muted">(shown as POA)</span>
+					{/if}
 				</label>
 				<input
 					id="price"
@@ -87,9 +114,9 @@
 					inputmode="numeric"
 					pattern="[0-9]*"
 					bind:value={price}
-					required={!isFree}
-					disabled={isFree || loading}
-					placeholder={isFree ? '0' : 'e.g., 50'}
+					required={priceType === 'fixed'}
+					disabled={priceType !== 'fixed' || loading}
+					placeholder={priceType === 'fixed' ? 'e.g., 50' : '—'}
 					aria-invalid={showErrors ? priceInvalid : undefined}
 				/>
 			</div>
