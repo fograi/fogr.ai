@@ -172,6 +172,9 @@
 		{#if data.moderation}
 			<section class="moderation">
 				<h2>Moderation decision</h2>
+				<p class="moderation-meta">
+					This section is only visible to the ad owner when signed in.
+				</p>
 				<p class="moderation-meta">Decision source: {decisionSource}</p>
 				<p class="moderation-meta">
 					{data.moderation.action_type.replace('_', ' ')} on
