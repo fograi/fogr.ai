@@ -37,6 +37,11 @@ body {
 		Roboto,
 		sans-serif;
 }
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
 
 a {
 	color: var(--link);

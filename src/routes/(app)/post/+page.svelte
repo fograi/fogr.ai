@@ -310,8 +310,7 @@
 
 <style>
 	.post {
-		padding-bottom: calc(72px + env(safe-area-inset-bottom));
-		padding-left: 12px;
+		padding: 0 16px calc(72px + env(safe-area-inset-bottom));
 	}
 	.head {
 		text-align: center;
