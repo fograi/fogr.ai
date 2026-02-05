@@ -302,11 +302,6 @@
 		font-size: 1.7rem;
 		font-weight: 800;
 	}
-	.head .sub {
-		margin: 0;
-		color: color-mix(in srgb, var(--fg) 60%, transparent);
-		font-weight: 600;
-	}
 
 	.steps {
 		list-style: none;
@@ -373,14 +368,6 @@
 		background: var(--surface);
 		display: grid;
 		gap: 12px;
-	}
-	.panel h2 {
-		margin: 0;
-		font-size: 1.2rem;
-	}
-	.hint {
-		margin: 0;
-		color: color-mix(in srgb, var(--fg) 65%, transparent);
 	}
 
 	.actions {
