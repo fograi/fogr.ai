@@ -8,6 +8,54 @@ export type Database = {
 	};
 	public: {
 		Tables: {
+			ad_reports: {
+				Row: {
+					ad_id: string;
+					created_at: string;
+					good_faith: boolean;
+					id: string;
+					location_url: string;
+					reason_category: string;
+					reason_details: string;
+					reporter_email: string;
+					reporter_ip: string | null;
+					reporter_name: string;
+					reporter_user_agent: string | null;
+					reporter_user_id: string | null;
+					status: string;
+				};
+				Insert: {
+					ad_id: string;
+					created_at?: string;
+					good_faith?: boolean;
+					id?: string;
+					location_url: string;
+					reason_category: string;
+					reason_details: string;
+					reporter_email: string;
+					reporter_ip?: string | null;
+					reporter_name: string;
+					reporter_user_agent?: string | null;
+					reporter_user_id?: string | null;
+					status?: string;
+				};
+				Update: {
+					ad_id?: string;
+					created_at?: string;
+					good_faith?: boolean;
+					id?: string;
+					location_url?: string;
+					reason_category?: string;
+					reason_details?: string;
+					reporter_email?: string;
+					reporter_ip?: string | null;
+					reporter_name?: string;
+					reporter_user_agent?: string | null;
+					reporter_user_id?: string | null;
+					status?: string;
+				};
+				Relationships: [];
+			};
 			ads: {
 				Row: {
 					category: string;
