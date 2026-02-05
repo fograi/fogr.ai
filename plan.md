@@ -33,10 +33,18 @@
 
 ## UX Overhaul Plan (Proposed)
 
-- [ ] Define the primary jobs and success metrics for browse, post, and report flows
+- [x] Define the primary jobs and success metrics for browse, post, and report flows
 - [ ] Simplify navigation and information architecture around one primary action per screen
 - [ ] Redesign home and browse with a focused search-first layout and minimal filters
 - [ ] Convert posting into a short step-by-step wizard with progressive disclosure
 - [ ] Redesign ad detail with a single primary action rail and collapsible secondary info
 - [ ] Overhaul copy and error messaging for clarity and consistency
 - [ ] Update shared UI tokens (typography, spacing, buttons) for simpler hierarchy
+
+## UX Overhaul: Jobs and Metrics
+
+- Browse job: find relevant listings fast and evaluate trust; success = time-to-first-relevant-click, search success rate, ad detail dwell time.
+- Post job: publish an ad with minimal friction and clear limits; success = post completion rate, time-to-publish, validation error rate.
+- Contact job: reach the seller without confusion; success = contact CTA click-through rate, share rate.
+- Report job: submit a clear, compliant report quickly; success = report completion rate, median time to submit, report rejection rate (invalid).
+- Moderation job (admin): process reports quickly with consistent decisions; success = time-to-decision, decision reversal/appeal rate.
