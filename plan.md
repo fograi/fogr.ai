@@ -41,6 +41,62 @@
 - [x] Overhaul copy and error messaging for clarity and consistency
 - [x] Update shared UI tokens (typography, spacing, buttons) for simpler hierarchy
 
+## Chat Context (Market Research Summary)
+
+- Main incumbent pain points in Ireland cited by users: scams/deposit fraud, dealers posing as private sellers, misleading listings, lowballing/time-wasters, weak reputation signals, fake prices (e.g., €1/€1234), app reliability complaints, intrusive ads, and perceived pricing gouging.
+- Product implications discussed: win on trust, reduce seller time-wasters, enforce honest filters, protect privacy by default, and add scam warnings.
+- Evidence is anecdotal (forums/Reddit); validate with user interviews and in-product metrics before heavy investments.
+- Selected P0-ish items to pursue first: structured messaging + offer controls, honest pricing rules, listing quality gates, privacy-first messaging, scam pattern warnings.
+
+## P0-ish Tasks (High Signal, Low Ops)
+
+### P0.1 Structured First Message + Offer Controls
+
+- [ ] Define structured message templates and required fields (availability, offer amount, timing, pickup/shipping).
+- [ ] Update message composer UI to enforce structure and capture metadata.
+- [ ] Add seller controls: minimum offer, firm price flag, auto-decline message.
+- [ ] Validate offers server-side against floor/firm rules with clear errors.
+- [ ] Track metrics: lowball rate, time-to-first-serious-inquiry, offer acceptance rate.
+- [ ] Add or update unit and e2e tests for message flow and offer validation.
+
+### P0.2 Honest Pricing Rules (Free/POA)
+
+- [ ] Define category rules for real price vs Free/POA (config or constants).
+- [ ] Update listing form validation for price rules and Free/POA states.
+- [ ] Update search/filter UI to include Free/POA as explicit filter states.
+- [ ] Enforce server-side validation for price rules.
+- [ ] Update listing detail UI to display Free/POA clearly.
+- [ ] Add or update unit and e2e tests for price validation and filters.
+
+### P0.3 Listing Quality Gates
+
+- [ ] Define required fields per category and minimum photo counts.
+- [ ] Update post wizard to enforce required fields and photo minimums.
+- [ ] Add lightweight client checks with clear error copy.
+- [ ] Enforce server-side validation to block publish without required fields.
+- [ ] Add or update tests for required fields and photo minimums.
+
+### P0.4 Privacy-First Messaging
+
+- [ ] Default to in-app messaging; remove phone reveal from initial contact flow.
+- [ ] Add optional phone reveal gating (opt-in toggle or after defined actions).
+- [ ] Update listing/contact UI copy to set expectations.
+- [ ] Enforce server-side rules around phone reveal.
+- [ ] Add or update tests for contact flow and reveal gating.
+
+### P0.5 Scam Pattern Warnings
+
+- [ ] Define initial keyword/heuristic patterns (WhatsApp, courier, deposit pressure, PayPal friends and family).
+- [ ] Implement in-chat warning banner with report CTA for suspicious messages.
+- [ ] Add server-side logging/flagging to refine rules.
+- [ ] Add or update tests for warning triggers.
+
+## Workflow Notes
+
+- Add or edit unit and e2e tests as needed for each task.
+- Run the relevant tests after each step to catch and prevent regressions.
+- Keep changes incremental and measurable (track the core metrics above).
+
 ## UX Overhaul: Jobs and Metrics
 
 - Browse job: find relevant listings fast and evaluate trust; success = time-to-first-relevant-click, search success rate, ad detail dwell time.
