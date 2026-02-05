@@ -150,6 +150,8 @@
 		grid-template-columns: 1fr auto auto;
 		gap: 10px;
 		align-items: center;
+		width: min(100%, 720px);
+		margin: 0 auto;
 	}
 	.search__form input,
 	.search__form select {
@@ -183,6 +185,7 @@
 				'q btn'
 				'category category'
 				'clear clear';
+			width: min(100%, 360px);
 		}
 		#search-q {
 			grid-area: q;

@@ -84,30 +84,20 @@ h3 {
 		box-shadow 0.2s ease,
 		background-color 0.2s ease;
 }
-:where(input, textarea):not([aria-invalid='true']):where(:user-valid):not(:placeholder-shown):not(:focus) {
-	border-color: var(--accent-green);
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
-}
-:where(input, textarea, select)[aria-invalid='true'],
-:where(input, textarea):where(:user-invalid):not(:focus),
-:where(select):where(:user-invalid):not(:focus) {
+form
+	:is(input, textarea, select):not([type='checkbox']):not([type='radio'])[aria-invalid='true']
+	:not(:focus) {
 	border-color: var(--accent-orange);
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent);
 	background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
 }
-
-@supports not selector(:user-valid) {
-	:where(input, textarea):where(:valid):not([aria-invalid='true']):not(:placeholder-shown):not(:focus),
-	:where(select):where(:valid):not([aria-invalid='true']):not(:focus) {
-		border-color: var(--accent-green);
-		box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
-	}
-	:where(input, textarea):where(:invalid):not(:placeholder-shown):not(:focus),
-	:where(select):where(:invalid):not(:focus) {
-		border-color: var(--accent-orange);
-		box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent);
-		background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
-	}
+form
+	:is(input, textarea):not([type='checkbox']):not([type='radio'])[aria-invalid='false']
+	:not(:placeholder-shown)
+	:not(:focus),
+form select[aria-invalid='false']:not(:focus) {
+	border-color: var(--accent-green);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
 }
 
 a {

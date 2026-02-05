@@ -258,7 +258,7 @@
 								bind:value={reportName}
 								autocomplete="name"
 								required
-								aria-invalid={reportAttempted && !reportName.trim()}
+								aria-invalid={reportAttempted ? !reportName.trim() : undefined}
 							/>
 
 							<label for="report-email">Your email</label>
@@ -269,9 +269,10 @@
 								autocomplete="email"
 								required
 								aria-invalid={
-									reportAttempted &&
-									(!reportEmail.trim() ||
-										!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(reportEmail.trim()))
+									reportAttempted
+										? !reportEmail.trim() ||
+											!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(reportEmail.trim())
+										: undefined
 								}
 							/>
 
@@ -280,7 +281,7 @@
 								id="report-reason"
 								bind:value={reportReason}
 								required
-								aria-invalid={reportAttempted && !reportReason}
+								aria-invalid={reportAttempted ? !reportReason : undefined}
 							>
 								{#each reportReasons as reason}
 									<option value={reason.value}>{reason.label}</option>
@@ -303,7 +304,11 @@
 								minlength={MIN_REPORT_DETAILS}
 								required
 								placeholder="Describe the issue and where it appears."
-								aria-invalid={reportAttempted && reportDetails.trim().length < MIN_REPORT_DETAILS}
+								aria-invalid={
+									reportAttempted
+										? reportDetails.trim().length < MIN_REPORT_DETAILS
+										: undefined
+								}
 							></textarea>
 
 							<label class="checkbox">
@@ -311,7 +316,7 @@
 									type="checkbox"
 									bind:checked={reportGoodFaith}
 									required
-									aria-invalid={reportAttempted && !reportGoodFaith}
+									aria-invalid={reportAttempted ? !reportGoodFaith : undefined}
 								/>
 								<span>I confirm this report is made in good faith.</span>
 							</label>
@@ -380,7 +385,11 @@
 										minlength={MIN_APPEAL_DETAILS}
 										required
 										placeholder="Share any facts or context we should reconsider."
-										aria-invalid={appealAttempted && appealDetails.trim().length < MIN_APPEAL_DETAILS}
+										aria-invalid={
+											appealAttempted
+												? appealDetails.trim().length < MIN_APPEAL_DETAILS
+												: undefined
+										}
 									></textarea>
 
 									{#if appealError}

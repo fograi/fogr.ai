@@ -49,7 +49,7 @@
 				id="category"
 				bind:value={category}
 				disabled={loading}
-				aria-invalid={categoryInvalid}
+				aria-invalid={showErrors ? categoryInvalid : undefined}
 			>
 				<option value="" disabled selected hidden>Choose…</option>
 				{#each CATEGORIES as c (c)}
@@ -69,7 +69,7 @@
 				placeholder="e.g., IKEA MALM desk — great condition"
 				required
 				disabled={loading}
-				aria-invalid={titleInvalid}
+				aria-invalid={showErrors ? titleInvalid : undefined}
 			/>
 			<small class="muted">Min {MIN_TITLE_LENGTH}, max {MAX_TITLE_LENGTH}</small>
 		</div>
@@ -90,7 +90,7 @@
 					required={!isFree}
 					disabled={isFree || loading}
 					placeholder={isFree ? '0' : 'e.g., 50'}
-					aria-invalid={priceInvalid}
+					aria-invalid={showErrors ? priceInvalid : undefined}
 				/>
 			</div>
 		</div>
@@ -110,7 +110,7 @@
 				placeholder="Key details, pickup area, condition…"
 				required
 				disabled={loading}
-				aria-invalid={descriptionInvalid}
+				aria-invalid={showErrors ? descriptionInvalid : undefined}
 			></textarea>
 			<small class="muted">Min {MIN_DESC_LENGTH}, max {MAX_DESC_LENGTH}</small>
 		</div>
@@ -121,7 +121,7 @@
 					type="checkbox"
 					bind:checked={ageConfirmed}
 					disabled={loading}
-					aria-invalid={ageInvalid}
+					aria-invalid={showErrors ? ageInvalid : undefined}
 				/>
 				<span>I am 18 or older.</span>
 			</label>

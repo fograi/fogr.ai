@@ -141,7 +141,7 @@
 					required
 					autocomplete="email"
 					inputmode="email"
-					aria-invalid={!!err}
+					aria-invalid={err ? true : undefined}
 				/>
 				{#if !ageConfirmed}
 					<label class="checkbox">
