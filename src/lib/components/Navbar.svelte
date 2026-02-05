@@ -11,7 +11,7 @@
 	import logoSvg from '$lib/assets/fógraí.svg?raw';
 
 	export let title = 'fogr.ai';
-	// base links that are always shown
+	// minimal nav: primary CTA + compact menu
 	type NavHref = '/' | '/(public)/about' | '/(app)/post' | '/(app)/account';
 	const baseLinks: Array<{ href: NavHref; label: string }> = [];
 	let authedLinks: Array<{ href: NavHref; label: string }> = baseLinks;
@@ -24,7 +24,6 @@
 
 	let menu: HTMLElement;
 	let burgerEl: HTMLButtonElement;
-	let isDesktop = false;
 
 	// supabase client (only needed for client-side signout UX)
 	const supabase: SupabaseClient | null = browser
@@ -60,14 +59,6 @@
 	afterNavigate(() => closeMenu(false));
 
 	onMount(() => {
-		const media = window.matchMedia('(min-width: 768px)');
-		const syncDesktop = () => {
-			isDesktop = media.matches;
-			if (isDesktop) open = false;
-		};
-		syncDesktop();
-		media.addEventListener('change', syncDesktop);
-
 		lastY = window.scrollY;
 		const onWinScroll = () => {
 			if (!ticking) {
@@ -103,7 +94,6 @@
 		document.addEventListener('focusin', onFocusIn);
 
 		return () => {
-			media.removeEventListener('change', syncDesktop);
 			removeEventListener('scroll', onWinScroll);
 			document.removeEventListener('pointerdown', onDocPointer);
 			document.removeEventListener('keydown', onDocKey);
@@ -115,9 +105,12 @@
 	$: if (open) queueMicrotask(() => menu?.querySelector<HTMLAnchorElement>('a')?.focus());
 
 	// Build the final nav items based on auth
-	$: authedLinks = user
-		? [...baseLinks, { href: '/(app)/post', label: 'Post ad' }, { href: '/(app)/account', label: 'Account' }]
-		: baseLinks;
+	$: authedLinks = user ? [...baseLinks, { href: '/(app)/account', label: 'Account' }] : baseLinks;
+
+	const postPath = resolve('/(app)/post');
+	$: primaryHref = user
+		? postPath
+		: `${resolve('/(public)/login')}?redirectTo=${encodeURIComponent(postPath)}`;
 </script>
 
 <header class="nav" class:hidden>
@@ -125,6 +118,8 @@
 		<a class="brand" href={resolve('/')} aria-label={title}>
 			<span class="brand__logo" aria-hidden="true">{@html logoSvg}</span>
 		</a>
+
+		<a class="primary-cta" href={primaryHref}>Post ad</a>
 
 		<button
 			class="burger"
@@ -138,7 +133,7 @@
 			<span></span><span></span><span></span>
 		</button>
 
-		<nav id="site-menu" bind:this={menu} class:open aria-hidden={!open && !isDesktop}>
+		<nav id="site-menu" bind:this={menu} class:open aria-hidden={!open}>
 			{#each authedLinks as link (link.href)}
 				<a href={resolve(link.href)} on:click={() => closeMenu(false)}>{link.label}</a>
 			{/each}
@@ -208,7 +203,7 @@
 	}
 
 	.burger {
-		margin-left: auto;
+		margin-left: 0;
 		display: inline-flex;
 		width: 40px;
 		height: 40px;
@@ -260,21 +255,6 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 	}
 
-	@media (min-width: 768px) {
-		.burger {
-			display: none;
-		}
-		nav {
-			display: flex;
-			margin-left: auto;
-			gap: 0.5rem;
-			position: static;
-			background: transparent;
-			padding: 0;
-			border: 0;
-		}
-	}
-
 	/* focus styles */
 	nav a:focus-visible {
 		outline: 2px solid var(--link);
@@ -293,5 +273,19 @@
 	}
 	nav .as-link:hover {
 		background: var(--hover);
+	}
+
+	.primary-cta {
+		margin-left: auto;
+		padding: 0.5rem 0.9rem;
+		border-radius: 999px;
+		border: 1px solid var(--hairline);
+		background: color-mix(in srgb, var(--fg) 12%, var(--bg));
+		color: inherit;
+		text-decoration: none;
+		font-weight: 700;
+	}
+	.primary-cta:hover {
+		background: color-mix(in srgb, var(--fg) 18%, var(--bg));
 	}
 </style>
