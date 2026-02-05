@@ -12,9 +12,12 @@ test('post page allows submitting a listing with mocked API', async ({ page }) =
 
 	await page.selectOption('#category', 'Services & Gigs');
 	await page.fill('#title', 'E2E Listing Title');
-	await page.fill('#description', 'E2E listing description that is long enough to pass validation.');
 	await page.fill('#price', '10');
+	await page.getByRole('button', { name: 'Continue' }).click();
+
+	await page.fill('#description', 'E2E listing description that is long enough to pass validation.');
 	await page.getByLabel('I am 18 or older.').check();
+	await page.getByRole('button', { name: 'Continue' }).click();
 
 	await page.route('**/api/ads', async (route) => {
 		if (route.request().method() !== 'POST') return route.continue();

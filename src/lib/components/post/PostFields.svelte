@@ -15,10 +15,9 @@
 	export let price: number | '' = '';
 	export let isFree = false;
 	export let ageConfirmed = false;
+	export let step = 1;
 
 	// validation messages from parent (optional)
-	export let err = '';
-	export let ok = '';
 	export let loading = false;
 
 	$: titleLen = title.length;
@@ -26,75 +25,76 @@
 </script>
 
 <section class="fields" aria-busy={loading}>
-	<div class="field">
-		<label for="category">Category</label>
-		<select id="category" bind:value={category} disabled={loading}>
-			<option value="" disabled selected hidden>Choose…</option>
-			{#each CATEGORIES as c (c)}
-				<option value={c}>{c}</option>
-			{/each}
-		</select>
-	</div>
-
-	<div class="field">
-		<label for="title">Title <span class="muted">({titleLen}/{MAX_TITLE_LENGTH})</span></label>
-		<input
-			id="title"
-			type="text"
-			bind:value={title}
-			maxlength={MAX_TITLE_LENGTH}
-			placeholder="e.g., IKEA MALM desk — great condition"
-			required
-			disabled={loading}
-		/>
-		<small class="muted">Min {MIN_TITLE_LENGTH}, max {MAX_TITLE_LENGTH}</small>
-	</div>
-
-	<div class="field">
-		<label for="description"
-			>Description <span class="muted">({descLen}/{MAX_DESC_LENGTH})</span></label
-		>
-		<textarea
-			id="description"
-			bind:value={description}
-			maxlength={MAX_DESC_LENGTH}
-			rows="6"
-			placeholder="Key details, pickup area, condition…"
-			required
-			disabled={loading}
-		></textarea>
-		<small class="muted">Min {MIN_DESC_LENGTH}, max {MAX_DESC_LENGTH}</small>
-	</div>
-
-	<div class="row">
+	{#if step === 1}
 		<div class="field">
-			<label for="price">
-				Price {#if isFree}<span class="muted">(set to €0 for Free / Giveaway)</span>{/if}
-			</label>
-			<input
-				id="price"
-				type="number"
-				min="0"
-				step="1"
-				inputmode="numeric"
-				pattern="[0-9]*"
-				bind:value={price}
-				required={!isFree}
-				disabled={isFree || loading}
-				placeholder={isFree ? '0' : 'e.g., 50'}
-			/>
+			<label for="category">Category</label>
+			<select id="category" bind:value={category} disabled={loading}>
+				<option value="" disabled selected hidden>Choose…</option>
+				{#each CATEGORIES as c (c)}
+					<option value={c}>{c}</option>
+				{/each}
+			</select>
 		</div>
-	</div>
 
-	<div class="row">
-		<label class="checkbox">
-			<input type="checkbox" bind:checked={ageConfirmed} disabled={loading} />
-			<span>I am 18 or older.</span>
-		</label>
-	</div>
+		<div class="field">
+			<label for="title">Title <span class="muted">({titleLen}/{MAX_TITLE_LENGTH})</span></label>
+			<input
+				id="title"
+				type="text"
+				bind:value={title}
+				maxlength={MAX_TITLE_LENGTH}
+				placeholder="e.g., IKEA MALM desk — great condition"
+				required
+				disabled={loading}
+			/>
+			<small class="muted">Min {MIN_TITLE_LENGTH}, max {MAX_TITLE_LENGTH}</small>
+		</div>
 
-	{#if err}<p class="error" role="alert">{err}</p>{/if}
-	{#if ok}<p class="ok" role="status">{ok}</p>{/if}
+		<div class="row">
+			<div class="field">
+				<label for="price">
+					Price {#if isFree}<span class="muted">(set to €0 for Free / Giveaway)</span>{/if}
+				</label>
+				<input
+					id="price"
+					type="number"
+					min="0"
+					step="1"
+					inputmode="numeric"
+					pattern="[0-9]*"
+					bind:value={price}
+					required={!isFree}
+					disabled={isFree || loading}
+					placeholder={isFree ? '0' : 'e.g., 50'}
+				/>
+			</div>
+		</div>
+	{/if}
+
+	{#if step === 2}
+		<div class="field">
+			<label for="description"
+				>Description <span class="muted">({descLen}/{MAX_DESC_LENGTH})</span></label
+			>
+			<textarea
+				id="description"
+				bind:value={description}
+				maxlength={MAX_DESC_LENGTH}
+				rows="6"
+				placeholder="Key details, pickup area, condition…"
+				required
+				disabled={loading}
+			></textarea>
+			<small class="muted">Min {MIN_DESC_LENGTH}, max {MAX_DESC_LENGTH}</small>
+		</div>
+
+		<div class="row">
+			<label class="checkbox">
+				<input type="checkbox" bind:checked={ageConfirmed} disabled={loading} />
+				<span>I am 18 or older.</span>
+			</label>
+		</div>
+	{/if}
 </section>
 
 <style>
@@ -136,15 +136,5 @@
 	}
 	.muted {
 		color: color-mix(in srgb, var(--fg) 55%, transparent);
-	}
-	.error {
-		color: var(--danger);
-		font-weight: 700;
-		margin: 4px 0;
-	}
-	.ok {
-		color: var(--success);
-		font-weight: 700;
-		margin: 4px 0;
 	}
 </style>
