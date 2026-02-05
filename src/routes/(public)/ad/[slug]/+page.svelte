@@ -202,7 +202,7 @@
 		<section class="action-rail" aria-label="Listing actions">
 			<button type="button" class="btn primary" on:click={share}>Share listing</button>
 			<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
-				Report listing
+				Flag listing
 			</button>
 			{#if data.moderation}
 				<button type="button" class="btn ghost" on:click={() => openPanel('moderation')}>

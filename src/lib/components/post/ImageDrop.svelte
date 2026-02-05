@@ -233,6 +233,15 @@
 				<input
 					type="file"
 					accept="image/*"
+					on:change={onFileChange}
+					hidden
+				/>
+			</label>
+			<label class="btn ghost">
+				Use camera
+				<input
+					type="file"
+					accept="image/*"
 					capture="environment"
 					on:change={onFileChange}
 					hidden
@@ -244,9 +253,20 @@
 	<div class="empty">
 		<div class="icon">🖼️</div>
 		<p>Drag an image here, or</p>
-		<label class="btn">
-			Choose photo
-			<input
+		<div class="choice-row">
+			<label class="btn">
+				Choose photo
+				<input
+					type="file"
+					accept="image/*"
+					on:change={onFileChange}
+					disabled={compressing}
+					hidden
+				/>
+			</label>
+			<label class="btn ghost">
+				Use camera
+				<input
 					type="file"
 					accept="image/*"
 					capture="environment"
@@ -254,7 +274,8 @@
 					disabled={compressing}
 					hidden
 				/>
-		</label>
+			</label>
+		</div>
 		<small>1 photo</small>
 		{#if compressing}<p class="hint">Compressing image…</p>{/if}
 		{#if warn}<p class="warn">{warn}</p>{/if}
@@ -328,6 +349,12 @@
 		gap: 10px;
 		align-items: center;
 		margin-top: 10px;
+	}
+	.choice-row {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		flex-wrap: wrap;
 	}
 
 	/* Buttons (unchanged) */

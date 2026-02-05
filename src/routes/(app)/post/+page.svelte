@@ -193,7 +193,6 @@
 <form class="post" on:submit|preventDefault={handleFormSubmit} aria-busy={loading}>
 	<header class="head">
 		<h1>Post an ad</h1>
-		<p class="sub">Step {step} of {totalSteps} • Clear, honest listings get the best response.</p>
 	</header>
 
 	<ol class="steps" aria-label="Posting steps">
@@ -212,7 +211,7 @@
 		<li class:active={step === 3} class:done={step > 3}>
 			<button type="button" on:click={() => jumpTo(3)} aria-current={step === 3}>
 				<span class="num">3</span>
-				<span class="label">Photo + Review</span>
+				<span class="label">Photo</span>
 			</button>
 		</li>
 	</ol>
@@ -226,8 +225,6 @@
 
 	{#if step === 1}
 		<section class="panel">
-			<h2>Title & price</h2>
-			<p class="hint">Be specific so people know what it is at a glance.</p>
 			<PostFields
 				step={1}
 				bind:category
@@ -248,8 +245,6 @@
 
 	{#if step === 2}
 		<section class="panel">
-			<h2>Description</h2>
-			<p class="hint">Condition, size, pickup details—whatever matters most.</p>
 			<PostFields
 				step={2}
 				bind:category
@@ -273,35 +268,16 @@
 
 	{#if step === 3}
 		<section class="panel">
-			<h2>Photo & review</h2>
-			<p class="hint">Optional photo, then check your listing before posting.</p>
-			<div class="review-grid">
-				<div class="review-card">
-					<h3>Ad preview</h3>
-					<p class="title">{title || 'Untitled listing'}</p>
-					<p class="meta">
-						{category || 'Category'} · {isFree ? 'Free' : price ? `€${price}` : 'Price'}
-					</p>
-					<p class="desc">
-						{description
-							? description.length > 140
-								? `${description.slice(0, 140)}…`
-								: description
-							: 'Add a clear description so buyers know what to expect.'}
-					</p>
-					<p class="mini">You can go back to edit any step.</p>
-				</div>
-				<ImageDrop
-					bind:file
-					bind:previewUrl
-					{title}
-					{category}
-					{isFree}
-					{price}
-					{currency}
-					{locale}
-				/>
-			</div>
+			<ImageDrop
+				bind:file
+				bind:previewUrl
+				{title}
+				{category}
+				{isFree}
+				{price}
+				{currency}
+				{locale}
+			/>
 			<div class="actions">
 				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>
 					Back
@@ -430,42 +406,4 @@
 		background: transparent;
 	}
 
-	.review-grid {
-		display: grid;
-		gap: 16px;
-	}
-	.review-card {
-		border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
-		border-radius: 14px;
-		padding: 14px;
-		display: grid;
-		gap: 8px;
-		background: color-mix(in srgb, var(--bg) 92%, var(--surface));
-	}
-	.review-card .title {
-		margin: 0;
-		font-weight: 800;
-		font-size: 1.1rem;
-	}
-	.review-card .meta {
-		margin: 0;
-		font-weight: 700;
-		color: color-mix(in srgb, var(--fg) 70%, transparent);
-	}
-	.review-card .desc {
-		margin: 0;
-		color: color-mix(in srgb, var(--fg) 80%, transparent);
-	}
-	.review-card .mini {
-		margin: 6px 0 0;
-		font-size: 0.85rem;
-		color: color-mix(in srgb, var(--fg) 60%, transparent);
-	}
-
-	@media (min-width: 820px) {
-		.review-grid {
-			grid-template-columns: 1fr 1fr;
-			align-items: start;
-		}
-	}
 </style>
