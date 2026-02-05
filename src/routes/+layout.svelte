@@ -43,9 +43,9 @@
 		background: var(--surface);
 	}
 	.site-footer .wrap {
-		max-width: 1100px;
+		max-width: var(--page-max);
 		margin: 0 auto;
-		padding: 1.25rem 1rem 2rem;
+		padding: 1.25rem var(--page-pad) 2rem;
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;

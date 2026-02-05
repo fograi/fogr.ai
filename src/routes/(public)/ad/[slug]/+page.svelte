@@ -382,7 +382,7 @@
 	.action-rail {
 		max-width: 960px;
 		margin: 12px auto 16px;
-		padding: 0 16px;
+		padding: 0 var(--page-pad);
 		display: flex;
 		gap: 10px;
 		flex-wrap: wrap;
@@ -411,7 +411,7 @@
 	.panel {
 		max-width: 960px;
 		margin: 12px auto;
-		padding: 0 16px;
+		padding: 0 var(--page-pad);
 	}
 	.panel summary {
 		list-style: none;

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Sora:wght@400;500;600;700;800&display=swap');
+
 :root {
 	color-scheme: light dark; /* hint UA for form controls, etc. */
 	--bg: #fffdf6; /* light grey */
@@ -6,6 +8,18 @@
 	--danger: #b91c1c;
 	--danger-strong: #dc2626;
 	--success: #0a7f3f;
+	--font-body: 'Sora', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Fraunces', 'Sora', ui-sans-serif, serif;
+	--page-pad: clamp(16px, 4vw, 28px);
+	--page-max: 1100px;
+	--space-1: 6px;
+	--space-2: 10px;
+	--space-3: 16px;
+	--space-4: 24px;
+	--radius-1: 8px;
+	--radius-2: 12px;
+	--radius-3: 16px;
+	--shadow-1: 0 12px 32px color-mix(in srgb, var(--fg) 12%, transparent);
 	/* derived tokens so components don't need their own dark-mode blocks */
 	--hairline: color-mix(in srgb, var(--fg) 10%, transparent);
 	--hover: color-mix(in srgb, var(--fg) 8%, transparent);
@@ -31,16 +45,36 @@ body {
 	background: var(--bg);
 	color: var(--fg);
 	font-family:
-		system-ui,
+		var(--font-body),
 		-apple-system,
 		Segoe UI,
-		Roboto,
 		sans-serif;
+}
+body {
+	letter-spacing: -0.01em;
+}
+h1,
+h2,
+h3 {
+	font-family:
+		var(--font-display),
+		-apple-system,
+		Segoe UI,
+		serif;
+	letter-spacing: -0.02em;
 }
 *,
 *::before,
 *::after {
 	box-sizing: border-box;
+}
+:where(button, .btn) {
+	font: inherit;
+	border-radius: var(--radius-2);
+}
+:where(input, select, textarea) {
+	font: inherit;
+	border-radius: var(--radius-2);
 }
 
 a {

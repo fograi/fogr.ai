@@ -132,7 +132,7 @@
 	.search__inner {
 		max-width: 1100px;
 		margin: 0 auto;
-		padding: 0 16px;
+		padding: 0 var(--page-pad);
 		display: grid;
 		gap: 12px;
 	}
@@ -215,7 +215,7 @@
 	}
 	.masonry-grid {
 		list-style: none;
-		padding-left: 0;
+		padding: 0 var(--page-pad);
 		margin: 0;
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

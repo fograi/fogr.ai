@@ -1,22 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" role="img" aria-label="fógr.aí">
   <style>
-    /* Base text follows currentColor so it auto-matches light/dark theme */
-    .base { fill: currentColor; font: 700 120px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif; }
-    /* Accent colors (override via CSS) */
-    .accent-o { fill: var(--fogr-accent-o, #22c55e); } /* green */
-    .accent-i { fill: var(--fogr-accent-i, #f97316); } /* orange */
-  </style>
+    .base {
+      fill: currentColor;
+      font: 700 120px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
 
-  <!-- Text -->
+    .accent-o {
+      fill: var(--fogr-accent-o, #22c55e);
+    }
+
+    .accent-i {
+      fill: var(--fogr-accent-i, #f97316);
+    }
+  </style>
   <text class="base" x="15" y="125" letter-spacing="-2">
-    <!-- fógr.aí (accents are drawn separately for independent coloring) -->
     <tspan>fogr.aı</tspan>
   </text>
-
-  <!-- Acute accent above the "o" -->
-  <!-- Position tuned for the default font stack above; adjust x/y if you change font-size or family -->
-  <path class="accent-o" d="M92 44 L116 12 L130 26 L98 50 Z"/>
-
-  <!-- Acute accent above the final "i" -->
-  <path class="accent-i" d="M362 44 L386 12 L400 26 L368 50 Z"/>
+  <path class="accent-o" d="M92 44 L116 12 L130 26 L98 50 Z" />
+  <path class="accent-i" d="M362 44 L386 12 L400 26 L368 50 Z" />
 </svg>

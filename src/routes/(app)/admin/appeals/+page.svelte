@@ -75,7 +75,7 @@
 	.admin {
 		max-width: 1100px;
 		margin: 24px auto 48px;
-		padding: 0 16px;
+		padding: 0 var(--page-pad);
 	}
 	.admin-header {
 		display: flex;

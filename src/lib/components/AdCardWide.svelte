@@ -164,7 +164,7 @@
 	.listing-wide {
 		max-width: none; /* let inner grid control width */
 		margin: 24px auto;
-		padding: 0 16px;
+		padding: 0 var(--page-pad);
 		container-type: inline-size;
 	}
 

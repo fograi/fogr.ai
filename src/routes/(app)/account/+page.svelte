@@ -97,7 +97,7 @@
 	.account {
 		max-width: 720px;
 		margin: 0 auto;
-		padding: 24px 16px 80px;
+		padding: 24px var(--page-pad) 80px;
 		display: grid;
 		gap: 16px;
 	}

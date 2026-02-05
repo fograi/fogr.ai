@@ -108,7 +108,7 @@
 	.legal {
 		max-width: 820px;
 		margin: 20px auto 48px;
-		padding: 0 16px;
+		padding: 0 var(--page-pad);
 	}
 	.meta {
 		color: color-mix(in srgb, var(--fg) 60%, transparent);

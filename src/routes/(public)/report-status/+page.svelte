@@ -157,7 +157,7 @@
 	.report-status {
 		max-width: 720px;
 		margin: 24px auto 48px;
-		padding: 0 16px;
+		padding: 0 var(--page-pad);
 	}
 	header h1 {
 		margin: 0 0 6px;

@@ -314,7 +314,7 @@
 
 <style>
 	.post {
-		padding: 0 16px calc(72px + env(safe-area-inset-bottom));
+		padding: 0 var(--page-pad) calc(72px + env(safe-area-inset-bottom));
 	}
 	.head {
 		text-align: center;

@@ -177,9 +177,9 @@
 
 	.wrap {
 		position: relative;
-		max-width: 1100px;
+		max-width: var(--page-max);
 		margin: 0 auto;
-		padding: 0.6rem 1rem;
+		padding: 0.6rem var(--page-pad);
 		display: flex;
 		align-items: center;
 		gap: 1rem;
