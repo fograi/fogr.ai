@@ -123,6 +123,9 @@
 		{:else if minOffer}
 			<p class="rule">Minimum offer: {formatMoney(minOffer)}.</p>
 		{/if}
+		{#if autoDeclineMessage}
+			<p class="rule muted">Auto-decline: "{autoDeclineMessage}"</p>
+		{/if}
 	</div>
 
 	<div class="kind">
@@ -295,6 +298,20 @@
 	.warning-row {
 		display: grid;
 		gap: 8px;
+	}
+	.btn {
+		display: inline-grid;
+		place-items: center;
+		padding: 8px 12px;
+		border-radius: 10px;
+		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+		background: var(--surface);
+		color: inherit;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.btn.ghost {
+		background: transparent;
 	}
 	.btn.primary {
 		height: 44px;

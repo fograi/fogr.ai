@@ -101,8 +101,8 @@
 - [x] Update message composer UI to enforce structure and capture metadata.
 - [x] Add seller controls: minimum offer, firm price flag, auto-decline message.
 - [x] Validate offers server-side against floor/firm rules with clear errors.
-- [ ] Track metrics: lowball rate, time-to-first-serious-inquiry, offer acceptance rate.
-- [ ] Add or update unit and e2e tests for message flow and offer validation.
+- [x] Track metrics: lowball rate, time-to-first-serious-inquiry, offer acceptance rate.
+- [x] Add or update unit and e2e tests for message flow and offer validation.
 
 ### P0.4 Privacy-First Messaging
 

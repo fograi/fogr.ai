@@ -12,7 +12,7 @@
 
 	export let title = 'fogr.ai';
 	// minimal nav: primary CTA + compact menu
-	type NavHref = '/' | '/(public)/about' | '/(app)/post' | '/(app)/account';
+	type NavHref = '/' | '/(public)/about' | '/(app)/post' | '/(app)/account' | '/(app)/messages';
 	const baseLinks: Array<{ href: NavHref; label: string }> = [];
 	let authedLinks: Array<{ href: NavHref; label: string }> = baseLinks;
 
@@ -105,7 +105,9 @@
 	$: if (open) queueMicrotask(() => menu?.querySelector<HTMLAnchorElement>('a')?.focus());
 
 	// Build the final nav items based on auth
-	$: authedLinks = user ? [...baseLinks, { href: '/(app)/account', label: 'Account' }] : baseLinks;
+	$: authedLinks = user
+		? [...baseLinks, { href: '/(app)/messages', label: 'Messages' }, { href: '/(app)/account', label: 'Account' }]
+		: baseLinks;
 
 	const postPath = resolve('/(app)/post');
 	$: primaryHref = user

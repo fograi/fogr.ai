@@ -2,6 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { isSameOrigin } from '$lib/server/csrf';
 import { detectScamPatterns } from '$lib/server/scam-patterns';
+import { E2E_MOCK_MESSAGES, isE2eMock } from '$lib/server/e2e-mocks';
 
 const ALLOWED_KINDS = new Set(['availability', 'offer', 'pickup', 'question']);
 
@@ -15,11 +16,12 @@ const formatMoney = (value: number, currency = 'EUR') =>
 const errorResponse = (message: string, status = 400) =>
 	json({ success: false, message }, { status });
 
-export const POST: RequestHandler = async ({ request, locals, url }) => {
+export const POST: RequestHandler = async ({ request, locals, url, platform }) => {
 	if (!isSameOrigin(request, url)) return errorResponse('Forbidden', 403);
 
 	let body: {
 		adId?: string;
+		conversationId?: string;
 		kind?: string;
 		body?: string;
 		offerAmount?: number | null;
@@ -33,37 +35,79 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	}
 
 	const adId = body.adId?.trim() ?? '';
+	const conversationId = body.conversationId?.trim() ?? '';
 	const kind = body.kind?.trim().toLowerCase() ?? '';
 	const messageBody = body.body?.trim() ?? '';
 	const offerAmount = body.offerAmount ?? null;
 	const deliveryMethodRaw = body.deliveryMethod?.trim() ?? null;
 	const timingRaw = body.timing?.trim() ?? null;
 
-	if (!adId) return errorResponse('Missing ad id.', 400);
+	if (!adId && !conversationId) return errorResponse('Missing ad id.', 400);
 	if (!ALLOWED_KINDS.has(kind)) return errorResponse('Invalid message type.', 400);
 	if (!messageBody) return errorResponse('Message is required.', 400);
+
+	if (isE2eMock(platform)) {
+		const scam = detectScamPatterns(messageBody);
+		const autoDeclined =
+			kind === 'offer' && typeof offerAmount === 'number' && offerAmount < 10;
+		return json(
+			{
+				success: true,
+				autoDeclined,
+				autoDeclineMessage: autoDeclined ? 'Thanks — minimum offer is €10.' : '',
+				scamWarning: scam.warning,
+				scamReason: scam.reason ?? null
+			},
+			{ status: 200 }
+		);
+	}
 
 	const {
 		data: { user }
 	} = await locals.supabase.auth.getUser();
 	if (!user) return errorResponse('Auth required.', 401);
 
+	let conversation = null as
+		| {
+				id: string;
+				ad_id: string;
+				buyer_id: string;
+				seller_id: string;
+		  }
+		| null;
+	if (conversationId) {
+		const { data: convo, error: convoError } = await locals.supabase
+			.from('conversations')
+			.select('id, ad_id, buyer_id, seller_id')
+			.eq('id', conversationId)
+			.maybeSingle();
+		if (convoError) return errorResponse('Could not load conversation.', 500);
+		if (!convo) return errorResponse('Conversation not found.', 404);
+		conversation = convo;
+		if (user.id !== convo.buyer_id && user.id !== convo.seller_id) {
+			return errorResponse('Not allowed.', 403);
+		}
+	}
+
+	const lookupAdId = conversation ? conversation.ad_id : adId;
 	const { data: ad, error: adError } = await locals.supabase
 		.from('ads')
 		.select(
 			'id, user_id, status, expires_at, firm_price, min_offer, auto_decline_message, price, currency'
 		)
-		.eq('id', adId)
+		.eq('id', lookupAdId)
 		.maybeSingle();
 
 	if (adError) return errorResponse('Could not load listing.', 500);
 	if (!ad) return errorResponse('Listing not found.', 404);
-	if (ad.user_id === user.id) return errorResponse('Cannot message your own listing.', 400);
+	const isSeller = ad.user_id === user.id;
+	if (!conversation && isSeller) return errorResponse('Cannot message your own listing.', 400);
 	if (ad.status !== 'active') return errorResponse('Listing is not active.', 400);
 	if (ad.expires_at && ad.expires_at <= new Date().toISOString())
 		return errorResponse('Listing has expired.', 400);
 
 	if (kind === 'offer') {
+		if (isSeller) return errorResponse('Sellers cannot make offers.', 400);
 		const amount = Number(offerAmount);
 		if (!Number.isFinite(amount) || amount <= 0)
 			return errorResponse('Offer amount must be greater than 0.', 400);
@@ -72,27 +116,31 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 		return errorResponse('Pickup time is required.', 400);
 	}
 
-	const { data: existing } = await locals.supabase
-		.from('conversations')
-		.select('id')
-		.eq('ad_id', adId)
-		.eq('buyer_id', user.id)
-		.eq('seller_id', ad.user_id)
-		.maybeSingle();
-
-	let conversationId = existing?.id;
-	if (!conversationId) {
-		const { data: inserted, error: insErr } = await locals.supabase
+	let activeConversationId = conversation?.id ?? null;
+	let isFirstMessage = false;
+	if (!activeConversationId) {
+		const { data: existing } = await locals.supabase
 			.from('conversations')
-			.insert({
-				ad_id: adId,
-				buyer_id: user.id,
-				seller_id: ad.user_id
-			})
 			.select('id')
-			.single();
-		if (insErr || !inserted) return errorResponse('Could not start conversation.', 500);
-		conversationId = inserted.id;
+			.eq('ad_id', ad.id)
+			.eq('buyer_id', user.id)
+			.eq('seller_id', ad.user_id)
+			.maybeSingle();
+		activeConversationId = existing?.id ?? null;
+		if (!activeConversationId) {
+			const { data: inserted, error: insErr } = await locals.supabase
+				.from('conversations')
+				.insert({
+					ad_id: ad.id,
+					buyer_id: user.id,
+					seller_id: ad.user_id
+				})
+				.select('id')
+				.single();
+			if (insErr || !inserted) return errorResponse('Could not start conversation.', 500);
+			activeConversationId = inserted.id;
+			isFirstMessage = true;
+		}
 	}
 
 	let autoDeclined = false;
@@ -107,7 +155,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	const timing = kind === 'pickup' ? timingRaw : null;
 
 	const { error: msgErr } = await locals.supabase.from('messages').insert({
-		conversation_id: conversationId,
+		conversation_id: activeConversationId,
 		sender_id: user.id,
 		kind,
 		body: messageBody,
@@ -124,7 +172,30 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	await locals.supabase
 		.from('conversations')
 		.update({ last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-		.eq('id', conversationId);
+		.eq('id', activeConversationId);
+
+	const log = (event: string, extra: Record<string, unknown> = {}) =>
+		console.info(
+			JSON.stringify({
+				event,
+				adId: ad.id,
+				conversationId: activeConversationId,
+				userId: user.id,
+				kind,
+				...extra
+			})
+		);
+	if (isFirstMessage) log('conversation_started');
+	log('message_sent', {
+		autoDeclined,
+		scamWarning: scam.warning,
+		offerAmount: kind === 'offer' ? Number(offerAmount) : null
+	});
+	if (autoDeclined) {
+		log('offer_auto_declined', {
+			reason: ad.firm_price ? 'firm_price' : ad.min_offer ? 'below_min' : 'unknown'
+		});
+	}
 
 	const autoDeclineMessage =
 		ad.auto_decline_message ||
@@ -146,7 +217,17 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	);
 };
 
-export const GET: RequestHandler = async ({ locals, url }) => {
+export const GET: RequestHandler = async ({ locals, url, platform }) => {
+	if (isE2eMock(platform)) {
+		return json(
+			{
+				success: true,
+				viewerRole: 'buyer',
+				messages: E2E_MOCK_MESSAGES
+			},
+			{ status: 200 }
+		);
+	}
 	const adId = url.searchParams.get('adId')?.trim() ?? '';
 	if (!adId) return errorResponse('Missing ad id.', 400);
 
