@@ -70,7 +70,7 @@
 				name="q"
 				type="search"
 				value={q}
-				placeholder="Search bikes, lessons, free stuff..."
+				placeholder="Search listings"
 			/>
 			<label class="sr-only" for="search-category">Category</label>
 			<select id="search-category" name="category" value={category}>
@@ -178,7 +178,23 @@
 	}
 	@media (max-width: 720px) {
 		.search__form {
-			grid-template-columns: 1fr;
+			grid-template-columns: 4fr 1fr;
+			grid-template-areas:
+				'q btn'
+				'category category'
+				'clear clear';
+		}
+		#search-q {
+			grid-area: q;
+		}
+		#search-category {
+			grid-area: category;
+		}
+		.search__form button {
+			grid-area: btn;
+		}
+		.search__form .clear {
+			grid-area: clear;
 		}
 		.search__form button {
 			width: 100%;
