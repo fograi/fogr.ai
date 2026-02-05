@@ -8,9 +8,19 @@
 	let loggedError = false;
 
 	let container: HTMLUListElement;
+	let searchForm: HTMLFormElement | null = null;
 	const q = $derived(data?.q ?? '');
 	const category = $derived(data?.category ?? '');
 	const priceState = $derived(data?.priceState ?? '');
+
+	function submitFilters() {
+		if (!searchForm) return;
+		if (typeof searchForm.requestSubmit === 'function') {
+			searchForm.requestSubmit();
+		} else {
+			searchForm.submit();
+		}
+	}
 
 	function layout() {
 		if (!container) return;
@@ -64,7 +74,7 @@
 			<h1>Find it fast.</h1>
 			<p class="sub">Search local listings and post in seconds.</p>
 		</div>
-		<form class="search__form" method="GET" action={resolve('/')}>
+		<form bind:this={searchForm} class="search__form" method="GET" action={resolve('/')}>
 			<label class="sr-only" for="search-q">Search</label>
 			<input
 				id="search-q"
@@ -74,14 +84,19 @@
 				placeholder="Search listings"
 			/>
 			<label class="sr-only" for="search-category">Category</label>
-			<select id="search-category" name="category" value={category}>
+			<select id="search-category" name="category" value={category} on:change={submitFilters}>
 				<option value="">All categories</option>
 				{#each CATEGORIES as cat}
 					<option value={cat}>{cat}</option>
 				{/each}
 			</select>
 			<label class="sr-only" for="search-price-state">Price</label>
-			<select id="search-price-state" name="price_state" value={priceState}>
+			<select
+				id="search-price-state"
+				name="price_state"
+				value={priceState}
+				on:change={submitFilters}
+			>
 				<option value="">Any price</option>
 				<option value="fixed">Fixed price</option>
 				<option value="free">Free</option>
