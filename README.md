@@ -1,62 +1,73 @@
-# sv
+# fogr.ai
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Local classifieds for Ireland focused on trust and low friction: structured messaging, honest pricing states (Fixed/Free/POA), privacy‑first contact, and clearer reporting/moderation.
 
-## Moderation and Reporting Flow
+## Stack
 
-This app supports public reporting, admin moderation decisions, and ad owner appeals.
+- SvelteKit on Cloudflare Workers
+- Supabase (auth + Postgres)
+- R2 for ad images (public + pending buckets)
+- KV for rate limiting and per‑ad edit backoff
+- OpenAI moderation for text/image checks
 
-Admin view:
+## Core Product Flows
 
-1. Set `ADMIN_EMAIL` or `ADMIN_EMAILS` plus `SUPABASE_SERVICE_ROLE_KEY` in your environment.
-2. Visit `/admin/reports` to review incoming reports and take actions (reject, expire, restore).
-3. Provide a statement of reasons and confirm it contains no personal data.
-4. Visit `/admin/appeals` to review and resolve appeals.
+- **Post ad**: 3‑step wizard (Details → Price → Photo) with preview modal, price state rules, and quality gates.
+- **Messaging**: structured first messages (availability/offer/pickup/question), offer rules (firm/min), auto‑decline, scam warnings, contact reveal after messaging.
+- **My ads**: manage status (active/sold/archived), edit flow with exponential per‑ad edit backoff.
+- **Reports & moderation**: public report intake, admin review, statements of reasons, and appeals.
 
-Ad poster view:
+## Key Routes
 
-1. If a moderation decision is made, the ad detail page shows the statement of reasons.
-2. The moderation decision section is only visible to the ad owner when signed in.
-3. The decision includes the action type, reason category, facts, legal or policy basis, and whether automation was used.
-4. The poster can submit an appeal directly from the ad detail page.
+- Public: `/`, `/ad/[slug]`, `/about`, `/privacy`, `/terms`, `/report-status`
+- App: `/post`, `/ads` (My ads), `/ads/[id]/edit`, `/messages`, `/messages/[id]`
+- Admin (allowlist required): `/admin/reports`, `/admin/appeals`
 
-Ad reporter view:
+## API Endpoints (non‑exhaustive)
 
-1. Anyone can report an ad from the ad detail page.
-2. Reporters receive a reference ID and a link to check status at `/report-status`.
-3. The status page shows whether a decision has been made and the decision details if available.
+- Ads: `GET /api/ads`, `POST /api/ads`, `GET/PATCH /api/ads/[id]`, `POST /api/ads/[id]/status`
+- Messaging: `POST /api/messages`, `GET /api/messages?adId=...`
+- Reports/Appeals: `POST /api/ads/[id]/report`, `POST /api/reports/status`, `POST /api/ads/[id]/appeal`
+- Contact reveal: `POST /api/ads/[id]/reveal`
 
-## Creating a project
+## Environment / Bindings
 
-If you're seeing this, you've probably already done this step. Congrats!
+Required for production‑like behavior:
+
+- `PUBLIC_SUPABASE_URL`
+- `PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `ADMIN_EMAIL` or `ADMIN_EMAILS`
+- `OPENAI_API_KEY`
+- `PUBLIC_R2_BASE`
+- `ADS_BUCKET` (R2)
+- `ADS_PENDING_BUCKET` (R2)
+- `RATE_LIMIT` (KV)
+
+## Cron / Jobs
+
+- `src/cron-worker.ts` runs scheduled jobs.
+- Schedules live in `wrangler.cron.jsonc` (daily rollups, weekly purge for metrics).
+
+## Development
 
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
-
-To create a production version of your app:
+Build:
 
 ```sh
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+E2E tests:
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```sh
+npm run test:e2e
+```
+
+## E2E Mocks
+
+Set `E2E_MOCK=1` to use mocked Supabase data for tests and local flows.
