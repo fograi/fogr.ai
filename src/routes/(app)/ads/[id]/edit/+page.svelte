@@ -201,35 +201,46 @@
 				return;
 			}
 
-			const form = new FormData();
-			form.append('title', title.trim());
-			form.append('description', description.trim());
-			form.append('category', category as string);
-			form.append('price_type', priceType);
-			form.append('firm_price', priceType === 'fixed' && firmPrice ? '1' : '0');
-			if (priceType === 'fixed' && minOffer !== '') {
-				form.append('min_offer', String(minOffer));
-			}
-			if (priceType === 'fixed' && (firmPrice || minOffer !== '')) {
-				form.append('auto_decline_message', autoDeclineMessage.trim());
-			}
-			form.append('direct_contact_enabled', directContactEnabled ? '1' : '0');
-			if (priceType === 'free') {
-				form.append('price', '0');
-			} else if (priceType === 'fixed' && price !== '') {
-				form.append('price', String(price));
-			}
-			form.append('currency', currency);
-			form.append('locale', locale);
-			form.append('age_confirmed', ageConfirmed ? '1' : '0');
-
 			const removingExisting = !!existingImageKey && !previewUrl && !file;
-			if (removingExisting) {
-				form.append('remove_image', '1');
-			}
-			if (file) form.append('image', file);
+			const requestPayload = {
+				title: title.trim(),
+				description: description.trim(),
+				category: category as string,
+				price_type: priceType,
+				firm_price: priceType === 'fixed' && firmPrice ? '1' : '0',
+				min_offer: priceType === 'fixed' && minOffer !== '' ? String(minOffer) : undefined,
+				auto_decline_message:
+					priceType === 'fixed' && (firmPrice || minOffer !== '')
+						? autoDeclineMessage.trim()
+						: undefined,
+				direct_contact_enabled: directContactEnabled ? '1' : '0',
+				price:
+					priceType === 'free'
+						? '0'
+						: priceType === 'fixed' && price !== ''
+							? String(price)
+							: undefined,
+				currency,
+				locale,
+				age_confirmed: ageConfirmed ? '1' : '0',
+				remove_image: removingExisting ? '1' : undefined
+			};
 
-			const res = await fetch(`/api/ads/${ad.id}`, { method: 'PATCH', body: form });
+			let res: Response;
+			if (file) {
+				const form = new FormData();
+				Object.entries(requestPayload).forEach(([key, value]) => {
+					if (value !== undefined && value !== null) form.append(key, String(value));
+				});
+				form.append('image', file);
+				res = await fetch(`/api/ads/${ad.id}`, { method: 'PATCH', body: form });
+			} else {
+				res = await fetch(`/api/ads/${ad.id}`, {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(requestPayload)
+				});
+			}
 			const raw = await res.text();
 			let payload: ApiResponse;
 			try {

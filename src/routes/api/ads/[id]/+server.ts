@@ -283,32 +283,49 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 	if (!EDITABLE_STATUSES.has(ad.status))
 		return errorResponse('This ad cannot be edited.', 400);
 
-		let form: FormData;
+		let form: FormData | null = null;
+		let body: Record<string, unknown> | null = null;
+		const contentType = request.headers.get('content-type') ?? '';
 		try {
-			form = await request.formData();
+			if (contentType.includes('application/json')) {
+				body = (await request.json()) as Record<string, unknown>;
+			} else {
+				form = await request.formData();
+			}
 		} catch (err) {
-			console.error('ads_patch_formdata_failed', err);
+			console.error('ads_patch_body_parse_failed', err);
 			return errorResponse('Invalid form data.', 400);
 		}
-	const category = form.get('category')?.toString() || '';
-	const title = form.get('title')?.toString() || '';
-	const description = form.get('description')?.toString() || '';
-	const priceStr = form.get('price')?.toString() ?? null;
-	const priceType = form.get('price_type')?.toString() ?? null;
-	const firmPrice = form.get('firm_price')?.toString() === '1';
-	const minOfferStr = form.get('min_offer')?.toString() ?? null;
-	const autoDeclineMessageRaw = form.get('auto_decline_message')?.toString() ?? null;
+
+		const readString = (key: string) => {
+			const value = form ? form.get(key) : body?.[key];
+			if (value == null) return null;
+			if (typeof value === 'string') return value;
+			if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+			return null;
+		};
+
+		const category = readString('category') || '';
+		const title = readString('title') || '';
+		const description = readString('description') || '';
+		const priceStr = readString('price');
+		const priceType = readString('price_type');
+		const firmPrice = readString('firm_price') === '1' || readString('firm_price') === 'true';
+		const minOfferStr = readString('min_offer');
+		const autoDeclineMessageRaw = readString('auto_decline_message');
 	const autoDeclineMessage =
 		autoDeclineMessageRaw && autoDeclineMessageRaw.trim().length > 0
 			? autoDeclineMessageRaw.trim()
 			: null;
-	const directContactEnabled = form.get('direct_contact_enabled')?.toString() === '1';
-	const ageConfirmed = form.get('age_confirmed')?.toString() === '1';
-	const currencyRaw = form.get('currency')?.toString() || ad.currency || 'EUR';
+	const directContactEnabled =
+		readString('direct_contact_enabled') === '1' || readString('direct_contact_enabled') === 'true';
+	const ageConfirmed =
+		readString('age_confirmed') === '1' || readString('age_confirmed') === 'true';
+	const currencyRaw = readString('currency') || ad.currency || 'EUR';
 	const currency = currencyRaw.trim().toUpperCase();
-	const removeImage = form.get('remove_image')?.toString() === '1';
+	const removeImage = readString('remove_image') === '1' || readString('remove_image') === 'true';
 
-	const imageFile = form.get('image');
+	const imageFile = form ? form.get('image') : null;
 	const files: File[] = [];
 	if (imageFile instanceof File && imageFile.size > 0) files.push(imageFile);
 	if (files.length > MAX_IMAGE_COUNT) {
