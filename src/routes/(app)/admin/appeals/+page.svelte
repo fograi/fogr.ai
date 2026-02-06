@@ -108,6 +108,10 @@
 		justify-content: space-between;
 		align-items: flex-start;
 		gap: 12px;
+		flex-wrap: wrap;
+	}
+	.card-header > div {
+		min-width: 0;
 	}
 	.card-header h2 {
 		margin: 0;
@@ -119,6 +123,8 @@
 		display: flex;
 		gap: 12px;
 		flex-wrap: wrap;
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 	.badge {
 		padding: 4px 10px;
@@ -141,6 +147,8 @@
 		margin: 0;
 		white-space: pre-wrap;
 		color: color-mix(in srgb, var(--fg) 80%, transparent);
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 	.actions {
 		display: flex;

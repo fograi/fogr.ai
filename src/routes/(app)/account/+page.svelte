@@ -123,6 +123,8 @@
 		justify-content: space-between;
 		align-items: center;
 		gap: 12px;
+		flex-wrap: wrap;
+		min-width: 0;
 	}
 	.label {
 		margin: 0;
@@ -132,6 +134,8 @@
 	.value {
 		margin: 0;
 		font-weight: 700;
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 	button {
 		border: 0;
