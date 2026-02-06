@@ -7,6 +7,7 @@
 		ad: AdCard;
 		moderation?: ModerationAction | null;
 		isOwner?: boolean;
+		ownerMessages?: { count: number } | null;
 		offerRules?: {
 			firmPrice?: boolean;
 			minOffer?: number | null;
@@ -232,7 +233,18 @@
 
 		{#if data.isOwner}
 			<section class="owner-note">
-				<p>You are the owner of this listing. Messages from buyers will appear here soon.</p>
+				{#if (data.ownerMessages?.count ?? 0) > 0}
+					<p>
+						You have {data.ownerMessages?.count}
+						{data.ownerMessages?.count === 1 ? 'conversation' : 'conversations'} about this
+						listing.
+					</p>
+					<a class="owner-link" href="/messages">Open messages</a>
+				{:else}
+					<p>No buyer messages yet.</p>
+					<p class="owner-hint">If someone contacts you, you’ll see it in Messages.</p>
+					<p class="owner-hint">Want more interest? Use the Share button above.</p>
+				{/if}
 			</section>
 		{:else}
 			<MessageComposer
@@ -497,6 +509,24 @@
 		background: var(--surface);
 		text-align: center;
 		font-weight: 600;
+	}
+	.owner-hint {
+		margin: 6px 0 0;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+		font-weight: 500;
+	}
+	.owner-link {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 8px;
+		padding: 8px 12px;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+		background: var(--surface);
+		font-weight: 700;
+		text-decoration: none;
+		color: inherit;
 	}
 
 	.panel {

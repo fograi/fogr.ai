@@ -62,6 +62,12 @@ Build:
 npm run build
 ```
 
+Unit tests:
+
+```sh
+npm run test:unit
+```
+
 E2E tests:
 
 ```sh

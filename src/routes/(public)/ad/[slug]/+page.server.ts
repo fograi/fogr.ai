@@ -16,6 +16,19 @@ export const load: PageServerLoad = async ({ params, fetch, locals }) => {
 		data: { user }
 	} = await locals.supabase.auth.getUser();
 	const isOwner = !!user && user.id === ad.user_id;
+	let ownerMessages: { count: number } | null = null;
+
+	if (isOwner && user) {
+		const { data: conversations, error: convoError } = await locals.supabase
+			.from('conversations')
+			.select('last_message_at')
+			.eq('ad_id', ad.id)
+			.eq('seller_id', user.id);
+
+		if (!convoError) {
+			ownerMessages = { count: conversations?.length ?? 0 };
+		}
+	}
 
 	const mapped: AdCard = {
 		id: ad.id,
@@ -33,6 +46,7 @@ export const load: PageServerLoad = async ({ params, fetch, locals }) => {
 		ad: mapped,
 		moderation: moderation ?? null,
 		isOwner,
+		ownerMessages,
 		offerRules: {
 			firmPrice: ad.firm_price ?? false,
 			minOffer: ad.min_offer ?? null,

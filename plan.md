@@ -43,8 +43,6 @@
 - [ ] Create `/cookies` page documenting strictly-necessary cookies and block accidental third-party scripts.
 - [ ] Publish an annual DSA transparency page with counts: removals, user reports, appeals, reversals, automated vs human.
 
-
-
 ## Notes
 
 - Keep tasks small and test after each step.
