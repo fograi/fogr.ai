@@ -36,6 +36,12 @@ const errorResponse = (message: string, status = 400) =>
 	json({ success: false, message }, { status });
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
+	const bufferCtor = (globalThis as {
+		Buffer?: { from: (data: ArrayBuffer) => { toString: (encoding: string) => string } };
+	}).Buffer;
+	if (typeof btoa !== 'function' && bufferCtor?.from) {
+		return bufferCtor.from(buf).toString('base64');
+	}
 	const bytes = new Uint8Array(buf);
 	const chunk = 0x8000;
 	let binary = '';
@@ -253,22 +259,23 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 	const adId = params.id?.trim() ?? '';
 	if (!adId) return errorResponse('Missing ad id.', 400);
 
-	if (isE2eMock(platform)) {
-		return json({ success: true, id: adId });
-	}
+	try {
+		if (isE2eMock(platform)) {
+			return json({ success: true, id: adId });
+		}
 
 	const {
 		data: { user }
 	} = await locals.supabase.auth.getUser();
 	if (!user) return errorResponse('Auth required.', 401);
 
-	const { data: ad, error: adError } = await locals.supabase
-		.from('ads')
-		.select(
-			'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,direct_contact_enabled,expires_at'
-		)
-		.eq('id', adId)
-		.maybeSingle();
+		const { data: ad, error: adError } = await locals.supabase
+			.from('ads')
+			.select(
+				'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,direct_contact_enabled,expires_at'
+			)
+			.eq('id', adId)
+			.maybeSingle();
 
 	if (adError) return errorResponse('Could not load ad.', 500);
 	if (!ad) return errorResponse('Ad not found.', 404);
@@ -276,7 +283,13 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 	if (!EDITABLE_STATUSES.has(ad.status))
 		return errorResponse('This ad cannot be edited.', 400);
 
-	const form = await request.formData();
+		let form: FormData;
+		try {
+			form = await request.formData();
+		} catch (err) {
+			console.error('ads_patch_formdata_failed', err);
+			return errorResponse('Invalid form data.', 400);
+		}
 	const category = form.get('category')?.toString() || '';
 	const title = form.get('title')?.toString() || '';
 	const description = form.get('description')?.toString() || '';
@@ -360,31 +373,36 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 	let moderationUnavailable = false;
 	let moderationFlagged = false;
 
-	if (needsModeration) {
-		const combinedText = `${titleTrimmed} ${descTrimmed}`;
-		if (filter.check(combinedText)) return errorResponse('Failed profanity filter.', 400);
-		if (obscenity.hasMatch(combinedText)) return errorResponse('Failed obscenity filter.', 400);
+		if (needsModeration) {
+			const combinedText = `${titleTrimmed} ${descTrimmed}`;
+			if (filter.check(combinedText)) return errorResponse('Failed profanity filter.', 400);
+			if (obscenity.hasMatch(combinedText)) return errorResponse('Failed obscenity filter.', 400);
 
-		const env = platform?.env as {
-			OPENAI_API_KEY?: string;
-			ADS_BUCKET?: R2Bucket;
-			ADS_PENDING_BUCKET?: R2Bucket;
-		};
-		const openAiApiKey = env?.OPENAI_API_KEY;
-		if (!openAiApiKey) {
-			moderationUnavailable = true;
-		} else {
-			const openai = new OpenAI({ apiKey: openAiApiKey });
-			if (files.length > 0) {
-				const dataUrl = await fileToDataUrl(files[0]);
-				moderationResult = await moderateTextAndImage(openai, combinedText, dataUrl);
+			const env = platform?.env as {
+				OPENAI_API_KEY?: string;
+				ADS_BUCKET?: R2Bucket;
+				ADS_PENDING_BUCKET?: R2Bucket;
+			};
+			const openAiApiKey = env?.OPENAI_API_KEY;
+			if (!openAiApiKey) {
+				moderationUnavailable = true;
 			} else {
-				moderationResult = await moderateText(openai, combinedText);
+				try {
+					const openai = new OpenAI({ apiKey: openAiApiKey });
+					if (files.length > 0) {
+						const dataUrl = await fileToDataUrl(files[0]);
+						moderationResult = await moderateTextAndImage(openai, combinedText, dataUrl);
+					} else {
+						moderationResult = await moderateText(openai, combinedText);
+					}
+				} catch (err) {
+					console.error('ads_patch_moderation_failed', err);
+					moderationResult = 'unavailable';
+				}
+				if (moderationResult === 'flagged') moderationFlagged = true;
+				if (moderationResult === 'unavailable') moderationUnavailable = true;
 			}
-			if (moderationResult === 'flagged') moderationFlagged = true;
-			if (moderationResult === 'unavailable') moderationUnavailable = true;
 		}
-	}
 
 	let nextStatus = ad.status;
 	if (needsModeration && (moderationFlagged || moderationUnavailable)) {
@@ -402,27 +420,32 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 
 	let nextImageKeys = ad.image_keys ?? [];
 
-	if (files.length > 0) {
-		const targetBucket = nextStatus === 'pending' ? pendingBucket : publicBucket;
-		if (!targetBucket || typeof targetBucket.put !== 'function') {
-			return errorResponse('Storage temporarily unavailable.', 503);
+		if (files.length > 0) {
+			const targetBucket = nextStatus === 'pending' ? pendingBucket : publicBucket;
+			if (!targetBucket || typeof targetBucket.put !== 'function') {
+				return errorResponse('Storage temporarily unavailable.', 503);
+			}
+			const ext =
+				files[0].type === 'image/jpeg'
+					? 'jpg'
+					: files[0].type === 'image/png'
+						? 'png'
+						: files[0].type === 'image/webp'
+							? 'webp'
+							: 'bin';
+			const key = `${user.id}/${ad.id}/edit-${Date.now()}.${ext}`;
+			try {
+				await targetBucket.put(key, await files[0].arrayBuffer(), {
+					httpMetadata: { contentType: files[0].type }
+				});
+			} catch (err) {
+				console.error('ads_patch_upload_failed', err);
+				return errorResponse('We could not upload the image. Try again.', 503);
+			}
+			nextImageKeys = [key];
+		} else if (removeImage) {
+			nextImageKeys = [];
 		}
-		const ext =
-			files[0].type === 'image/jpeg'
-				? 'jpg'
-				: files[0].type === 'image/png'
-					? 'png'
-					: files[0].type === 'image/webp'
-						? 'webp'
-						: 'bin';
-		const key = `${user.id}/${ad.id}/edit-${Date.now()}.${ext}`;
-		await targetBucket.put(key, await files[0].arrayBuffer(), {
-			httpMetadata: { contentType: files[0].type }
-		});
-		nextImageKeys = [key];
-	} else if (removeImage) {
-		nextImageKeys = [];
-	}
 
 	if ((files.length > 0 || removeImage) && (publicBucket || pendingBucket)) {
 		const keysToDelete = ad.image_keys ?? [];
@@ -437,36 +460,43 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 	const firmPriceValue = normalizedPriceType === 'fixed' ? firmPrice : true;
 	const minOfferValue = normalizedPriceType === 'fixed' ? minOffer : null;
 
-	const { error: updateError } = await locals.supabase
-		.from('ads')
-		.update({
-			title: titleTrimmed,
-			description: descTrimmed,
-			category: categoryTrimmed,
-			price,
-			currency,
-			firm_price: firmPriceValue,
-			min_offer: minOfferValue,
-			auto_decline_message:
-				normalizedPriceType === 'fixed' && (firmPriceValue || minOfferValue !== null)
-					? autoDeclineMessage
-					: null,
-			direct_contact_enabled: directContactEnabled,
-			image_keys: nextImageKeys,
-			images_count: nextImageKeys.length,
-			status: nextStatus,
-			updated_at: new Date().toISOString()
-		})
-		.eq('id', ad.id);
+		const { error: updateError } = await locals.supabase
+			.from('ads')
+			.update({
+				title: titleTrimmed,
+				description: descTrimmed,
+				category: categoryTrimmed,
+				price,
+				currency,
+				firm_price: firmPriceValue,
+				min_offer: minOfferValue,
+				auto_decline_message:
+					normalizedPriceType === 'fixed' && (firmPriceValue || minOfferValue !== null)
+						? autoDeclineMessage
+						: null,
+				direct_contact_enabled: directContactEnabled,
+				image_keys: nextImageKeys,
+				images_count: nextImageKeys.length,
+				status: nextStatus,
+				updated_at: new Date().toISOString()
+			})
+			.eq('id', ad.id);
 
-	if (updateError) return errorResponse('Could not update ad.', 500);
+		if (updateError) {
+			console.error('ads_patch_update_failed', updateError);
+			return errorResponse('Could not update ad.', 500);
+		}
 
-	return json({
-		success: true,
-		id: ad.id,
-		message:
-			needsModeration && (moderationFlagged || moderationUnavailable) && ad.status !== 'archived'
-				? 'Changes saved and queued for review.'
-				: 'Changes saved.'
-	});
+		return json({
+			success: true,
+			id: ad.id,
+			message:
+				needsModeration && (moderationFlagged || moderationUnavailable) && ad.status !== 'archived'
+					? 'Changes saved and queued for review.'
+					: 'Changes saved.'
+		});
+	} catch (err) {
+		console.error('ads_patch_unhandled_error', { adId, err });
+		return errorResponse('We could not save your changes.', 500);
+	}
 };
