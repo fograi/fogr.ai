@@ -12,11 +12,13 @@ test('post page allows submitting a listing with mocked API', async ({ page }) =
 
 	await page.selectOption('#category', 'Services & Gigs');
 	await page.fill('#title', 'E2E Listing Title');
-	await page.fill('#price', '10');
+	await page.fill(
+		'#description',
+		'E2E listing description that is long enough to pass validation.'
+	);
 	await page.getByRole('button', { name: 'Continue' }).click();
 
-	await page.fill('#description', 'E2E listing description that is long enough to pass validation.');
-	await page.getByLabel('I am 18 or older.').check();
+	await page.fill('#price', '10');
 	await page.getByRole('button', { name: 'Continue' }).click();
 
 	await page.route('**/api/ads', async (route) => {
@@ -32,6 +34,7 @@ test('post page allows submitting a listing with mocked API', async ({ page }) =
 		});
 	});
 
+	await page.getByLabel('I am 18 or older.').check();
 	await page.getByRole('button', { name: 'Post ad' }).click();
 	await expect(page).toHaveURL(/\/ad\/e2e-ad-1/);
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
@@ -51,7 +54,7 @@ test('ad detail page renders with mocked data', async ({ page }) => {
 
 test('report form submits and shows reference', async ({ page }) => {
 	await page.goto('/ad/e2e-ad-1');
-	await page.getByRole('button', { name: 'Flag listing' }).click();
+	await page.getByRole('button', { name: 'Report' }).click();
 
 	await page.route('**/api/ads/e2e-ad-1/report', async (route) => {
 		if (route.request().method() !== 'POST') return route.continue();
@@ -69,7 +72,7 @@ test('report form submits and shows reference', async ({ page }) => {
 	await page.getByRole('checkbox', { name: /good faith/i }).check();
 
 	await page.getByRole('button', { name: 'Submit report' }).click();
-	await expect(page.getByText(/received your report/i)).toBeVisible();
+	await expect(page.getByText(/report received/i)).toBeVisible();
 	await expect(page.getByRole('button', { name: /copy report id/i })).toBeVisible();
 });
 
