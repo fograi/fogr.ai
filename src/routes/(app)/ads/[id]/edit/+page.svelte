@@ -280,11 +280,11 @@
 
 		<ol class="steps" aria-label="Edit steps">
 			<li class:active={step === 1} class:done={step > 1}>
-				<button type="button" on:click={() => jumpTo(1)} aria-current={step === 1}>
-					<span class="num">1</span>
-					<span class="label">Basics</span>
-				</button>
-			</li>
+			<button type="button" on:click={() => jumpTo(1)} aria-current={step === 1}>
+				<span class="num">1</span>
+				<span class="label">Details</span>
+			</button>
+		</li>
 			<li class:active={step === 2} class:done={step > 2}>
 				<button type="button" on:click={() => jumpTo(2)} aria-current={step === 2}>
 					<span class="num">2</span>

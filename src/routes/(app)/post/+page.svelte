@@ -408,6 +408,10 @@
 			aria-modal="true"
 			aria-label="Ad preview"
 			on:click|stopPropagation
+			on:keydown={(event) => {
+				if (event.key === 'Escape') previewOpen = false;
+			}}
+			tabindex="-1"
 		>
 			<header class="modal-head">
 				<h2>Preview</h2>
