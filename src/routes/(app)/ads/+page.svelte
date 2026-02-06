@@ -95,7 +95,7 @@
 	}
 </script>
 
-<section class="my-ads">
+<section class="listings-hub">
 	<header class="head">
 		<h1>My ads</h1>
 		<p class="sub">Manage status, share, or archive your listings.</p>
@@ -228,7 +228,7 @@
 </section>
 
 <style>
-	.my-ads {
+	.listings-hub {
 		max-width: var(--page-max);
 		margin: 0 auto;
 		padding: 24px var(--page-pad) 80px;
