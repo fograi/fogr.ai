@@ -78,6 +78,19 @@
 		{ value: 'actioned', label: 'Actioned' },
 		{ value: 'dismissed', label: 'Dismissed' }
 	];
+	const statusOrder = ['open', 'in_review', 'actioned', 'dismissed'] as const;
+	const statusLabel: Record<string, string> = {
+		open: 'Open',
+		in_review: 'In review',
+		actioned: 'Actioned',
+		dismissed: 'Dismissed'
+	};
+	const statusHelp: Record<string, string> = {
+		open: 'New report awaiting review.',
+		in_review: 'Under review by moderators.',
+		actioned: 'Decision made and applied to the ad.',
+		dismissed: 'No action taken; report closed.'
+	};
 	const actionOptions = [
 		{ value: 'reject', label: 'Reject (remove from listings)' },
 		{ value: 'expire', label: 'Expire (hide as expired)' },
@@ -96,6 +109,16 @@
 		new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium', timeStyle: 'short' }).format(
 			new Date(iso)
 		);
+
+	const groupReportsByStatus = (reports: ReportRow[]) => {
+		const map = new Map<string, ReportRow[]>();
+		for (const status of statusOrder) map.set(status, []);
+		for (const report of reports) {
+			const key = map.has(report.status) ? report.status : 'open';
+			map.get(key)?.push(report);
+		}
+		return map;
+	};
 </script>
 
 <section class="admin">
@@ -115,6 +138,7 @@
 		<div class="report-list">
 			{#each data.reportGroups as group}
 				<article class="report-group">
+					{@const reportsByStatus = groupReportsByStatus(group.reports)}
 					<header class="group-header">
 						<div>
 							<h2>Ad {group.adId}</h2>
@@ -129,184 +153,215 @@
 						</a>
 					</header>
 
+					<div class="status-flow" aria-label="Report workflow states">
+						{#each statusOrder as status}
+							{@const count = reportsByStatus.get(status)?.length ?? 0}
+							<div class="status-step">
+								<span class="status-name">{statusLabel[status]}</span>
+								<span class="status-count">{count}</span>
+							</div>
+						{/each}
+					</div>
+
 					<div class="group-body">
-						{#each group.reports as report}
-							{@const preview = previewForReport(report)}
-							<article class="report-card">
-								<header class="card-header">
+						{#each statusOrder as status}
+							{@const bucket = reportsByStatus.get(status) ?? []}
+							<div class="status-section">
+								<div class="status-header">
 									<div>
-										<h3>Report #{report.id.slice(0, 8)}</h3>
-										<p class="meta">
-											<span>{formatDate(report.created_at)}</span>
-											<span>Status: {report.status.replace('_', ' ')}</span>
-										</p>
+										<h3>{statusLabel[status]}</h3>
+										<p class="meta">{statusHelp[status]}</p>
 									</div>
-									<span class="status badge {report.status}">
-										{report.status.replace('_', ' ')}
-									</span>
-								</header>
-
-								<p class="reason">
-									<strong>Reason:</strong> {report.reason_category}
-								</p>
-								<p class="details">{report.reason_details}</p>
-
-								<p class="reporter">
-									<strong>Reporter:</strong> {report.reporter_name} ({report.reporter_email})
-								</p>
-
-								<div class="actions">
-									<form method="post" action="?/updateStatus">
-										<input type="hidden" name="report_id" value={report.id} />
-										<select name="status" aria-label="Update report status">
-											{#each statusOptions as option}
-												<option value={option.value} selected={option.value === report.status}>
-													{option.label}
-												</option>
-											{/each}
-										</select>
-										<button type="submit">Update</button>
-									</form>
+									<span class="status-count">{bucket.length}</span>
 								</div>
 
-								<details class="action-panel">
-									<summary>Take action on ad</summary>
-									<form method="post" action="?/takeAction" class="action-form">
-										<input type="hidden" name="report_id" value={report.id} />
-										<input type="hidden" name="ad_id" value={report.ad_id} />
-
-										<label>
-											Action
-											<select name="action_type" required>
-												{#each actionOptions as option}
-													<option value={option.value}>{option.label}</option>
-												{/each}
-											</select>
-										</label>
-
-										<label>
-											Reason category
-											<select name="reason_category" required>
-												{#each reasonOptions as option}
-													<option value={option.value} selected={option.value === report.reason_category}>
-														{option.label}
-													</option>
-												{/each}
-											</select>
-										</label>
-
-										<label>
-											Statement of reasons
-											<textarea
-												name="reason_details"
-												rows="4"
-												minlength={minReasonLength}
-												required
-												placeholder="Explain the facts and reasoning behind the decision."
-											></textarea>
-										</label>
-
-										<label>
-											Legal or policy basis (optional)
-											<input
-												type="text"
-												name="legal_basis"
-												placeholder="e.g. Terms section 4.2, Prohibited items policy"
-											/>
-										</label>
-
-										<p class="action-hint">
-											Do not include personal data in the statement of reasons. This may be submitted to
-											a transparency database.
-										</p>
-										<label class="checkbox">
-											<input type="checkbox" name="no_personal_data" required />
-											<span>I confirm this statement contains no personal data.</span>
-										</label>
-
-										<button type="submit">Apply action</button>
-									</form>
-								</details>
-
-								{#if preview}
-									<div class="email-preview">
-										<h4>Email templates</h4>
-										<p class="meta">Generated from the last action on this report.</p>
-										{#if copyStatus}
-											<p class="copy-status" aria-live="polite">{copyStatus}</p>
-										{/if}
-										{#if copyError}
-											<p class="error" aria-live="assertive">{copyError}</p>
-										{/if}
-
-										<div class="email-block">
-											<h5>Statement of reasons</h5>
-											<div class="email-field">
-												<span class="email-label">Subject</span>
-												<div class="email-row">
-													<input type="text" value={preview.statement.subject} readonly />
-													<button
-														type="button"
-														on:click={() =>
-															copyText(preview.statement.subject, 'Statement subject copied.')
-														}
-													>
-														Copy subject
-													</button>
-												</div>
-											</div>
-											<div class="email-field">
-												<span class="email-label">Body</span>
-												<div class="email-row">
-													<textarea rows="8" readonly>{preview.statement.body}</textarea>
-													<button
-														type="button"
-														on:click={() =>
-															copyText(preview.statement.body, 'Statement body copied.')
-														}
-													>
-														Copy body
-													</button>
-												</div>
-											</div>
-										</div>
-
-										{#if preview.takedown}
-											<div class="email-block">
-												<h5>Takedown notice</h5>
-												<div class="email-field">
-													<span class="email-label">Subject</span>
-													<div class="email-row">
-														<input type="text" value={preview.takedown.subject} readonly />
-														<button
-															type="button"
-															on:click={() =>
-																copyText(preview.takedown.subject, 'Takedown subject copied.')
-															}
-														>
-															Copy subject
-														</button>
+								{#if bucket.length === 0}
+									<p class="empty">No reports in this state.</p>
+								{:else}
+									<div class="status-list">
+										{#each bucket as report}
+											{@const preview = previewForReport(report)}
+											<article class="report-card">
+												<header class="card-header">
+													<div>
+														<h4>Report #{report.id.slice(0, 8)}</h4>
+														<p class="meta">
+															<span>{formatDate(report.created_at)}</span>
+														</p>
 													</div>
+													<span class="status badge {report.status}">
+														{report.status.replace('_', ' ')}
+													</span>
+												</header>
+
+												<p class="reason">
+													<strong>Reason:</strong> {report.reason_category}
+												</p>
+												<p class="details">{report.reason_details}</p>
+
+												<p class="reporter">
+													<strong>Reporter:</strong> {report.reporter_name} ({report.reporter_email})
+												</p>
+
+												<div class="actions">
+													<form method="post" action="?/updateStatus">
+														<input type="hidden" name="report_id" value={report.id} />
+														<select name="status" aria-label="Update report status">
+															{#each statusOptions as option}
+																<option value={option.value} selected={option.value === report.status}>
+																	{option.label}
+																</option>
+															{/each}
+														</select>
+														<button type="submit">Update</button>
+													</form>
 												</div>
-												<div class="email-field">
-													<span class="email-label">Body</span>
-													<div class="email-row">
-														<textarea rows="7" readonly>{preview.takedown.body}</textarea>
-														<button
-															type="button"
-															on:click={() =>
-																copyText(preview.takedown.body, 'Takedown body copied.')
-															}
-														>
-															Copy body
-														</button>
+
+												<details class="action-panel">
+													<summary>Take action on ad</summary>
+													<form method="post" action="?/takeAction" class="action-form">
+														<input type="hidden" name="report_id" value={report.id} />
+														<input type="hidden" name="ad_id" value={report.ad_id} />
+
+														<label>
+															Action
+															<select name="action_type" required>
+																{#each actionOptions as option}
+																	<option value={option.value}>{option.label}</option>
+																{/each}
+															</select>
+														</label>
+
+														<label>
+															Reason category
+															<select name="reason_category" required>
+																{#each reasonOptions as option}
+																	<option value={option.value} selected={option.value === report.reason_category}>
+																		{option.label}
+																	</option>
+																{/each}
+															</select>
+														</label>
+
+														<label>
+															Statement of reasons
+															<textarea
+																name="reason_details"
+																rows="4"
+																minlength={minReasonLength}
+																required
+																placeholder="Explain the facts and reasoning behind the decision."
+															></textarea>
+														</label>
+
+														<label>
+															Legal or policy basis (optional)
+															<input
+																type="text"
+																name="legal_basis"
+																placeholder="e.g. Terms section 4.2, Prohibited items policy"
+															/>
+														</label>
+
+														<p class="action-hint">
+															Do not include personal data in the statement of reasons. This may be submitted to
+															a transparency database.
+														</p>
+														<label class="checkbox">
+															<input type="checkbox" name="no_personal_data" required />
+															<span>I confirm this statement contains no personal data.</span>
+														</label>
+
+														<button type="submit">Apply action</button>
+													</form>
+												</details>
+
+												{#if preview}
+													<div class="email-preview">
+														<h4>Email templates</h4>
+														<p class="meta">Generated from the last action on this report.</p>
+														{#if copyStatus}
+															<p class="copy-status" aria-live="polite">{copyStatus}</p>
+														{/if}
+														{#if copyError}
+															<p class="error" aria-live="assertive">{copyError}</p>
+														{/if}
+
+														<div class="email-block">
+															<h5>Statement of reasons</h5>
+															<div class="email-field">
+																<span class="email-label">Subject</span>
+																<div class="email-row">
+																	<input type="text" value={preview.statement.subject} readonly />
+																	<button
+																		type="button"
+																		on:click={() =>
+																			copyText(preview.statement.subject, 'Statement subject copied.')
+																		}
+																	>
+																		Copy subject
+																	</button>
+																</div>
+															</div>
+															<div class="email-field">
+																<span class="email-label">Body</span>
+																<div class="email-row">
+																	<textarea rows="8" readonly>{preview.statement.body}</textarea>
+																	<button
+																		type="button"
+																		on:click={() =>
+																			copyText(preview.statement.body, 'Statement body copied.')
+																		}
+																	>
+																		Copy body
+																	</button>
+																</div>
+															</div>
+														</div>
+
+														{#if preview.takedown}
+															<div class="email-block">
+																<h5>Takedown notice</h5>
+																<div class="email-field">
+																	<span class="email-label">Subject</span>
+																	<div class="email-row">
+																		<input type="text" value={preview.takedown.subject} readonly />
+																		<button
+																			type="button"
+																			on:click={() =>
+																				copyText(
+																					preview.takedown.subject,
+																					'Takedown subject copied.'
+																				)
+																			}
+																		>
+																			Copy subject
+																		</button>
+																	</div>
+																</div>
+																<div class="email-field">
+																	<span class="email-label">Body</span>
+																	<div class="email-row">
+																		<textarea rows="7" readonly>{preview.takedown.body}</textarea>
+																		<button
+																			type="button"
+																			on:click={() =>
+																				copyText(preview.takedown.body, 'Takedown body copied.')
+																			}
+																		>
+																			Copy body
+																		</button>
+																	</div>
+																</div>
+															</div>
+														{/if}
 													</div>
-												</div>
-											</div>
-										{/if}
+												{/if}
+											</article>
+										{/each}
 									</div>
 								{/if}
-							</article>
+							</div>
 						{/each}
 					</div>
 				</article>
@@ -363,6 +418,54 @@
 		display: grid;
 		gap: 12px;
 	}
+	.status-flow {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 10px;
+		padding: 12px;
+		border-radius: 12px;
+		border: 1px solid var(--hairline);
+		background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+	}
+	.status-step {
+		display: grid;
+		gap: 4px;
+		padding: 8px 10px;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--bg);
+	}
+	.status-name {
+		font-weight: 700;
+		font-size: 0.95rem;
+	}
+	.status-count {
+		font-weight: 700;
+		font-size: 1.05rem;
+		color: color-mix(in srgb, var(--fg) 75%, transparent);
+	}
+	.status-section {
+		display: grid;
+		gap: 8px;
+		padding: 12px;
+		border-radius: 12px;
+		border: 1px solid var(--hairline);
+		background: color-mix(in srgb, var(--fg) 2%, var(--bg));
+	}
+	.status-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 12px;
+	}
+	.status-header h3 {
+		margin: 0;
+		font-size: 1rem;
+	}
+	.status-list {
+		display: grid;
+		gap: 10px;
+	}
 	.report-card {
 		border: 1px solid var(--hairline);
 		border-radius: 14px;
@@ -379,7 +482,7 @@
 		gap: 12px;
 		min-width: 0;
 	}
-	.card-header h3 {
+	.card-header h4 {
 		margin: 0;
 		font-size: 1.05rem;
 	}
