@@ -137,8 +137,8 @@
 	{:else}
 		<div class="report-list">
 			{#each data.reportGroups as group}
+				{@const reportsByStatus = groupReportsByStatus(group.reports)}
 				<article class="report-group">
-					{@const reportsByStatus = groupReportsByStatus(group.reports)}
 					<header class="group-header">
 						<div>
 							<h2>Ad {group.adId}</h2>
