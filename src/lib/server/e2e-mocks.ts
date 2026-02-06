@@ -10,8 +10,8 @@ export const E2E_MOCK_AD: ApiAdRow = {
 	currency: 'EUR',
 	image_keys: [],
 	firm_price: false,
-	min_offer: null,
-	auto_decline_message: null,
+	min_offer: 10,
+	auto_decline_message: 'Thanks — minimum offer is €10.',
 	direct_contact_enabled: true,
 	status: 'active',
 	created_at: new Date().toISOString(),
@@ -54,7 +54,18 @@ export const E2E_MOCK_MESSAGES = [
 		delivery_method: null,
 		timing: null,
 		auto_declined: false,
-		created_at: new Date().toISOString()
+		created_at: new Date(Date.now() - 1000 * 60 * 2).toISOString()
+	},
+	{
+		id: 'e2e-msg-3',
+		sender_id: E2E_MOCK_CONVERSATION.buyer_id,
+		kind: 'offer',
+		body: 'I can offer €5.',
+		offer_amount: 5,
+		delivery_method: 'pickup',
+		timing: null,
+		auto_declined: true,
+		created_at: new Date(Date.now() - 1000 * 60).toISOString()
 	}
 ];
 

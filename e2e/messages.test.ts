@@ -23,6 +23,7 @@ test('messages inbox renders a thread', async ({ page }) => {
 
 test('thread view can send a message', async ({ page }) => {
 	await page.goto('/messages/e2e-convo-1');
+	await expect(page.getByText(/Offer auto-declined/i)).toBeVisible();
 	await page.fill('#reply', 'Thanks, got it.');
 	await page.getByRole('button', { name: 'Send' }).click();
 	await expect(page.getByText('Message sent.')).toBeVisible();

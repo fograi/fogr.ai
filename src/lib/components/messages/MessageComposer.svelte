@@ -345,7 +345,7 @@
 		border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent);
 	}
 	.notice.warn {
-		background: color-mix(in srgb, #fde68a 40%, var(--bg));
+		background: color-mix(in srgb, #fde68a 100%, var(--bg));
 		color: color-mix(in srgb, #b45309 90%, var(--fg));
 		border: 1px solid color-mix(in srgb, #f59e0b 40%, transparent);
 	}

@@ -7,11 +7,13 @@
 		createdAt: string;
 		isMine: boolean;
 		kind: string;
+		autoDeclined: boolean;
 	};
 
 	export let data: {
 		conversation: { id: string; adId: string; adTitle: string };
 		readMeta: { viewerRole: 'buyer' | 'seller'; otherLastReadAt: string | null; viewerLastReadAt: string };
+		autoDeclineMessage?: string;
 		messages: MessageView[];
 	};
 
@@ -123,6 +125,11 @@
 				{:else}
 					<div class={`bubble ${item.msg.isMine ? 'mine' : 'theirs'}`}>
 						<p class="body">{item.msg.body}</p>
+						{#if item.msg.kind === 'offer' && item.msg.autoDeclined}
+							<p class="auto-decline">
+								Offer auto-declined{data.autoDeclineMessage ? `: ${data.autoDeclineMessage}` : '.'}
+							</p>
+						{/if}
 						<span class="meta">
 							{fmt(item.msg.createdAt)}
 							{#if item.msg.isMine && item.msg.id === lastMineId && hasBeenSeen(item.msg.createdAt)}
@@ -212,6 +219,12 @@
 	}
 	.body {
 		margin: 0;
+	}
+	.auto-decline {
+		margin: 0;
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: color-mix(in srgb, #b45309 85%, var(--fg));
 	}
 	.meta {
 		font-size: 0.8rem;
