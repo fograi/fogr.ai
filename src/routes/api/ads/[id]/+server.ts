@@ -513,6 +513,9 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 
 		if (updateError) {
 			console.error('ads_patch_update_failed', updateError);
+			if (debugAllowed) {
+				return errorResponse(`Debug: ${updateError.message} (stage: update)`, 500);
+			}
 			return errorResponse('Could not update ad.', 500);
 		}
 
