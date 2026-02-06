@@ -90,6 +90,46 @@
 			<small class="muted">Min {MIN_TITLE_LENGTH}, max {MAX_TITLE_LENGTH}</small>
 		</div>
 
+		<div class="field">
+			<label for="description"
+				>Description <span class="muted">({descLen}/{MAX_DESC_LENGTH})</span></label
+			>
+			<textarea
+				id="description"
+				bind:value={description}
+				minlength={MIN_DESC_LENGTH}
+				maxlength={MAX_DESC_LENGTH}
+				rows="6"
+				placeholder="Key details, pickup area, condition…"
+				required
+				disabled={loading}
+				aria-invalid={showErrors ? descriptionInvalid : undefined}
+			></textarea>
+			<small class="muted">Min {MIN_DESC_LENGTH}, max {MAX_DESC_LENGTH}</small>
+		</div>
+
+		<div class="row">
+			<label class="checkbox">
+				<input
+					type="checkbox"
+					bind:checked={ageConfirmed}
+					disabled={loading}
+					aria-invalid={showErrors ? ageInvalid : undefined}
+				/>
+				<span>I am 18 or older.</span>
+			</label>
+		</div>
+
+		<div class="row">
+			<label class="checkbox">
+				<input type="checkbox" bind:checked={directContactEnabled} disabled={loading} />
+				<span>Allow direct contact after first message.</span>
+			</label>
+		</div>
+		<small class="muted">We will only reveal your email after a buyer messages you.</small>
+	{/if}
+
+	{#if step === 2}
 		<div class="row">
 			<div class="field">
 				<label for="price-type">Price type</label>
@@ -172,46 +212,6 @@
 				</div>
 			{/if}
 		{/if}
-	{/if}
-
-	{#if step === 2}
-		<div class="field">
-			<label for="description"
-				>Description <span class="muted">({descLen}/{MAX_DESC_LENGTH})</span></label
-			>
-			<textarea
-				id="description"
-				bind:value={description}
-				minlength={MIN_DESC_LENGTH}
-				maxlength={MAX_DESC_LENGTH}
-				rows="6"
-				placeholder="Key details, pickup area, condition…"
-				required
-				disabled={loading}
-				aria-invalid={showErrors ? descriptionInvalid : undefined}
-			></textarea>
-			<small class="muted">Min {MIN_DESC_LENGTH}, max {MAX_DESC_LENGTH}</small>
-		</div>
-
-		<div class="row">
-			<label class="checkbox">
-				<input
-					type="checkbox"
-					bind:checked={ageConfirmed}
-					disabled={loading}
-					aria-invalid={showErrors ? ageInvalid : undefined}
-				/>
-				<span>I am 18 or older.</span>
-			</label>
-		</div>
-
-		<div class="row">
-			<label class="checkbox">
-				<input type="checkbox" bind:checked={directContactEnabled} disabled={loading} />
-				<span>Allow direct contact after first message.</span>
-			</label>
-		</div>
-		<small class="muted">We will only reveal your email after a buyer messages you.</small>
 	{/if}
 </section>
 

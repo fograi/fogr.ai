@@ -85,6 +85,16 @@
 			return `Title must be at least ${MIN_TITLE_LENGTH} characters.`;
 		if (title.length > MAX_TITLE_LENGTH)
 			return `Title must be no more than ${MAX_TITLE_LENGTH} characters.`;
+		if (!description.trim()) return 'Add a description.';
+		if (description.trim().length < MIN_DESC_LENGTH)
+			return `Description must be at least ${MIN_DESC_LENGTH} characters.`;
+		if (description.length > MAX_DESC_LENGTH)
+			return `Description must be no more than ${MAX_DESC_LENGTH} characters.`;
+		if (!ageConfirmed) return 'Confirm you are 18 or older.';
+		return '';
+	}
+
+	function validateDetails() {
 		if (priceType === 'poa' && category && !POA_CATEGORY_SET.has(category)) {
 			return 'Price on application is not available for this category.';
 		}
@@ -109,16 +119,6 @@
 					return 'Minimum offer must be less than the asking price.';
 			}
 		}
-		return '';
-	}
-
-	function validateDetails() {
-		if (!description.trim()) return 'Add a description.';
-		if (description.trim().length < MIN_DESC_LENGTH)
-			return `Description must be at least ${MIN_DESC_LENGTH} characters.`;
-		if (description.length > MAX_DESC_LENGTH)
-			return `Description must be no more than ${MAX_DESC_LENGTH} characters.`;
-		if (!ageConfirmed) return 'Confirm you are 18 or older.';
 		return '';
 	}
 
@@ -257,7 +257,7 @@
 		<li class:active={step === 2} class:done={step > 2}>
 			<button type="button" on:click={() => jumpTo(2)} aria-current={step === 2}>
 				<span class="num">2</span>
-				<span class="label">Details</span>
+				<span class="label">Price</span>
 			</button>
 		</li>
 		<li class:active={step === 3} class:done={step > 3}>
