@@ -4,7 +4,11 @@ import { isAdminUser } from '$lib/server/admin';
 
 export const load: LayoutServerLoad = async ({ locals, depends, setHeaders, platform }) => {
 	depends('supabase:auth');
-	setHeaders({ 'cache-control': 'private, no-store' });
+	try {
+		setHeaders({ 'cache-control': 'private, no-store' });
+	} catch {
+		// Avoid duplicate header errors in certain runtimes.
+	}
 
 	if (isE2eMock(platform)) {
 		return { user: E2E_MOCK_USER, isAdmin: false };

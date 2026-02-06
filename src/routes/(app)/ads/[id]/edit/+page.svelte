@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
 	import {
 		type Category,
@@ -78,10 +79,12 @@
 	}
 
 	$: {
-		const text = `${title ?? ''} ${description ?? ''}`.trim();
-		clearTimeout(debounce);
-		if (text) {
-			debounce = window.setTimeout(() => mod.postLive(text), 250);
+		if (browser) {
+			const text = `${title ?? ''} ${description ?? ''}`.trim();
+			clearTimeout(debounce);
+			if (text) {
+				debounce = window.setTimeout(() => mod.postLive(text), 250);
+			}
 		}
 	}
 

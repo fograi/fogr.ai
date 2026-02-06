@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import {
 		type Category,
 		type PriceType,
@@ -52,10 +53,12 @@
 
 	// live moderation check while typing
 	$: {
-		const text = `${title ?? ''} ${description ?? ''}`.trim();
-		clearTimeout(debounce);
-		if (text) {
-			debounce = window.setTimeout(() => mod.postLive(text), 250);
+		if (browser) {
+			const text = `${title ?? ''} ${description ?? ''}`.trim();
+			clearTimeout(debounce);
+			if (text) {
+				debounce = window.setTimeout(() => mod.postLive(text), 250);
+			}
 		}
 	}
 
