@@ -264,7 +264,7 @@
 		<div class="warning-row" role="alert">
 			<p class="notice warn">{warning}</p>
 			<button type="button" class="btn ghost" on:click={() => dispatch('flag')}>
-				Flag listing
+				Report
 			</button>
 		</div>
 	{/if}

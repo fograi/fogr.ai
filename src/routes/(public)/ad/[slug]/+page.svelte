@@ -68,7 +68,7 @@
 	async function share() {
 		try {
 			if (navigator.share) {
-				await navigator.share({ title: data?.ad?.title ?? 'Listing', url: location.href });
+				await navigator.share({ title: data?.ad?.title ?? 'Ad', url: location.href });
 			} else {
 				await navigator.clipboard?.writeText(location.href);
 			}
@@ -216,11 +216,13 @@
 		{/if}
 		<AdCardWide {...data.ad} showActions={false} />
 
-		<section class="action-rail" aria-label="Listing actions">
-			<button type="button" class="btn primary" on:click={share}>Share listing</button>
-			<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
-				Flag listing
-			</button>
+		<section class="action-rail" aria-label="Ad actions">
+			<button type="button" class="btn primary" on:click={share}>Share</button>
+			{#if !data.isOwner}
+				<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
+					Report
+				</button>
+			{/if}
 			{#if data.moderation}
 				<button type="button" class="btn ghost" on:click={() => openPanel('moderation')}>
 					Moderation decision
@@ -248,19 +250,17 @@
 		{#if reportOpen}
 			<section class="panel report-panel" bind:this={reportPanel}>
 				<div class="panel-head">
-					<h2>Report listing</h2>
+					<h2>Report</h2>
 					<button type="button" class="panel-close" on:click={() => (reportOpen = false)}>
 						Close
 					</button>
 				</div>
 				<div class="report-card">
-					<p class="report-intro">
-						Report content that is illegal or against our rules. We review reports quickly.
-					</p>
+					<p class="report-intro">Report content that breaks our rules. We review quickly.</p>
 
 					{#if reportSuccess}
 						<p class="report-success" aria-live="polite">
-							Thanks - we received your report{reportId ? ` (ref: ${reportId})` : ''}.
+							Thanks — report received{reportId ? ` (ref: ${reportId})` : ''}.
 						</p>
 						{#if reportId}
 							<div class="report-actions">
