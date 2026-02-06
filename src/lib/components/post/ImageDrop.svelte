@@ -16,6 +16,7 @@
 	export let price: number | '' = '';
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
+	export let showMeta = true;
 
 	// state
 	let imgLoaded = false;
@@ -201,11 +202,13 @@
 	tabindex="0"
 >
 	{#if previewUrl}
-		<!-- Banner header above image (centered) -->
-		<div class="banner" style="--banner:{bannerBase}">
-			<span class="banner__icon">{bannerIcon}</span>
-			<span class="banner__label">{(category || '').toUpperCase()}</span>
-		</div>
+		{#if showMeta}
+			<!-- Banner header above image (centered) -->
+			<div class="banner" style="--banner:{bannerBase}">
+				<span class="banner__icon">{bannerIcon}</span>
+				<span class="banner__label">{(category || '').toUpperCase()}</span>
+			</div>
+		{/if}
 
 		<!-- Square image, no overlays/chips -->
 		<div class="media square">
@@ -217,11 +220,13 @@
 				on:error={() => (imgLoaded = false)}
 			/>
 		</div>
-		<h3 class="title--standalone">{title || 'Your catchy title'}</h3>
-		{#if formatted}
-			<div class="price-row">
-				<span class="price-badge">{formatted}</span>
-			</div>
+		{#if showMeta}
+			<h3 class="title--standalone">{title || 'Your catchy title'}</h3>
+			{#if formatted}
+				<div class="price-row">
+					<span class="price-badge">{formatted}</span>
+				</div>
+			{/if}
 		{/if}
 		<div class="row actions">
 			<button type="button" class="btn ghost" on:click={() => clearFile()}>
