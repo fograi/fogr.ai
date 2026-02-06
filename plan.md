@@ -19,6 +19,13 @@
 
 - [ ] Add image reuse detection (hashing).
 
+### Moderation Ops (Low-Cost)
+
+- [ ] Implement moderation workflow states (report received → review → decision → SoR sent → appeal → final).
+- [ ] Add Supabase tables `moderation_events` and `reports`.
+- [ ] Ensure moderation logging captures `content_id`, `user_id`, `report_id`, `decision`, `legal_basis`, `automated_flag`, `timestamp`.
+- [ ] Add email templates for takedown, SoR, and appeal outcomes.
+
 ### Legal + Compliance (EU/UK, DSA)
 
 - [ ] Integrate finalized Terms copy (from external draft) covering hosting/intermediary role, moderation disclosure, age gating, repeat infringer policy, graduated enforcement, UK note, and term-change notice.
@@ -33,12 +40,7 @@
 - [ ] Create `/cookies` page documenting strictly-necessary cookies and block accidental third-party scripts.
 - [ ] Publish an annual DSA transparency page with counts: removals, user reports, appeals, reversals, automated vs human.
 
-### Moderation Ops (Low-Cost)
 
-- [ ] Implement moderation workflow states (report received → review → decision → SoR sent → appeal → final).
-- [ ] Add Supabase tables `moderation_events` and `reports`.
-- [ ] Ensure moderation logging captures `content_id`, `user_id`, `report_id`, `decision`, `legal_basis`, `automated_flag`, `timestamp`.
-- [ ] Add email templates for takedown, SoR, and appeal outcomes.
 
 ## Notes
 
