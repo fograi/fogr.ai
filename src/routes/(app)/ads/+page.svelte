@@ -168,6 +168,9 @@
 
 					<div class="actions">
 						<a class="btn ghost" href={resolve(`/ad/${ad.id}`)}>View</a>
+						{#if ['active', 'pending', 'archived'].includes(ad.status)}
+							<a class="btn ghost" href={resolve(`/ads/${ad.id}/edit`)}>Edit</a>
+						{/if}
 						<button type="button" class="btn ghost" on:click={() => copyLink(ad)}>
 							Copy link
 						</button>

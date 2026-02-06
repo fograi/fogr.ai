@@ -1,11 +1,12 @@
 <script lang="ts">
 	export let label = 'Post ad';
 	export let loading = false;
+	export let loadingLabel = 'Posting…';
 </script>
 
 <div class="sticky-cta" aria-live="polite">
 	<button type="submit" class="btn primary btn--cta" disabled={loading}>
-		{loading ? 'Posting…' : label}
+		{loading ? loadingLabel : label}
 	</button>
 </div>
 

@@ -54,6 +54,28 @@ test('my ads page renders with mocked data', async ({ page }) => {
 	await expect(page.getByText(/E2E Test Ad/i)).toBeVisible();
 });
 
+test('edit ad page saves updates with mocked API', async ({ page }) => {
+	await page.goto('/ads/e2e-ad-1/edit');
+	await expect(page.getByRole('heading', { name: 'Edit ad' })).toBeVisible();
+
+	await page.fill('#title', 'E2E Updated Title');
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await page.getByRole('button', { name: 'Continue' }).click();
+
+	await page.route('**/api/ads/e2e-ad-1', async (route) => {
+		if (route.request().method() !== 'PATCH') return route.continue();
+		return route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ success: true, id: 'e2e-ad-1', message: 'Saved.' })
+		});
+	});
+
+	await page.getByLabel('I am 18 or older.').check();
+	await page.getByRole('button', { name: 'Save changes' }).click();
+	await expect(page).toHaveURL(/\/ad\/e2e-ad-1/);
+});
+
 test('ad detail page renders with mocked data', async ({ page }) => {
 	await page.goto('/ad/e2e-ad-1');
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
