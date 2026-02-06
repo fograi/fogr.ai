@@ -4,10 +4,10 @@
 
 ### Moderation Ops (Low-Cost)
 
-- [ ] Implement moderation workflow states (report received → review → decision → SoR sent → appeal → final).
-- [ ] Add Supabase tables `moderation_events` and `reports`.
-- [ ] Ensure moderation logging captures `content_id`, `user_id`, `report_id`, `decision`, `legal_basis`, `automated_flag`, `timestamp`.
-- [ ] Add email templates for takedown, SoR, and appeal outcomes.
+- [x] Implement moderation workflow states (report received → review → decision → SoR sent → appeal → final) via moderation event logging.
+- [x] Add Supabase table `moderation_events` (ad_reports already exists).
+- [x] Ensure moderation logging captures `content_id`, `user_id`, `report_id`, `decision`, `legal_basis`, `automated_flag`, `timestamp`.
+- [x] Add email templates for takedown, SoR, and appeal outcomes.
 
 ### Safety + Abuse
 
