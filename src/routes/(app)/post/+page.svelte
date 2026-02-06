@@ -202,12 +202,37 @@
 			if (file) form.append('image', file);
 
 			const res = await fetch('/api/ads', { method: 'POST', body: form });
+			const retryAfter = res.headers.get('Retry-After');
 			const raw = await res.text();
 			let data: ApiResponse;
 			try {
 				data = JSON.parse(raw) as ApiResponse;
 			} catch {
 				data = { message: raw };
+			}
+			if (res.status === 429 && retryAfter) {
+				const seconds = Number(retryAfter);
+				if (Number.isFinite(seconds)) {
+					const minutes = Math.ceil(seconds / 60);
+					if (minutes >= 24 * 60) {
+						const days = Math.ceil(minutes / (24 * 60));
+						data.message =
+							days <= 1
+								? 'Please wait about a day before trying again.'
+								: `Please wait about ${days} days before trying again.`;
+					} else if (minutes >= 60) {
+						const hours = Math.ceil(minutes / 60);
+						data.message =
+							hours <= 1
+								? 'Please wait about an hour before trying again.'
+								: `Please wait about ${hours} hours before trying again.`;
+					} else {
+						data.message =
+							minutes <= 1
+								? 'Please wait about a minute before trying again.'
+								: `Please wait about ${minutes} minutes before trying again.`;
+					}
+				}
 			}
 			if (!res.ok || data?.success === false)
 				throw new Error(data?.message || 'We could not post your ad. Try again.');

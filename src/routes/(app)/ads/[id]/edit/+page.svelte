@@ -241,12 +241,37 @@
 					body: JSON.stringify(requestPayload)
 				});
 			}
+			const retryAfter = res.headers.get('Retry-After');
 			const raw = await res.text();
 			let payload: ApiResponse;
 			try {
 				payload = JSON.parse(raw) as ApiResponse;
 			} catch {
 				payload = { message: raw };
+			}
+			if (res.status === 429 && retryAfter) {
+				const seconds = Number(retryAfter);
+				if (Number.isFinite(seconds)) {
+					const minutes = Math.ceil(seconds / 60);
+					if (minutes >= 24 * 60) {
+						const days = Math.ceil(minutes / (24 * 60));
+						payload.message =
+							days <= 1
+								? 'Please wait about a day before editing again.'
+								: `Please wait about ${days} days before editing again.`;
+					} else if (minutes >= 60) {
+						const hours = Math.ceil(minutes / 60);
+						payload.message =
+							hours <= 1
+								? 'Please wait about an hour before editing again.'
+								: `Please wait about ${hours} hours before editing again.`;
+					} else {
+						payload.message =
+							minutes <= 1
+								? 'Please wait about a minute before editing again.'
+								: `Please wait about ${minutes} minutes before editing again.`;
+					}
+				}
 			}
 			if (!res.ok || payload?.success === false)
 				throw new Error(payload?.message || 'We could not save your changes.');

@@ -1,6 +1,6 @@
 // src/routes/api/ads/[id]/+server.ts
 import type { RequestHandler } from '@sveltejs/kit';
-import type { R2Bucket } from '@cloudflare/workers-types';
+import type { KVNamespace, R2Bucket } from '@cloudflare/workers-types';
 import { json } from '@sveltejs/kit';
 import OpenAI from 'openai';
 import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
@@ -26,6 +26,8 @@ const obscenity = new RegExpMatcher({
 
 const PUBLIC_AD_STATUS = 'active';
 const EDITABLE_STATUSES = new Set(['active', 'pending', 'archived']);
+const EDIT_BACKOFF_TTL_SECONDS = 35 * 24 * 60 * 60; // 35 days
+let warnedMissingRateLimit = false;
 
 type ModerationDecision = 'allow' | 'flagged' | 'unavailable';
 type AnyModerationInput = Array<
@@ -34,6 +36,22 @@ type AnyModerationInput = Array<
 
 const errorResponse = (message: string, status = 400) =>
 	json({ success: false, message }, { status });
+const cooldownResponse = (retryAfterSeconds: number) =>
+	json(
+		{
+			success: false,
+			message: 'Please wait before editing again.'
+		},
+		{
+			status: 429,
+			headers: { 'Retry-After': String(retryAfterSeconds) }
+		}
+	);
+
+type EditBackoffState = {
+	count: number;
+	nextAllowedAt: number;
+};
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
 	const bufferCtor = (globalThis as {
@@ -277,7 +295,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		const { data: ad, error: adError } = await locals.supabase
 			.from('ads')
 			.select(
-				'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,direct_contact_enabled,expires_at'
+			'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,direct_contact_enabled,expires_at'
 			)
 			.eq('id', adId)
 			.maybeSingle();
@@ -288,6 +306,25 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		if (!EDITABLE_STATUSES.has(ad.status))
 			return errorResponse('This ad cannot be edited.', 400);
 		debugAllowed = debugRequested && ad.user_id === user.id;
+
+		const envLimits = platform?.env as { RATE_LIMIT?: KVNamespace } | undefined;
+		const rateLimitKv = envLimits?.RATE_LIMIT;
+		const backoffKey = `ads:edit:backoff:${adId}:${user.id}`;
+		let backoffState: EditBackoffState | null = null;
+		if (rateLimitKv) {
+			try {
+				backoffState = await rateLimitKv.get<EditBackoffState>(backoffKey, { type: 'json' });
+				if (backoffState?.nextAllowedAt && Date.now() < backoffState.nextAllowedAt) {
+					const retryAfter = Math.ceil((backoffState.nextAllowedAt - Date.now()) / 1000);
+					return cooldownResponse(retryAfter);
+				}
+			} catch (err) {
+				console.warn('Edit backoff KV error', err);
+			}
+		} else if (!warnedMissingRateLimit) {
+			console.warn('RATE_LIMIT KV binding missing; edit backoff disabled.');
+			warnedMissingRateLimit = true;
+		}
 
 		stage = 'parse_body';
 		let form: FormData | null = null;
@@ -516,6 +553,22 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 				return errorResponse(`Debug: ${updateError.message} (stage: update)`, 500);
 			}
 			return errorResponse('Could not update ad.', 500);
+		}
+
+		if (rateLimitKv) {
+			try {
+				const prevCount = backoffState?.count ?? 0;
+				const nextCount = prevCount + 1;
+				const waitMinutes = Math.pow(2, nextCount - 1);
+				const nextAllowedAt = Date.now() + waitMinutes * 60 * 1000;
+				await rateLimitKv.put(
+					backoffKey,
+					JSON.stringify({ count: nextCount, nextAllowedAt }),
+					{ expirationTtl: EDIT_BACKOFF_TTL_SECONDS }
+				);
+			} catch (err) {
+				console.warn('Edit backoff KV update failed', err);
+			}
 		}
 
 		stage = 'done';
