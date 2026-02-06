@@ -90,7 +90,6 @@
 			return `Description must be at least ${MIN_DESC_LENGTH} characters.`;
 		if (description.length > MAX_DESC_LENGTH)
 			return `Description must be no more than ${MAX_DESC_LENGTH} characters.`;
-		if (!ageConfirmed) return 'Confirm you are 18 or older.';
 		return '';
 	}
 
@@ -122,8 +121,13 @@
 		return '';
 	}
 
+	function validateFinal() {
+		if (!ageConfirmed) return 'Confirm you are 18 or older.';
+		return '';
+	}
+
 	function validateAll() {
-		return validateBasics() || validateDetails();
+		return validateBasics() || validateDetails() || validateFinal();
 	}
 
 	function goNext() {
@@ -339,6 +343,21 @@
 				{price}
 				{currency}
 				{locale}
+			/>
+			<PostFields
+				step={3}
+				bind:category
+				bind:title
+				bind:description
+				bind:price
+				bind:priceType
+				bind:firmPrice
+				bind:minOffer
+				bind:autoDeclineMessage
+				bind:directContactEnabled
+				bind:ageConfirmed
+				{loading}
+				{showErrors}
 			/>
 			<div class="actions">
 				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>

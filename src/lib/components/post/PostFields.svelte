@@ -108,25 +108,6 @@
 			<small class="muted">Min {MIN_DESC_LENGTH}, max {MAX_DESC_LENGTH}</small>
 		</div>
 
-		<div class="row">
-			<label class="checkbox">
-				<input
-					type="checkbox"
-					bind:checked={ageConfirmed}
-					disabled={loading}
-					aria-invalid={showErrors ? ageInvalid : undefined}
-				/>
-				<span>I am 18 or older.</span>
-			</label>
-		</div>
-
-		<div class="row">
-			<label class="checkbox">
-				<input type="checkbox" bind:checked={directContactEnabled} disabled={loading} />
-				<span>Allow direct contact after first message.</span>
-			</label>
-		</div>
-		<small class="muted">We will only reveal your email after a buyer messages you.</small>
 	{/if}
 
 	{#if step === 2}
@@ -212,6 +193,28 @@
 				</div>
 			{/if}
 		{/if}
+	{/if}
+
+	{#if step === 3}
+		<div class="row">
+			<label class="checkbox">
+				<input
+					type="checkbox"
+					bind:checked={ageConfirmed}
+					disabled={loading}
+					aria-invalid={showErrors ? ageInvalid : undefined}
+				/>
+				<span>I am 18 or older.</span>
+			</label>
+		</div>
+
+		<div class="row">
+			<label class="checkbox">
+				<input type="checkbox" bind:checked={directContactEnabled} disabled={loading} />
+				<span>Allow direct contact after first message.</span>
+			</label>
+		</div>
+		<small class="muted">We will only reveal your email after a buyer messages you.</small>
 	{/if}
 </section>
 
