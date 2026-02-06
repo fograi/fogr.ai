@@ -340,11 +340,12 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		}
 
 		if (!ageConfirmed) return errorResponse('Must confirm you are 18 or older.', 400);
-		await locals.supabase
-		.from('user_age_confirmations')
-		.upsert({ user_id: user.id }, { onConflict: 'user_id', ignoreDuplicates: true })
-		.throwOnError()
-		.catch(() => {});
+		const { error: ageConfirmError } = await locals.supabase
+			.from('user_age_confirmations')
+			.upsert({ user_id: user.id }, { onConflict: 'user_id', ignoreDuplicates: true });
+		if (ageConfirmError) {
+			console.warn('age_confirmation_upsert_failed', ageConfirmError.message);
+		}
 
 		stage = 'validate';
 		const priceMetaError = validateAdMeta({ category, currency, priceStr, priceType });
