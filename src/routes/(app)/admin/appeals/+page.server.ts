@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '$lib/supabase.types';
 import { isAdminUser } from '$lib/server/admin';
 import { recordModerationEvent } from '$lib/server/moderation-events';
+import { buildAppealOutcomeEmail } from '$lib/server/moderation-emails';
 
 const STATUS_OPTIONS = new Set(['open', 'resolved', 'dismissed']);
 
@@ -118,6 +119,27 @@ export const actions: Actions = {
 			}
 		}
 
-		return { success: true };
+		let emailPreview: {
+			appealId: string;
+			adId: string;
+			outcome: 'resolved' | 'dismissed';
+			template: { subject: string; body: string };
+		} | null = null;
+
+		if (appeal.status !== status && (status === 'resolved' || status === 'dismissed')) {
+			emailPreview = {
+				appealId,
+				adId: appeal.ad_id,
+				outcome: status,
+				template: buildAppealOutcomeEmail({
+					adId: appeal.ad_id,
+					outcome: status,
+					appealId,
+					baseUrl: url.origin
+				})
+			};
+		}
+
+		return { success: true, emailPreview };
 	}
 };

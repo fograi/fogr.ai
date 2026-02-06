@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	buildAppealOutcomeEmail,
+	buildModerationEmailPreviews,
 	buildStatementOfReasonsEmail,
 	buildTakedownEmail
 } from './moderation-emails';
@@ -56,5 +57,29 @@ describe('moderation email templates', () => {
 		expect(email.body).toContain('ad-999');
 		expect(email.body).toContain('Appeal reference: appeal-1');
 		expect(email.body).toContain('https://example.com/ad/ad-999');
+	});
+
+	it('builds moderation previews with takedown when rejecting', () => {
+		const preview = buildModerationEmailPreviews({
+			adId: 'ad-222',
+			decision: 'reject',
+			reasonCategory: 'illegal',
+			reasonDetails: 'Policy violation.'
+		});
+
+		expect(preview.statement.subject).toContain('Statement of reasons');
+		expect(preview.takedown?.subject).toContain('removed');
+	});
+
+	it('builds moderation previews without takedown when restoring', () => {
+		const preview = buildModerationEmailPreviews({
+			adId: 'ad-333',
+			decision: 'restore',
+			reasonCategory: 'other',
+			reasonDetails: 'Restored after review.'
+		});
+
+		expect(preview.statement.subject).toContain('Statement of reasons');
+		expect(preview.takedown).toBeUndefined();
 	});
 });

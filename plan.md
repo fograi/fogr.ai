@@ -8,6 +8,7 @@
 - [x] Add Supabase table `moderation_events` (ad_reports already exists).
 - [x] Ensure moderation logging captures `content_id`, `user_id`, `report_id`, `decision`, `legal_basis`, `automated_flag`, `timestamp`.
 - [x] Add email templates for takedown, SoR, and appeal outcomes.
+- [x] Add manual copy/paste email template UI in admin reports and appeals.
 
 ### Safety + Abuse
 

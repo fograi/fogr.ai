@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { ActionData } from './$types';
+
 	type ReportRow = {
 		id: string;
 		ad_id: string;
@@ -12,6 +14,56 @@
 	};
 
 	export let data: { reports: ReportRow[] };
+	export let form: ActionData | null | undefined;
+
+	type EmailTemplate = { subject: string; body: string };
+	type EmailPreview = {
+		reportId: string | null;
+		adId: string;
+		actionType: string;
+		statement: EmailTemplate;
+		takedown?: EmailTemplate | null;
+	};
+
+	let copyStatus = '';
+	let copyError = '';
+	let lastPreviewKey = '';
+
+	const extractPreview = (value: ActionData | null | undefined): EmailPreview | null => {
+		if (!value || typeof value !== 'object') return null;
+		if ('emailPreview' in value && value.emailPreview) {
+			return value.emailPreview as EmailPreview;
+		}
+		return null;
+	};
+
+	$: activePreview = extractPreview(form);
+	$: {
+		const key = activePreview ? `${activePreview.reportId ?? ''}:${activePreview.adId}` : '';
+		if (key !== lastPreviewKey) {
+			copyStatus = '';
+			copyError = '';
+			lastPreviewKey = key;
+		}
+	}
+
+	const previewForReport = (report: ReportRow): EmailPreview | null => {
+		if (!activePreview) return null;
+		if (activePreview.reportId && activePreview.reportId === report.id) return activePreview;
+		if (!activePreview.reportId && activePreview.adId === report.ad_id) return activePreview;
+		return null;
+	};
+
+	async function copyText(text: string, label: string) {
+		copyStatus = '';
+		copyError = '';
+		try {
+			await navigator.clipboard?.writeText(text);
+			copyStatus = label;
+		} catch {
+			copyError = 'Could not copy. Please copy manually.';
+		}
+	}
 
 	const statusOptions = [
 		{ value: 'open', label: 'Open' },
@@ -149,6 +201,86 @@
 							<button type="submit">Apply action</button>
 						</form>
 					</details>
+
+					{@const preview = previewForReport(report)}
+					{#if preview}
+						<div class="email-preview">
+							<h3>Email templates</h3>
+							<p class="meta">Generated from the last action on this report.</p>
+							{#if copyStatus}
+								<p class="copy-status" aria-live="polite">{copyStatus}</p>
+							{/if}
+							{#if copyError}
+								<p class="error" aria-live="assertive">{copyError}</p>
+							{/if}
+
+							<div class="email-block">
+								<h4>Statement of reasons</h4>
+								<div class="email-field">
+									<label>Subject</label>
+									<div class="email-row">
+										<input type="text" value={preview.statement.subject} readonly />
+										<button
+											type="button"
+											on:click={() =>
+												copyText(preview.statement.subject, 'Statement subject copied.')
+											}
+										>
+											Copy subject
+										</button>
+									</div>
+								</div>
+								<div class="email-field">
+									<label>Body</label>
+									<div class="email-row">
+										<textarea rows="8" readonly>{preview.statement.body}</textarea>
+										<button
+											type="button"
+											on:click={() =>
+												copyText(preview.statement.body, 'Statement body copied.')
+											}
+										>
+											Copy body
+										</button>
+									</div>
+								</div>
+							</div>
+
+							{#if preview.takedown}
+								<div class="email-block">
+									<h4>Takedown notice</h4>
+									<div class="email-field">
+										<label>Subject</label>
+										<div class="email-row">
+											<input type="text" value={preview.takedown.subject} readonly />
+											<button
+												type="button"
+												on:click={() =>
+													copyText(preview.takedown.subject, 'Takedown subject copied.')
+												}
+											>
+												Copy subject
+											</button>
+										</div>
+									</div>
+									<div class="email-field">
+										<label>Body</label>
+										<div class="email-row">
+											<textarea rows="7" readonly>{preview.takedown.body}</textarea>
+											<button
+												type="button"
+												on:click={() =>
+													copyText(preview.takedown.body, 'Takedown body copied.')
+												}
+											>
+												Copy body
+											</button>
+										</div>
+									</div>
+								</div>
+							{/if}
+						</div>
+					{/if}
 				</article>
 			{/each}
 		</div>
@@ -325,5 +457,54 @@
 		color: var(--fg);
 		width: 100%;
 		box-sizing: border-box;
+	}
+	.email-preview {
+		border-top: 1px solid var(--hairline);
+		padding-top: 12px;
+		display: grid;
+		gap: 10px;
+	}
+	.email-preview h3 {
+		margin: 0;
+		font-size: 1rem;
+	}
+	.email-block {
+		border: 1px dashed var(--hairline);
+		border-radius: 12px;
+		padding: 12px;
+		background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+		display: grid;
+		gap: 10px;
+	}
+	.email-block h4 {
+		margin: 0;
+		font-size: 0.95rem;
+	}
+	.email-field {
+		display: grid;
+		gap: 6px;
+	}
+	.email-row {
+		display: grid;
+		gap: 8px;
+	}
+	.email-row input,
+	.email-row textarea {
+		width: 100%;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--bg);
+		color: var(--fg);
+		padding: 8px 10px;
+		box-sizing: border-box;
+		font-family: inherit;
+	}
+	.email-row textarea {
+		resize: vertical;
+	}
+	.copy-status {
+		margin: 0;
+		color: var(--success);
+		font-size: 0.9rem;
 	}
 </style>

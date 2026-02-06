@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '$lib/supabase.types';
 import { isAdminUser } from '$lib/server/admin';
 import { recordModerationEvent } from '$lib/server/moderation-events';
+import { buildModerationEmailPreviews } from '$lib/server/moderation-emails';
 
 const STATUS_OPTIONS = new Set(['open', 'in_review', 'actioned', 'dismissed']);
 const ACTION_TYPES = new Set(['reject', 'expire', 'restore']);
@@ -191,6 +192,16 @@ export const actions: Actions = {
 			automatedFlag: false
 		});
 
+		const emailPreview = buildModerationEmailPreviews({
+			adId,
+			decision: actionType,
+			reasonCategory,
+			reasonDetails,
+			legalBasis: legalBasis || null,
+			reportId: reportId || null,
+			baseUrl: url.origin
+		});
+
 		if (reportId) {
 			const { error: reportError } = await admin
 				.from('ad_reports')
@@ -201,6 +212,15 @@ export const actions: Actions = {
 			}
 		}
 
-		return { success: true };
+		return {
+			success: true,
+			emailPreview: {
+				reportId: reportId || null,
+				adId,
+				actionType,
+				statement: emailPreview.statement,
+				takedown: emailPreview.takedown ?? null
+			}
+		};
 	}
 };

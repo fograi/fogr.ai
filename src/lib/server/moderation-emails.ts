@@ -16,6 +16,11 @@ type ModerationEmailContext = {
 	baseUrl?: string;
 };
 
+export type ModerationEmailPreview = {
+	statement: EmailTemplate;
+	takedown?: EmailTemplate;
+};
+
 type AppealOutcomeContext = {
 	adId: string;
 	outcome: 'resolved' | 'dismissed';
@@ -102,4 +107,16 @@ export const buildAppealOutcomeEmail = (ctx: AppealOutcomeContext): EmailTemplat
 			.filter(Boolean)
 			.join('\n')
 	};
+};
+
+export const buildModerationEmailPreviews = (
+	ctx: ModerationEmailContext
+): ModerationEmailPreview => {
+	const statement = buildStatementOfReasonsEmail(ctx);
+	const takedown =
+		ctx.decision === 'reject' || ctx.decision === 'expire'
+			? buildTakedownEmail(ctx)
+			: undefined;
+
+	return { statement, takedown };
 };
