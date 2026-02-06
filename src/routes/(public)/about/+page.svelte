@@ -105,47 +105,6 @@
 		font-size: 1.05rem;
 		color: color-mix(in srgb, var(--fg) 75%, transparent);
 	}
-	.cta-row {
-		display: flex;
-		justify-content: center;
-		gap: 10px;
-		flex-wrap: wrap;
-	}
-	.btn {
-		display: inline-grid;
-		place-items: center;
-		gap: 6px;
-		padding: 10px 14px;
-		border-radius: 10px;
-		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
-		background: var(--surface);
-		cursor: pointer;
-		font-weight: 700;
-		text-decoration: none;
-		color: inherit;
-	}
-	.btn.primary {
-		background: var(--fg);
-		color: var(--bg);
-		border-color: var(--fg);
-	}
-	.btn.ghost {
-		background: transparent;
-	}
-	.why-name {
-		margin: 0 auto;
-		max-width: 520px;
-		text-align: left;
-	}
-	.why-name summary {
-		cursor: pointer;
-		font-weight: 700;
-	}
-	.why-name p {
-		margin: 8px 0 0;
-		color: color-mix(in srgb, var(--fg) 75%, transparent);
-	}
-
 	.section {
 		display: grid;
 		gap: 14px;
@@ -155,27 +114,6 @@
 	}
 	.section--center h2 {
 		text-align: center;
-	}
-
-	.steps {
-		display: grid;
-		gap: 16px;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	}
-	.step {
-		background: color-mix(in srgb, var(--fg) 4%, var(--bg));
-		border: 1px solid var(--hairline);
-		border-radius: 14px;
-		padding: 14px 16px;
-		display: grid;
-		gap: 6px;
-	}
-	.step h3 {
-		margin: 0;
-	}
-	.step p {
-		margin: 0;
-		color: color-mix(in srgb, var(--fg) 72%, transparent);
 	}
 
 	.grid {
@@ -201,21 +139,10 @@
 		color: color-mix(in srgb, var(--fg) 72%, transparent);
 	}
 
-	.contact-text {
-		margin: 0;
-		color: color-mix(in srgb, var(--fg) 75%, transparent);
-		text-align: center;
-	}
 	.contact {
 		display: grid;
 		justify-items: center;
 		gap: 10px;
 		text-align: center;
-	}
-
-	@media (max-width: 640px) {
-		.why-name {
-			max-width: 100%;
-		}
 	}
 </style>
