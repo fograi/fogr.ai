@@ -34,7 +34,7 @@
 
 	function defaultBody() {
 		if (kind === 'availability') return 'Is this still available?';
-		if (kind === 'pickup') return `Can I collect ${timing.trim() || 'this week'}?`;
+		if (kind === 'pickup') return `Pickup time: ${timing.trim()}`;
 		if (kind === 'offer' && offerAmount !== '') {
 			return `I can offer ${formatMoney(Number(offerAmount))}.`;
 		}
