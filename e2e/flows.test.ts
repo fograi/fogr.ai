@@ -44,7 +44,14 @@ test('navbar shows Post ad and Logout when signed in (mocked)', async ({ page })
 	await page.goto('/post');
 	await expect(page.getByRole('link', { name: 'Post ad' })).toBeVisible();
 	await page.getByRole('button', { name: 'Toggle navigation' }).click();
+	await expect(page.getByRole('link', { name: 'My ads' })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+});
+
+test('my ads page renders with mocked data', async ({ page }) => {
+	await page.goto('/ads');
+	await expect(page.getByRole('heading', { name: 'My ads' })).toBeVisible();
+	await expect(page.getByText(/E2E Test Ad/i)).toBeVisible();
 });
 
 test('ad detail page renders with mocked data', async ({ page }) => {

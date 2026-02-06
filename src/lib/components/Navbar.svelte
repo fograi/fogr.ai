@@ -106,7 +106,12 @@
 
 	// Build the final nav items based on auth
 	$: authedLinks = user
-		? [...baseLinks, { href: '/(app)/messages', label: 'Messages' }, { href: '/(app)/account', label: 'Account' }]
+		? [
+				...baseLinks,
+				{ href: '/(app)/messages', label: 'Messages' },
+				{ href: '/(app)/account', label: 'Account' },
+				{ href: '/(app)/ads', label: 'My ads' }
+			]
 		: baseLinks;
 
 	const postPath = resolve('/(app)/post');
