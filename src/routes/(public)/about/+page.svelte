@@ -9,7 +9,7 @@
 		</p>
 	</header>
 
-	<section class="section">
+	<section class="section section--center">
 		<h2>What’s different here</h2>
 		<div class="grid">
 			<article class="card">
@@ -153,6 +153,9 @@
 	.section h2 {
 		margin: 0;
 	}
+	.section--center h2 {
+		text-align: center;
+	}
 
 	.steps {
 		display: grid;
@@ -201,6 +204,12 @@
 	.contact-text {
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 75%, transparent);
+		text-align: center;
+	}
+	.contact {
+		display: grid;
+		justify-items: center;
+		gap: 10px;
 		text-align: center;
 	}
 
