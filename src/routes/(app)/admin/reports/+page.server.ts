@@ -5,6 +5,7 @@ import type { Database } from '$lib/supabase.types';
 import { isAdminUser } from '$lib/server/admin';
 import { recordModerationEvent } from '$lib/server/moderation-events';
 import { buildModerationEmailPreviews } from '$lib/server/moderation-emails';
+import { groupReportsByAd } from '$lib/server/report-grouping';
 
 const STATUS_OPTIONS = new Set(['open', 'in_review', 'actioned', 'dismissed']);
 const ACTION_TYPES = new Set(['reject', 'expire', 'restore']);
@@ -61,8 +62,11 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 
 	if (listError) throw error(500, 'Failed to load reports');
 
+	const reports = data ?? [];
+
 	return {
-		reports: data ?? []
+		reportGroups: groupReportsByAd(reports),
+		reportCount: reports.length
 	};
 };
 

@@ -21,12 +21,19 @@
 		outcome: 'resolved' | 'dismissed';
 		template: EmailTemplate;
 	};
+	type ModerationEmailPreview = {
+		appealId: string;
+		adId: string;
+		actionType: string;
+		statement: EmailTemplate;
+		takedown?: EmailTemplate | null;
+	};
 
 	let copyStatus = '';
 	let copyError = '';
 	let lastPreviewKey = '';
 
-	const extractPreview = (value: ActionData | null | undefined): AppealEmailPreview | null => {
+	const extractAppealPreview = (value: ActionData | null | undefined): AppealEmailPreview | null => {
 		if (!value || typeof value !== 'object') return null;
 		if ('emailPreview' in value && value.emailPreview) {
 			return value.emailPreview as AppealEmailPreview;
@@ -34,19 +41,41 @@
 		return null;
 	};
 
-	$: activePreview = extractPreview(form);
+	const extractModerationPreview = (
+		value: ActionData | null | undefined
+	): ModerationEmailPreview | null => {
+		if (!value || typeof value !== 'object') return null;
+		if ('moderationEmailPreview' in value && value.moderationEmailPreview) {
+			return value.moderationEmailPreview as ModerationEmailPreview;
+		}
+		return null;
+	};
+
+	$: activeAppealPreview = extractAppealPreview(form);
+	$: activeModerationPreview = extractModerationPreview(form);
+	$: activePreviewKey =
+		activeAppealPreview
+			? `appeal:${activeAppealPreview.appealId}:${activeAppealPreview.adId}`
+			: activeModerationPreview
+				? `mod:${activeModerationPreview.appealId}:${activeModerationPreview.adId}`
+				: '';
 	$: {
-		const key = activePreview ? `${activePreview.appealId}:${activePreview.adId}` : '';
-		if (key !== lastPreviewKey) {
+		if (activePreviewKey !== lastPreviewKey) {
 			copyStatus = '';
 			copyError = '';
-			lastPreviewKey = key;
+			lastPreviewKey = activePreviewKey;
 		}
 	}
 
 	const previewForAppeal = (appeal: AppealRow): AppealEmailPreview | null => {
-		if (!activePreview) return null;
-		if (activePreview.appealId === appeal.id) return activePreview;
+		if (!activeAppealPreview) return null;
+		if (activeAppealPreview.appealId === appeal.id) return activeAppealPreview;
+		return null;
+	};
+
+	const moderationPreviewForAppeal = (appeal: AppealRow): ModerationEmailPreview | null => {
+		if (!activeModerationPreview) return null;
+		if (activeModerationPreview.appealId === appeal.id) return activeModerationPreview;
 		return null;
 	};
 
@@ -66,6 +95,19 @@
 		{ value: 'resolved', label: 'Resolved' },
 		{ value: 'dismissed', label: 'Dismissed' }
 	];
+	const actionOptions = [
+		{ value: 'reject', label: 'Reject (remove from listings)' },
+		{ value: 'expire', label: 'Expire (hide as expired)' },
+		{ value: 'restore', label: 'Restore (make active)' }
+	];
+	const reasonOptions = [
+		{ value: 'illegal', label: 'Illegal content' },
+		{ value: 'prohibited', label: 'Prohibited item' },
+		{ value: 'scam', label: 'Scam or fraud' },
+		{ value: 'spam', label: 'Spam or misleading' },
+		{ value: 'other', label: 'Other' }
+	];
+	const minReasonLength = 20;
 
 	const formatDate = (iso: string) =>
 		new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium', timeStyle: 'short' }).format(
@@ -84,6 +126,8 @@
 	{:else}
 		<div class="appeal-list">
 			{#each data.appeals as appeal}
+				{@const appealPreview = previewForAppeal(appeal)}
+				{@const moderationPreview = moderationPreviewForAppeal(appeal)}
 				<article class="appeal-card">
 					<header class="card-header">
 						<div>
@@ -116,8 +160,63 @@
 						</a>
 					</div>
 
-					{@const preview = previewForAppeal(appeal)}
-					{#if preview}
+					<details class="action-panel">
+						<summary>Take action on ad</summary>
+						<form method="post" action="?/takeAction" class="action-form">
+							<input type="hidden" name="appeal_id" value={appeal.id} />
+
+							<label>
+								Action
+								<select name="action_type" required>
+									{#each actionOptions as option}
+										<option value={option.value}>{option.label}</option>
+									{/each}
+								</select>
+							</label>
+
+							<label>
+								Reason category
+								<select name="reason_category" required>
+									{#each reasonOptions as option}
+										<option value={option.value}>{option.label}</option>
+									{/each}
+								</select>
+							</label>
+
+							<label>
+								Statement of reasons
+								<textarea
+									name="reason_details"
+									rows="4"
+									minlength={minReasonLength}
+									required
+									placeholder="Explain the facts and reasoning behind the decision."
+								></textarea>
+							</label>
+
+							<label>
+								Legal or policy basis (optional)
+								<input
+									type="text"
+									name="legal_basis"
+									placeholder="e.g. Terms section 4.2, Prohibited items policy"
+								/>
+							</label>
+
+							<p class="action-hint">
+								Do not include personal data in the statement of reasons. This may be submitted to
+								a transparency database.
+							</p>
+							<label class="checkbox">
+								<input type="checkbox" name="no_personal_data" required />
+								<span>I confirm this statement contains no personal data.</span>
+							</label>
+
+							<button type="submit">Apply action</button>
+						</form>
+					</details>
+
+					{#if appealPreview}
 						<div class="email-preview">
 							<h3>Email template</h3>
 							<p class="meta">Generated from the last appeal status update.</p>
@@ -129,15 +228,15 @@
 							{/if}
 
 							<div class="email-block">
-								<h4>Appeal outcome ({preview.outcome})</h4>
+								<h4>Appeal outcome ({appealPreview.outcome})</h4>
 								<div class="email-field">
-									<label>Subject</label>
+									<span class="email-label">Subject</span>
 									<div class="email-row">
-										<input type="text" value={preview.template.subject} readonly />
+										<input type="text" value={appealPreview.template.subject} readonly />
 										<button
 											type="button"
 											on:click={() =>
-												copyText(preview.template.subject, 'Appeal subject copied.')
+												copyText(appealPreview.template.subject, 'Appeal subject copied.')
 											}
 										>
 											Copy subject
@@ -145,13 +244,13 @@
 									</div>
 								</div>
 								<div class="email-field">
-									<label>Body</label>
+									<span class="email-label">Body</span>
 									<div class="email-row">
-										<textarea rows="7" readonly>{preview.template.body}</textarea>
+										<textarea rows="7" readonly>{appealPreview.template.body}</textarea>
 										<button
 											type="button"
 											on:click={() =>
-												copyText(preview.template.body, 'Appeal body copied.')
+												copyText(appealPreview.template.body, 'Appeal body copied.')
 											}
 										>
 											Copy body
@@ -159,6 +258,97 @@
 									</div>
 								</div>
 							</div>
+						</div>
+					{/if}
+
+					{#if moderationPreview}
+						<div class="email-preview">
+							<h3>Moderation emails</h3>
+							<p class="meta">Generated from the last action on this appeal.</p>
+							{#if copyStatus}
+								<p class="copy-status" aria-live="polite">{copyStatus}</p>
+							{/if}
+							{#if copyError}
+								<p class="error" aria-live="assertive">{copyError}</p>
+							{/if}
+
+							<div class="email-block">
+								<h4>Statement of reasons</h4>
+								<div class="email-field">
+									<span class="email-label">Subject</span>
+									<div class="email-row">
+										<input type="text" value={moderationPreview.statement.subject} readonly />
+										<button
+											type="button"
+											on:click={() =>
+												copyText(
+													moderationPreview.statement.subject,
+													'Statement subject copied.'
+												)
+											}
+										>
+											Copy subject
+										</button>
+									</div>
+								</div>
+								<div class="email-field">
+									<span class="email-label">Body</span>
+									<div class="email-row">
+										<textarea rows="8" readonly>{moderationPreview.statement.body}</textarea>
+										<button
+											type="button"
+											on:click={() =>
+												copyText(
+													moderationPreview.statement.body,
+													'Statement body copied.'
+												)
+											}
+										>
+											Copy body
+										</button>
+									</div>
+								</div>
+							</div>
+
+							{#if moderationPreview.takedown}
+								<div class="email-block">
+									<h4>Takedown notice</h4>
+									<div class="email-field">
+										<span class="email-label">Subject</span>
+										<div class="email-row">
+											<input type="text" value={moderationPreview.takedown.subject} readonly />
+											<button
+												type="button"
+												on:click={() =>
+													copyText(
+														moderationPreview.takedown.subject,
+														'Takedown subject copied.'
+													)
+												}
+											>
+												Copy subject
+											</button>
+										</div>
+									</div>
+									<div class="email-field">
+										<span class="email-label">Body</span>
+										<div class="email-row">
+											<textarea rows="7" readonly>{moderationPreview.takedown.body}</textarea>
+											<button
+												type="button"
+												on:click={() =>
+													copyText(
+														moderationPreview.takedown.body,
+														'Takedown body copied.'
+													)
+												}
+											>
+												Copy body
+											</button>
+										</div>
+									</div>
+								</div>
+							{/if}
 						</div>
 					{/if}
 				</article>
@@ -276,6 +466,49 @@
 		color: inherit;
 		text-decoration: underline;
 	}
+	.action-panel {
+		border-top: 1px solid var(--hairline);
+		padding-top: 10px;
+	}
+	.action-panel summary {
+		cursor: pointer;
+		font-weight: 600;
+	}
+	.action-form {
+		margin-top: 10px;
+		display: grid;
+		gap: 10px;
+	}
+	.action-form label {
+		display: grid;
+		gap: 6px;
+		font-weight: 600;
+	}
+	.action-hint {
+		margin: 0;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+		font-size: 0.9rem;
+	}
+	.action-form .checkbox {
+		display: inline-flex;
+		gap: 8px;
+		align-items: flex-start;
+		font-weight: 600;
+	}
+	.action-form .checkbox input {
+		margin-top: 3px;
+	}
+	.action-form textarea,
+	.action-form input,
+	.action-form select {
+		padding: 8px 10px;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--bg);
+		color: var(--fg);
+		width: 100%;
+		box-sizing: border-box;
+	}
 	.email-preview {
 		border-top: 1px solid var(--hairline);
 		padding-top: 12px;
@@ -301,6 +534,9 @@
 	.email-field {
 		display: grid;
 		gap: 6px;
+	}
+	.email-label {
+		font-weight: 600;
 	}
 	.email-row {
 		display: grid;
