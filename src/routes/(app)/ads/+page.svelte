@@ -33,6 +33,9 @@
 		rejected: 'Rejected'
 	};
 
+	const publicR2Base = PUBLIC_R2_BASE.replace(/\/+$/, '');
+	const normalizeKey = (key: string) => key.replace(/^\/+/, '');
+
 	$: counts = STATUS_ORDER.reduce(
 		(acc, status) => {
 			acc[status] = ads.filter((ad) => ad.status === status).length;
@@ -137,7 +140,7 @@
 					<div class="media">
 						{#if ad.image_keys?.[0]}
 							<img
-								src={`${PUBLIC_R2_BASE.replace(/\\/+$/, '')}/${ad.image_keys[0].replace(/^\\/+/, '')}`}
+								src={`${publicR2Base}/${normalizeKey(ad.image_keys[0])}`}
 								alt={ad.title}
 								loading="lazy"
 								decoding="async"

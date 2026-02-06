@@ -3,7 +3,12 @@ export type StatusChangeResult =
 	| { ok: false; reason: 'invalid-target' | 'immutable-current' | 'reactivation-not-allowed' | 'expired' };
 
 const ALLOWED_TARGETS = new Set(['active', 'sold', 'archived']);
-const MUTABLE_STATUSES = new Set(['active', 'sold', 'archived', 'expired']);
+const MUTABLE_STATUSES = new Set(['active', 'sold', 'archived']);
+const ALLOWED_TRANSITIONS: Record<string, Set<string>> = {
+	active: new Set(['sold', 'archived']),
+	sold: new Set(['active', 'archived']),
+	archived: new Set(['active'])
+};
 
 type StatusChangeInput = {
 	currentStatus: string;
@@ -23,6 +28,9 @@ export function validateAdStatusChange({
 	}
 	if (!MUTABLE_STATUSES.has(currentStatus)) {
 		return { ok: false, reason: 'immutable-current' };
+	}
+	if (!ALLOWED_TRANSITIONS[currentStatus]?.has(nextStatus)) {
+		return { ok: false, reason: 'invalid-target' };
 	}
 	if (nextStatus === 'active') {
 		if (!['sold', 'archived'].includes(currentStatus)) {
