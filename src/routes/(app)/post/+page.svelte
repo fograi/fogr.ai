@@ -255,7 +255,7 @@
 			goNext();
 			return;
 		}
-		void handleSubmit();
+		openPreview();
 	}
 
 	onDestroy(() => mod.destroy());
@@ -425,6 +425,9 @@
 				</button>
 			</header>
 			<div class="modal-body">
+				{#if err}
+					<p class="notice error" role="alert">{err}</p>
+				{/if}
 				<div class="preview-card">
 					{#if previewUrl}
 						<img src={previewUrl} alt="" class="preview-img" />

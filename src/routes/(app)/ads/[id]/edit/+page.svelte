@@ -9,7 +9,6 @@
 	} from '$lib/constants';
 	import PostFields from '$lib/components/post/PostFields.svelte';
 	import ImageDrop from '$lib/components/post/ImageDrop.svelte';
-	import StickyCTA from '$lib/components/post/StickyCTA.svelte';
 	import { createModerationClient } from '$lib/clients/moderationClient';
 
 	type EditAdRow = {
@@ -60,6 +59,7 @@
 	let step = 1;
 	const totalSteps = 3;
 	let showErrors = false;
+	let previewOpen = false;
 
 	let file: File | null = null;
 	let previewUrl: string | null = existingImageUrl;
@@ -252,15 +252,41 @@
 		}
 	}
 
+	function openPreview() {
+		if (!editable) return;
+		err = '';
+		ok = '';
+		showErrors = true;
+		const v = validateAll();
+		if (v) {
+			err = v;
+			return;
+		}
+		previewOpen = true;
+	}
+
 	function handleFormSubmit() {
 		if (step < totalSteps) {
 			goNext();
 			return;
 		}
-		void handleSubmit();
+		openPreview();
 	}
 
 	onDestroy(() => mod.destroy());
+
+	$: previewPrice =
+		priceType === 'poa'
+			? 'POA'
+			: priceType === 'free' || Number(price) === 0
+				? 'Free'
+				: price !== ''
+					? new Intl.NumberFormat(locale, {
+							style: 'currency',
+							currency,
+							maximumFractionDigits: 0
+						}).format(Number(price))
+					: '';
 </script>
 
 {#if !editable}
@@ -364,6 +390,7 @@
 				<ImageDrop
 					bind:file
 					bind:previewUrl
+					showMeta={false}
 					{title}
 					{category}
 					{priceType}
@@ -390,11 +417,72 @@
 					<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>
 						Back
 					</button>
+					<button type="button" class="btn primary" on:click={openPreview} disabled={loading}>
+						Preview
+					</button>
 				</div>
-				<StickyCTA label="Save changes" loadingLabel="Saving…" {loading} />
 			</section>
 		{/if}
 	</form>
+{/if}
+
+{#if previewOpen}
+	<div class="modal-backdrop" role="presentation" on:click={() => (previewOpen = false)}>
+		<div
+			class="modal"
+			role="dialog"
+			aria-modal="true"
+			aria-label="Ad preview"
+			on:click|stopPropagation
+			on:keydown={(event) => {
+				if (event.key === 'Escape') previewOpen = false;
+			}}
+			tabindex="-1"
+		>
+			<header class="modal-head">
+				<h2>Preview</h2>
+				<button
+					type="button"
+					class="btn ghost"
+					on:click={() => (previewOpen = false)}
+					disabled={loading}
+				>
+					Close
+				</button>
+			</header>
+			<div class="modal-body">
+				{#if err}
+					<p class="notice error" role="alert">{err}</p>
+				{/if}
+				<div class="preview-card">
+					{#if previewUrl}
+						<img src={previewUrl} alt="" class="preview-img" />
+					{/if}
+					<div class="preview-meta">
+						<div class="preview-category">{category || 'Category'}</div>
+						<h3>{title || 'Your title'}</h3>
+						{#if previewPrice}
+							<div class="preview-price">{previewPrice}</div>
+						{/if}
+						<p>{description || 'Your description will appear here.'}</p>
+					</div>
+				</div>
+			</div>
+			<footer class="modal-actions">
+				<button
+					type="button"
+					class="btn ghost"
+					on:click={() => (previewOpen = false)}
+					disabled={loading}
+				>
+					Edit
+				</button>
+				<button type="button" class="btn primary" on:click={handleSubmit} disabled={loading}>
+					Save changes
+				</button>
+			</footer>
+		</div>
+	</div>
 {/if}
 
 <style>
@@ -510,5 +598,77 @@
 	}
 	.btn.ghost {
 		background: transparent;
+	}
+
+	.modal-backdrop {
+		position: fixed;
+		inset: 0;
+		background: color-mix(in srgb, var(--bg) 25%, rgba(0, 0, 0, 0.6));
+		display: grid;
+		place-items: center;
+		padding: 20px;
+		z-index: 50;
+	}
+	.modal {
+		width: min(720px, 100%);
+		max-height: 90vh;
+		overflow: auto;
+		background: var(--surface);
+		border: 1px solid var(--hairline);
+		border-radius: 18px;
+		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+		display: grid;
+		gap: 16px;
+		padding: 18px;
+	}
+	.modal-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+	.modal-head h2 {
+		margin: 0;
+		font-size: 1.3rem;
+	}
+	.modal-body {
+		display: grid;
+		gap: 12px;
+	}
+	.preview-card {
+		display: grid;
+		gap: 16px;
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.preview-img {
+		width: 100%;
+		border-radius: 14px;
+		aspect-ratio: 4 / 3;
+		object-fit: cover;
+		background: color-mix(in srgb, var(--fg) 6%, transparent);
+	}
+	.preview-meta {
+		display: grid;
+		gap: 8px;
+	}
+	.preview-meta h3 {
+		margin: 0;
+		font-size: 1.2rem;
+	}
+	.preview-category {
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		font-size: 0.75rem;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+	}
+	.preview-price {
+		font-weight: 800;
+		font-size: 1.1rem;
+	}
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 10px;
 	}
 </style>

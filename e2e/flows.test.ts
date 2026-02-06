@@ -73,6 +73,7 @@ test('edit ad page saves updates with mocked API', async ({ page }) => {
 	});
 
 	await page.getByLabel('I am 18 or older.').check();
+	await page.getByRole('button', { name: 'Preview' }).click();
 	await page.getByRole('button', { name: 'Save changes' }).click();
 	await expect(page).toHaveURL(/\/ad\/e2e-ad-1/);
 });
