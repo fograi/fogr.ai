@@ -1,47 +1,79 @@
 <section class="about">
 	<header class="hero">
 		<p class="kicker">About fogr.ai</p>
-		<h1>Clean, local-first classifieds for Ireland.</h1>
+		<h1>Local classifieds with less hassle.</h1>
 		<p class="lead">
-			fogr.ai is built for short, honest listings. One image. One price. No noise. The goal is a
-			feed that feels useful instead of overwhelming.
+			fogr.ai (from the Irish “fógraí” — ads) is built for Ireland. We focus on the specific pain
+			points people hit on the big marketplaces and fix them with simple, practical product
+			choices.
 		</p>
 	</header>
 
-	<div class="grid">
-		<article class="card">
-			<h2>Why it exists</h2>
-			<p>
-				Most marketplaces reward volume and attention tricks. We do the opposite: fewer listings,
-				clearer signals, and local relevance first.
-			</p>
-		</article>
+	<section class="section">
+		<h2>What’s live today</h2>
+		<div class="grid">
+			<article class="card">
+				<h3>Seller controls that reduce lowballing</h3>
+				<p>
+					Firm price, minimum offer, and auto‑decline messages. If you set rules, the platform
+					enforces them.
+				</p>
+			</article>
+			<article class="card">
+				<h3>Privacy‑first contact</h3>
+				<p>
+					Conversations start in‑app. Direct contact is optional and only revealed after a
+					message.
+				</p>
+			</article>
+			<article class="card">
+				<h3>Honest pricing rules</h3>
+				<p>
+					Fixed/Free/POA are validated by category so filters stay trustworthy and fake prices
+					don’t pollute results.
+				</p>
+			</article>
+			<article class="card">
+				<h3>Short, clear listings</h3>
+				<p>
+					Required fields, validation, and a simple 0–1 photo rule keep listings readable and
+					fast to create.
+				</p>
+			</article>
+			<article class="card">
+				<h3>Scam warning patterns</h3>
+				<p>
+					Messages are screened for common scam patterns and users get clear warnings when
+					they appear.
+				</p>
+			</article>
+			<article class="card">
+				<h3>Reports, moderation, and appeals</h3>
+				<p>
+					A full report flow, admin actions, and appeals handling mean there’s a real path to
+					recourse.
+				</p>
+			</article>
+		</div>
+	</section>
 
-		<article class="card">
-			<h2>How it works</h2>
-			<p>
-				Ads are short by design, with a single image and a mandatory price. Listings expire
-				automatically to keep the feed fresh.
-			</p>
-		</article>
+	<section class="section">
+		<h2>How this tackles incumbent pain</h2>
+		<ul class="list">
+			<li><strong>Scams and off‑platform pressure:</strong> scam warnings + in‑app messaging.</li>
+			<li><strong>Time‑wasters and lowballing:</strong> firm price, min offer, and auto‑declines.</li>
+			<li><strong>Fake prices and broken filters:</strong> POA only where allowed; fixed/free rules enforced.</li>
+			<li><strong>Weak accountability:</strong> reports, moderation actions, and appeals are live.</li>
+			<li><strong>Bumping by repeated edits:</strong> exponential edit backoff per ad.</li>
+		</ul>
+	</section>
 
-		<article class="card">
-			<h2>Trust & safety</h2>
-			<p>
-				We filter spam and abuse, rate-limit sensitive actions, and keep moderation simple. If a
-				listing doesn’t meet the rules, it doesn’t go live.
-			</p>
-		</article>
-	</div>
-
-	<section class="principles">
-		<h2>Design principles</h2>
-		<ul>
-			<li>Local-first by default</li>
-			<li>Short ads, clear prices</li>
-			<li>No engagement bait</li>
-			<li>Fresh listings, no bumping</li>
-			<li>Low friction, low noise</li>
+	<section class="section">
+		<h2>Quality guardrails</h2>
+		<ul class="list">
+			<li><strong>Posting limits:</strong> one ad per day to reduce spam.</li>
+			<li><strong>Preview before posting:</strong> fewer mistakes and faster corrections.</li>
+			<li><strong>Expiry by default:</strong> listings stop showing once they expire.</li>
 		</ul>
 	</section>
 
@@ -53,11 +85,11 @@
 
 <style>
 	.about {
-		max-width: 920px;
+		max-width: 980px;
 		margin: 0 auto;
 		padding: 32px 16px 72px;
 		display: grid;
-		gap: 28px;
+		gap: 32px;
 	}
 	.hero {
 		display: grid;
@@ -83,11 +115,20 @@
 		color: color-mix(in srgb, var(--fg) 75%, transparent);
 	}
 
+	.section {
+		display: grid;
+		gap: 14px;
+	}
+	.section h2 {
+		margin: 0;
+	}
+
 	.grid {
 		display: grid;
 		gap: 16px;
-		grid-template-columns: 1fr;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 	}
+
 	.card {
 		background: var(--surface);
 		border: 1px solid var(--hairline);
@@ -96,37 +137,30 @@
 		display: grid;
 		gap: 8px;
 	}
-	.card h2 {
+	.card h3 {
 		margin: 0;
-		font-size: 1.05rem;
+		font-size: 1.02rem;
 	}
 	.card p {
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 72%, transparent);
 	}
 
-	.principles {
-		background: color-mix(in srgb, var(--fg) 4%, var(--bg));
-		border: 1px solid var(--hairline);
-		border-radius: 14px;
-		padding: 16px;
-	}
-	.principles h2 {
-		margin: 0 0 10px;
-	}
-	.principles ul {
+	.list {
 		margin: 0;
 		padding: 0;
 		list-style: none;
 		display: grid;
-		gap: 6px;
+		gap: 8px;
 	}
-	.principles li {
-		padding: 6px 10px;
-		border-radius: 999px;
-		background: var(--surface);
+	.list li {
+		padding: 10px 12px;
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--fg) 5%, var(--bg));
 		border: 1px solid var(--hairline);
-		font-weight: 600;
+	}
+	.list strong {
+		font-weight: 700;
 	}
 
 	.contact {
@@ -138,14 +172,5 @@
 	.contact p {
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 75%, transparent);
-	}
-
-	@media (min-width: 820px) {
-		.grid {
-			grid-template-columns: repeat(3, 1fr);
-		}
-		.principles ul {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
 	}
 </style>

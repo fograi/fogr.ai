@@ -9,7 +9,7 @@
 	<h2>1. Who We Are</h2>
 	<p>
 		This Service is operated by Sionnach Solutions, a registered business name in Quebec,
-		Canada ("we", "us", "our"). Contact: info.eolas@fogr.ai.
+		Canada ("we", "us", "our"). Contact: eolas@fogr.ai.
 	</p>
 
 	<h2>2. What We Collect</h2>
@@ -74,7 +74,7 @@
 	<p>
 		Depending on your location, you may have rights to access, correct, delete, or export your
 		data, and to object to or restrict certain processing. You can request deletion or a copy of
-		your data by contacting us at info.eolas@fogr.ai or through account settings where available.
+		your data by contacting us at eolas@fogr.ai or through account settings where available.
 		We aim to provide simple, self-serve tools for these requests.
 	</p>
 	<p>
@@ -108,7 +108,7 @@
 
 	<h2>12. Contact</h2>
 	<p>
-		Questions? Contact us at info.eolas@fogr.ai.
+		Questions? Contact us at eolas@fogr.ai.
 	</p>
 </article>
 
