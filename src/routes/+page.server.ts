@@ -44,7 +44,9 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 		img: ad.image_keys?.[0] ?? '',
 		description: ad.description ?? '',
 		category: ad.category ?? '',
-		currency: ad.currency ?? undefined
+		currency: ad.currency ?? undefined,
+		firmPrice: ad.firm_price ?? false,
+		minOffer: ad.min_offer ?? null
 	}));
 
 	return { ads: mapped, page, nextPage: nextPage ?? null, requestId, q, category, priceState };

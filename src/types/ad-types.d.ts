@@ -9,6 +9,8 @@ export interface AdCard {
 	locale?: string;
 	status?: string;
 	expiresAt?: string;
+	firmPrice?: boolean;
+	minOffer?: number | null;
 }
 
 export type ModerationAction = {

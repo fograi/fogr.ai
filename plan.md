@@ -135,7 +135,7 @@
 - [x] Clamp listing title to 2 lines and description to 3 lines for faster scanning.
 - [x] Add a consistent no‑image placeholder for text‑only listings.
 - [x] Emphasize price visually to reduce wasted clicks.
-- [ ] Add “Firm price / Offers” badges (requires exposing `firm_price`/`min_offer` in list API).
+- [x] Add “Firm price / Offers” badges (requires exposing `firm_price`/`min_offer` in list API).
 - [ ] Add “New / Updated” chip (requires `created_at`/`updated_at` in list API).
 - [ ] Add “Verified seller” badge once verification exists.
 

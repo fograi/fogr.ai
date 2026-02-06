@@ -11,6 +11,8 @@
 	export let category: string;
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
+	export let firmPrice = false;
+	export let minOffer: number | null = null;
 
 	$: priceLabel =
 		price === null
@@ -24,6 +26,9 @@
 							maximumFractionDigits: 0
 						}).format(price)
 					: null;
+
+	$: offerBadge =
+		firmPrice ? 'Firm price' : typeof minOffer === 'number' && minOffer > 0 ? 'Offers' : '';
 
 	let isPortrait = false;
 	let hasImageError = false;
@@ -76,6 +81,11 @@
 			<div class="hdr">
 				<span class="hdr__cat">{category || 'Classifieds'}</span>
 			</div>
+			{#if offerBadge}
+				<div class="badges">
+					<span class={`badge ${firmPrice ? 'firm' : 'offers'}`}>{offerBadge}</span>
+				</div>
+			{/if}
 
 			{#if showImg}
 				<div class="media">
@@ -154,6 +164,27 @@
 		text-transform: uppercase;
 		letter-spacing: 0.02em;
 		font-size: 0.82rem;
+	}
+	.badges {
+		display: flex;
+		justify-content: center;
+		margin: 8px 0 0;
+	}
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 10px;
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 800;
+		letter-spacing: 0.01em;
+		text-transform: uppercase;
+		border: 1px solid var(--hairline);
+		background: color-mix(in srgb, var(--fg) 8%, var(--bg));
+	}
+	.badge.firm {
+		background: color-mix(in srgb, var(--fg) 16%, var(--bg));
 	}
 
 	@media (prefers-reduced-motion: reduce) {

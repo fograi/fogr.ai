@@ -610,7 +610,7 @@ export const GET: RequestHandler = async (event) => {
 
 	let query = locals.supabase
 		.from('ads')
-		.select('id,title,description,price,currency,category,image_keys,created_at')
+		.select('id,title,description,price,currency,category,image_keys,created_at,firm_price,min_offer')
 		.eq('status', PUBLIC_AD_STATUS)
 		.gt('expires_at', nowIso);
 
