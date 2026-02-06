@@ -8,8 +8,7 @@
 
 	<h2>1. Who We Are</h2>
 	<p>
-		This Service is operated by Sionnach Solutions, a registered business name in Quebec,
-		Canada ("we", "us", "our"). Contact: eolas@fogr.ai.
+		This Service is operated by Sionnach Solutions, incorporated in Canada as 9196692 Canada Inc. ("we", "us", "our"). Contact: eolas@fogr.ai.
 	</p>
 
 	<h2>2. What We Collect</h2>
