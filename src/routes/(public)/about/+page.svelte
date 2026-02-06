@@ -10,7 +10,7 @@
 	</header>
 
 	<section class="section">
-		<h2>What’s live today</h2>
+		<h2>Built to reduce hassle</h2>
 		<div class="grid">
 			<article class="card">
 				<h3>Seller controls that reduce lowballing</h3>
@@ -34,10 +34,9 @@
 				</p>
 			</article>
 			<article class="card">
-				<h3>Short, clear listings</h3>
+				<h3>Structured, clear listings</h3>
 				<p>
-					Required fields, validation, and a simple 0–1 photo rule keep listings readable and
-					fast to create.
+					Required fields and validation keep listings readable and fast to create.
 				</p>
 			</article>
 			<article class="card">
@@ -55,26 +54,6 @@
 				</p>
 			</article>
 		</div>
-	</section>
-
-	<section class="section">
-		<h2>How this tackles incumbent pain</h2>
-		<ul class="list">
-			<li><strong>Scams and off‑platform pressure:</strong> scam warnings + in‑app messaging.</li>
-			<li><strong>Time‑wasters and lowballing:</strong> firm price, min offer, and auto‑declines.</li>
-			<li><strong>Fake prices and broken filters:</strong> POA only where allowed; fixed/free rules enforced.</li>
-			<li><strong>Weak accountability:</strong> reports, moderation actions, and appeals are live.</li>
-			<li><strong>Bumping by repeated edits:</strong> exponential edit backoff per ad.</li>
-		</ul>
-	</section>
-
-	<section class="section">
-		<h2>Quality guardrails</h2>
-		<ul class="list">
-			<li><strong>Posting limits:</strong> one ad per day to reduce spam.</li>
-			<li><strong>Preview before posting:</strong> fewer mistakes and faster corrections.</li>
-			<li><strong>Expiry by default:</strong> listings stop showing once they expire.</li>
-		</ul>
 	</section>
 
 	<section class="contact">
@@ -144,23 +123,6 @@
 	.card p {
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 72%, transparent);
-	}
-
-	.list {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		display: grid;
-		gap: 8px;
-	}
-	.list li {
-		padding: 10px 12px;
-		border-radius: 12px;
-		background: color-mix(in srgb, var(--fg) 5%, var(--bg));
-		border: 1px solid var(--hairline);
-	}
-	.list strong {
-		font-weight: 700;
 	}
 
 	.contact {
