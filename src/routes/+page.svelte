@@ -71,8 +71,8 @@
 <section class="search">
 	<div class="search__inner">
 		<div class="search__copy">
-			<h1>Find it fast.</h1>
-			<p class="sub">Search local listings and post in seconds.</p>
+			<h1>Buy. Sell. Done.</h1>
+			<p class="sub">Local deals, made simple.</p>
 		</div>
 		<form bind:this={searchForm} class="search__form" method="GET" action={resolve('/')}>
 			<label class="sr-only" for="search-q">Search</label>
