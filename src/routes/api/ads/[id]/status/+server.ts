@@ -2,9 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { isSameOrigin } from '$lib/server/csrf';
 import { isE2eMock } from '$lib/server/e2e-mocks';
-
-const ALLOWED_TARGETS = new Set(['active', 'sold', 'archived']);
-const MUTABLE_STATUSES = new Set(['active', 'sold', 'archived', 'expired']);
+import { validateAdStatusChange } from '$lib/server/ad-status';
 
 const errorResponse = (message: string, status = 400) =>
 	json({ success: false, message }, { status });
@@ -23,7 +21,7 @@ export const POST: RequestHandler = async ({ params, request, locals, url, platf
 	}
 
 	const nextStatus = body.status?.trim().toLowerCase() ?? '';
-	if (!ALLOWED_TARGETS.has(nextStatus)) return errorResponse('Invalid status.', 400);
+	if (!nextStatus) return errorResponse('Invalid status.', 400);
 
 	if (isE2eMock(platform)) {
 		return json({ success: true });
@@ -44,17 +42,21 @@ export const POST: RequestHandler = async ({ params, request, locals, url, platf
 	if (!ad) return errorResponse('Ad not found.', 404);
 	if (ad.user_id !== user.id) return errorResponse('Not allowed.', 403);
 
-	if (!MUTABLE_STATUSES.has(ad.status)) {
-		return errorResponse('Status cannot be changed.', 400);
-	}
-
-	if (nextStatus === 'active') {
-		if (!['sold', 'archived'].includes(ad.status)) {
-			return errorResponse('Only sold or archived ads can be reactivated.', 400);
-		}
-		if (ad.expires_at && ad.expires_at <= new Date().toISOString()) {
-			return errorResponse('Expired ads cannot be reactivated.', 400);
-		}
+	const validation = validateAdStatusChange({
+		currentStatus: ad.status,
+		nextStatus,
+		expiresAt: ad.expires_at
+	});
+	if (!validation.ok) {
+		const message =
+			validation.reason === 'invalid-target'
+				? 'Invalid status.'
+				: validation.reason === 'immutable-current'
+					? 'Status cannot be changed.'
+					: validation.reason === 'reactivation-not-allowed'
+						? 'Only sold or archived ads can be reactivated.'
+						: 'Expired ads cannot be reactivated.';
+		return errorResponse(message, 400);
 	}
 
 	const { error: updateError } = await locals.supabase
