@@ -3,76 +3,74 @@
 		<p class="kicker">About fogr.ai</p>
 		<h1>Local classifieds with less hassle.</h1>
 		<p class="lead">
-			Built for Ireland, fogr.ai focuses on the pain points people hit on big marketplaces and fixes
-			them with simple, practical product choices.
+			fogr.ai is a classifieds marketplace built for Ireland.
+			It focuses on the real friction people hit when buying and selling locally,
+			and addresses it with simple, practical product decisions.
 		</p>
-		<div class="cta-row">
-			<a class="btn primary" href="/">Browse listings</a>
-			<a class="btn" href="/post">Post an ad</a>
-			<a class="btn ghost" href="/login">Sign in</a>
-		</div>
-		<details class="why-name">
-			<summary>Why the name?</summary>
-			<p>fogr.ai comes from the Irish word “fógraí” — ads.</p>
-		</details>
 	</header>
-
-	<section class="section">
-		<h2>How it works</h2>
-		<div class="steps">
-			<article class="step">
-				<h3>Post</h3>
-				<p>Required fields keep listings clear and searchable.</p>
-			</article>
-			<article class="step">
-				<h3>Chat</h3>
-				<p>In‑app messaging with offer controls reduces noise.</p>
-			</article>
-			<article class="step">
-				<h3>Close</h3>
-				<p>Privacy‑first contact and reporting tools keep you safer.</p>
-			</article>
-		</div>
-	</section>
 
 	<section class="section">
 		<h2>What’s different here</h2>
 		<div class="grid">
 			<article class="card">
-				<h3>Clearer listings</h3>
-				<p>Required fields and validation make ads easier to trust.</p>
+				<h3>Clear listings by default</h3>
+				<p>
+					Required fields and validation help keep listings readable,
+					complete, and quick to create.
+				</p>
 			</article>
+
 			<article class="card">
 				<h3>Price filters you can trust</h3>
-				<p>Fixed/Free/POA are enforced by category.</p>
+				<p>
+					Fixed, Free, and POA prices are enforced by category,
+					so search results stay meaningful and consistent.
+				</p>
 			</article>
+
 			<article class="card">
-				<h3>Keep contact private</h3>
-				<p>Chat stays in‑app; direct contact is optional after a message.</p>
+				<h3>Fewer lowball offers</h3>
+				<p>
+					Set a firm price or minimum offer.
+					Offers below your rules can be declined automatically.
+				</p>
 			</article>
+
 			<article class="card">
-				<h3>Fewer time‑wasters</h3>
-				<p>Firm price, minimum offer, and auto‑declines reduce lowballing.</p>
+				<h3>Keep your number private</h3>
+				<p>
+					Conversations start in-app.
+					Direct contact is optional and only shared when you choose.
+				</p>
 			</article>
+
 			<article class="card">
-				<h3>Scam warnings built in</h3>
-				<p>Messages are screened for common scam patterns.</p>
+				<h3>Scam warnings in chat</h3>
+				<p>
+					Messages are checked for common scam signals,
+					with clear warnings shown when something looks off.
+				</p>
 			</article>
+
 			<article class="card">
-				<h3>Reports with follow‑up</h3>
-				<p>Report flow, admin actions, and appeals are live.</p>
+				<h3>Reports that are reviewed</h3>
+				<p>
+					A proper reporting flow, moderation actions,
+					and appeals handling provide a real path to recourse.
+				</p>
 			</article>
 		</div>
 	</section>
 
-	<section class="section">
+	<section class="contact">
 		<h2>Contact</h2>
-		<p class="contact-text">Questions or feedback? Email us at eolas@fogr.ai.</p>
-		<p class="contact-text">See something wrong? Use the report button on any listing.</p>
-		<div class="cta-row">
-			<a class="btn" href="/">Browse listings</a>
-			<a class="btn primary" href="/post">Post an ad</a>
-		</div>
+		<p>
+			Questions or feedback? Email
+			<a href="mailto:eolas@fogr.ai">eolas@fogr.ai</a>.
+		</p>
+		<p>
+			<a href="/">Browse listings</a> or <a href="/post">post an ad</a>.
+		</p>
 	</section>
 </section>
 
