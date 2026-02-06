@@ -258,17 +258,22 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 
 	const adId = params.id?.trim() ?? '';
 	if (!adId) return errorResponse('Missing ad id.', 400);
+	const debugRequested = url.searchParams.get('debug') === '1';
+	let debugAllowed = false;
+	let stage = 'start';
 
 	try {
 		if (isE2eMock(platform)) {
 			return json({ success: true, id: adId });
 		}
 
-	const {
-		data: { user }
-	} = await locals.supabase.auth.getUser();
-	if (!user) return errorResponse('Auth required.', 401);
+		stage = 'auth';
+		const {
+			data: { user }
+		} = await locals.supabase.auth.getUser();
+		if (!user) return errorResponse('Auth required.', 401);
 
+		stage = 'load_ad';
 		const { data: ad, error: adError } = await locals.supabase
 			.from('ads')
 			.select(
@@ -277,12 +282,14 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 			.eq('id', adId)
 			.maybeSingle();
 
-	if (adError) return errorResponse('Could not load ad.', 500);
-	if (!ad) return errorResponse('Ad not found.', 404);
-	if (ad.user_id !== user.id) return errorResponse('Not allowed.', 403);
-	if (!EDITABLE_STATUSES.has(ad.status))
-		return errorResponse('This ad cannot be edited.', 400);
+		if (adError) return errorResponse('Could not load ad.', 500);
+		if (!ad) return errorResponse('Ad not found.', 404);
+		if (ad.user_id !== user.id) return errorResponse('Not allowed.', 403);
+		if (!EDITABLE_STATUSES.has(ad.status))
+			return errorResponse('This ad cannot be edited.', 400);
+		debugAllowed = debugRequested && ad.user_id === user.id;
 
+		stage = 'parse_body';
 		let form: FormData | null = null;
 		let body: Record<string, unknown> | null = null;
 		const contentType = request.headers.get('content-type') ?? '';
@@ -325,22 +332,23 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 	const currency = currencyRaw.trim().toUpperCase();
 	const removeImage = readString('remove_image') === '1' || readString('remove_image') === 'true';
 
-	const imageFile = form ? form.get('image') : null;
+		const imageFile = form ? form.get('image') : null;
 	const files: File[] = [];
 	if (imageFile instanceof File && imageFile.size > 0) files.push(imageFile);
-	if (files.length > MAX_IMAGE_COUNT) {
-		return errorResponse(`Too many images (max ${MAX_IMAGE_COUNT}).`, 413);
-	}
+		if (files.length > MAX_IMAGE_COUNT) {
+			return errorResponse(`Too many images (max ${MAX_IMAGE_COUNT}).`, 413);
+		}
 
-	if (!ageConfirmed) return errorResponse('Must confirm you are 18 or older.', 400);
-	await locals.supabase
+		if (!ageConfirmed) return errorResponse('Must confirm you are 18 or older.', 400);
+		await locals.supabase
 		.from('user_age_confirmations')
 		.upsert({ user_id: user.id }, { onConflict: 'user_id', ignoreDuplicates: true })
 		.throwOnError()
 		.catch(() => {});
 
-	const priceMetaError = validateAdMeta({ category, currency, priceStr, priceType });
-	if (priceMetaError) return errorResponse(priceMetaError, 400);
+		stage = 'validate';
+		const priceMetaError = validateAdMeta({ category, currency, priceStr, priceType });
+		if (priceMetaError) return errorResponse(priceMetaError, 400);
 
 	const imageCount =
 		files.length > 0
@@ -390,6 +398,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 	let moderationUnavailable = false;
 	let moderationFlagged = false;
 
+		stage = 'moderation';
 		if (needsModeration) {
 			const combinedText = `${titleTrimmed} ${descTrimmed}`;
 			if (filter.check(combinedText)) return errorResponse('Failed profanity filter.', 400);
@@ -421,14 +430,15 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 			}
 		}
 
-	let nextStatus = ad.status;
+		let nextStatus = ad.status;
 	if (needsModeration && (moderationFlagged || moderationUnavailable)) {
 		if (ad.status !== 'archived') {
 			nextStatus = 'pending';
 		}
 	}
 
-	const env = platform?.env as {
+		stage = 'storage';
+		const env = platform?.env as {
 		ADS_BUCKET?: R2Bucket;
 		ADS_PENDING_BUCKET?: R2Bucket;
 	};
@@ -464,7 +474,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 			nextImageKeys = [];
 		}
 
-	if ((files.length > 0 || removeImage) && (publicBucket || pendingBucket)) {
+		if ((files.length > 0 || removeImage) && (publicBucket || pendingBucket)) {
 		const keysToDelete = ad.image_keys ?? [];
 		if (keysToDelete.length > 0) {
 			await Promise.allSettled([
@@ -474,9 +484,10 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		}
 	}
 
-	const firmPriceValue = normalizedPriceType === 'fixed' ? firmPrice : true;
-	const minOfferValue = normalizedPriceType === 'fixed' ? minOffer : null;
+		const firmPriceValue = normalizedPriceType === 'fixed' ? firmPrice : true;
+		const minOfferValue = normalizedPriceType === 'fixed' ? minOffer : null;
 
+		stage = 'update';
 		const { error: updateError } = await locals.supabase
 			.from('ads')
 			.update({
@@ -504,6 +515,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 			return errorResponse('Could not update ad.', 500);
 		}
 
+		stage = 'done';
 		return json({
 			success: true,
 			id: ad.id,
@@ -513,7 +525,11 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 					: 'Changes saved.'
 		});
 	} catch (err) {
-		console.error('ads_patch_unhandled_error', { adId, err });
+		console.error('ads_patch_unhandled_error', { adId, stage, err });
+		if (debugAllowed) {
+			const message = err instanceof Error ? err.message : 'Unknown error';
+			return errorResponse(`Debug: ${message} (stage: ${stage})`, 500);
+		}
 		return errorResponse('We could not save your changes.', 500);
 	}
 };
