@@ -81,7 +81,7 @@
 				name="q"
 				type="search"
 				value={q}
-				placeholder="Search listings"
+				placeholder="Search"
 			/>
 			<label class="sr-only" for="search-category">Category</label>
 			<select id="search-category" name="category" value={category} onchange={submitFilters}>
@@ -155,7 +155,7 @@
 		padding: 10px 0 6px;
 	}
 	.search__inner {
-		max-width: 1100px;
+		max-width: var(--page-max);
 		margin: 0 auto;
 		padding: 0 var(--page-pad);
 		display: grid;
@@ -232,6 +232,24 @@
 		}
 		.search__form button {
 			width: 100%;
+		}
+	}
+	@media (min-width: 900px) {
+		.search__inner {
+			grid-template-columns: minmax(240px, 1fr) minmax(360px, 1.4fr);
+			align-items: center;
+			gap: 24px;
+		}
+		.search__copy {
+			max-width: 420px;
+		}
+		.search__form {
+			justify-self: end;
+			max-width: 640px;
+			padding: 12px;
+			border-radius: 16px;
+			border: 1px solid var(--hairline);
+			background: color-mix(in srgb, var(--surface) 92%, var(--fg) 4%);
 		}
 	}
 
