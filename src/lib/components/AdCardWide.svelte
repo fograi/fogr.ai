@@ -95,6 +95,9 @@
 			<!-- Text meta beside/under the image -->
 			<div class="meta">
 				<h3 class="title--standalone">{title}</h3>
+				{#if !showActions && displayedPrice}
+					<span class="price-badge">{displayedPrice}</span>
+				{/if}
 				{#if description}<p class="desc">{description}</p>{/if}
 				{#if expiresLabel}
 					<p class="meta-line">
@@ -121,6 +124,9 @@
 				</div>
 
 				<h3 class="title--standalone">{title}</h3>
+				{#if !showActions && displayedPrice}
+					<span class="price-badge">{displayedPrice}</span>
+				{/if}
 				{#if description}<p class="desc">{description}</p>{/if}
 				{#if expiresLabel}
 					<p class="meta-line">
@@ -325,8 +331,14 @@
 		padding: 6px 10px;
 		border-radius: 4px;
 		font-weight: 900;
-		min-width: 56px;
 		text-align: center;
 		margin-right: 8px;
+	}
+	.meta .price-badge,
+	.text-body .price-badge {
+		justify-self: center;
+		width: max-content;
+		min-width: 0;
+		margin-inline: auto;
 	}
 </style>
