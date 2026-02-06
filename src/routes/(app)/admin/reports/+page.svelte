@@ -119,6 +119,12 @@
 		}
 		return map;
 	};
+
+	let activeTabByAd: Record<string, string> = {};
+	const getActiveTab = (adId: string) => activeTabByAd[adId] ?? 'open';
+	const setActiveTab = (adId: string, status: string) => {
+		activeTabByAd = { ...activeTabByAd, [adId]: status };
+	};
 </script>
 
 <section class="admin">
@@ -153,150 +159,193 @@
 						</a>
 					</header>
 
-					<div class="status-flow" aria-label="Report workflow states">
-						{#each statusOrder as status}
-							{@const count = reportsByStatus.get(status)?.length ?? 0}
-							<div class="status-step">
-								<span class="status-name">{statusLabel[status]}</span>
-								<span class="status-count">{count}</span>
-							</div>
-						{/each}
-					</div>
-
 					<div class="group-body">
-						{#each statusOrder as status}
-							{@const bucket = reportsByStatus.get(status) ?? []}
-							<div class="status-section">
-								<div class="status-header">
-									<div>
-										<h3>{statusLabel[status]}</h3>
-										<p class="meta">{statusHelp[status]}</p>
-									</div>
-									<span class="status-count">{bucket.length}</span>
+						{@const activeStatus = getActiveTab(group.adId)}
+						{@const activeBucket = reportsByStatus.get(activeStatus) ?? []}
+
+						<div class="status-tabs" role="tablist" aria-label="Report status tabs">
+							{#each statusOrder as status}
+								{@const count = reportsByStatus.get(status)?.length ?? 0}
+								<button
+									type="button"
+									class="status-tab {activeStatus === status ? 'active' : ''}"
+									role="tab"
+									aria-selected={activeStatus === status}
+									on:click={() => setActiveTab(group.adId, status)}
+								>
+									<span>{statusLabel[status]}</span>
+									<span class="status-pill">{count}</span>
+								</button>
+							{/each}
+						</div>
+
+						<div class="status-panel" role="tabpanel">
+							<div class="status-header">
+								<div>
+									<h3>{statusLabel[activeStatus]}</h3>
+									<p class="meta">{statusHelp[activeStatus]}</p>
 								</div>
+								<span class="status-count">{activeBucket.length}</span>
+							</div>
 
-								{#if bucket.length === 0}
-									<p class="empty">No reports in this state.</p>
-								{:else}
-									<div class="status-list">
-										{#each bucket as report}
-											{@const preview = previewForReport(report)}
-											<article class="report-card">
-												<header class="card-header">
-													<div>
-														<h4>Report #{report.id.slice(0, 8)}</h4>
-														<p class="meta">
-															<span>{formatDate(report.created_at)}</span>
-														</p>
-													</div>
-													<span class="status badge {report.status}">
-														{report.status.replace('_', ' ')}
-													</span>
-												</header>
+							{#if activeBucket.length === 0}
+								<p class="empty">No reports in this state.</p>
+							{:else}
+								<div class="status-list">
+									{#each activeBucket as report}
+										{@const preview = previewForReport(report)}
+										<article class="report-card">
+											<header class="card-header">
+												<div>
+													<h4>Report #{report.id.slice(0, 8)}</h4>
+													<p class="meta">
+														<span>{formatDate(report.created_at)}</span>
+													</p>
+												</div>
+												<span class="status badge {report.status}">
+													{report.status.replace('_', ' ')}
+												</span>
+											</header>
 
-												<p class="reason">
-													<strong>Reason:</strong> {report.reason_category}
-												</p>
-												<p class="details">{report.reason_details}</p>
+											<p class="reason">
+												<strong>Reason:</strong> {report.reason_category}
+											</p>
+											<p class="details">{report.reason_details}</p>
 
-												<p class="reporter">
-													<strong>Reporter:</strong> {report.reporter_name} ({report.reporter_email})
-												</p>
+											<p class="reporter">
+												<strong>Reporter:</strong> {report.reporter_name} ({report.reporter_email})
+											</p>
 
-												<div class="actions">
-													<form method="post" action="?/updateStatus">
-														<input type="hidden" name="report_id" value={report.id} />
-														<select name="status" aria-label="Update report status">
-															{#each statusOptions as option}
-																<option value={option.value} selected={option.value === report.status}>
+											<div class="actions">
+												<form method="post" action="?/updateStatus">
+													<input type="hidden" name="report_id" value={report.id} />
+													<select name="status" aria-label="Update report status">
+														{#each statusOptions as option}
+															<option value={option.value} selected={option.value === report.status}>
+																{option.label}
+															</option>
+														{/each}
+													</select>
+													<button type="submit">Update</button>
+												</form>
+											</div>
+
+											<details class="action-panel">
+												<summary>Take action on ad</summary>
+												<form method="post" action="?/takeAction" class="action-form">
+													<input type="hidden" name="report_id" value={report.id} />
+													<input type="hidden" name="ad_id" value={report.ad_id} />
+
+													<label>
+														Action
+														<select name="action_type" required>
+															{#each actionOptions as option}
+																<option value={option.value}>{option.label}</option>
+															{/each}
+														</select>
+													</label>
+
+													<label>
+														Reason category
+														<select name="reason_category" required>
+															{#each reasonOptions as option}
+																<option value={option.value} selected={option.value === report.reason_category}>
 																	{option.label}
 																</option>
 															{/each}
 														</select>
-														<button type="submit">Update</button>
-													</form>
-												</div>
+													</label>
 
-												<details class="action-panel">
-													<summary>Take action on ad</summary>
-													<form method="post" action="?/takeAction" class="action-form">
-														<input type="hidden" name="report_id" value={report.id} />
-														<input type="hidden" name="ad_id" value={report.ad_id} />
+													<label>
+														Statement of reasons
+														<textarea
+															name="reason_details"
+															rows="4"
+															minlength={minReasonLength}
+															required
+															placeholder="Explain the facts and reasoning behind the decision."
+														></textarea>
+													</label>
 
-														<label>
-															Action
-															<select name="action_type" required>
-																{#each actionOptions as option}
-																	<option value={option.value}>{option.label}</option>
-																{/each}
-															</select>
-														</label>
+													<label>
+														Legal or policy basis (optional)
+														<input
+															type="text"
+															name="legal_basis"
+															placeholder="e.g. Terms section 4.2, Prohibited items policy"
+														/>
+													</label>
 
-														<label>
-															Reason category
-															<select name="reason_category" required>
-																{#each reasonOptions as option}
-																	<option value={option.value} selected={option.value === report.reason_category}>
-																		{option.label}
-																	</option>
-																{/each}
-															</select>
-														</label>
+													<p class="action-hint">
+														Do not include personal data in the statement of reasons. This may be submitted to
+														a transparency database.
+													</p>
+													<label class="checkbox">
+														<input type="checkbox" name="no_personal_data" required />
+														<span>I confirm this statement contains no personal data.</span>
+													</label>
 
-														<label>
-															Statement of reasons
-															<textarea
-																name="reason_details"
-																rows="4"
-																minlength={minReasonLength}
-																required
-																placeholder="Explain the facts and reasoning behind the decision."
-															></textarea>
-														</label>
+													<button type="submit">Apply action</button>
+												</form>
+											</details>
 
-														<label>
-															Legal or policy basis (optional)
-															<input
-																type="text"
-																name="legal_basis"
-																placeholder="e.g. Terms section 4.2, Prohibited items policy"
-															/>
-														</label>
+											{#if preview}
+												<div class="email-preview">
+													<h4>Email templates</h4>
+													<p class="meta">Generated from the last action on this report.</p>
+													{#if copyStatus}
+														<p class="copy-status" aria-live="polite">{copyStatus}</p>
+													{/if}
+													{#if copyError}
+														<p class="error" aria-live="assertive">{copyError}</p>
+													{/if}
 
-														<p class="action-hint">
-															Do not include personal data in the statement of reasons. This may be submitted to
-															a transparency database.
-														</p>
-														<label class="checkbox">
-															<input type="checkbox" name="no_personal_data" required />
-															<span>I confirm this statement contains no personal data.</span>
-														</label>
+													<div class="email-block">
+														<h5>Statement of reasons</h5>
+														<div class="email-field">
+															<span class="email-label">Subject</span>
+															<div class="email-row">
+																<input type="text" value={preview.statement.subject} readonly />
+																<button
+																	type="button"
+																	on:click={() =>
+																		copyText(preview.statement.subject, 'Statement subject copied.')
+																	}
+																>
+																	Copy subject
+																</button>
+															</div>
+														</div>
+														<div class="email-field">
+															<span class="email-label">Body</span>
+															<div class="email-row">
+																<textarea rows="8" readonly>{preview.statement.body}</textarea>
+																<button
+																	type="button"
+																	on:click={() =>
+																		copyText(preview.statement.body, 'Statement body copied.')
+																	}
+																>
+																	Copy body
+																</button>
+															</div>
+														</div>
+													</div>
 
-														<button type="submit">Apply action</button>
-													</form>
-												</details>
-
-												{#if preview}
-													<div class="email-preview">
-														<h4>Email templates</h4>
-														<p class="meta">Generated from the last action on this report.</p>
-														{#if copyStatus}
-															<p class="copy-status" aria-live="polite">{copyStatus}</p>
-														{/if}
-														{#if copyError}
-															<p class="error" aria-live="assertive">{copyError}</p>
-														{/if}
-
+													{#if preview.takedown}
 														<div class="email-block">
-															<h5>Statement of reasons</h5>
+															<h5>Takedown notice</h5>
 															<div class="email-field">
 																<span class="email-label">Subject</span>
 																<div class="email-row">
-																	<input type="text" value={preview.statement.subject} readonly />
+																	<input type="text" value={preview.takedown.subject} readonly />
 																	<button
 																		type="button"
 																		on:click={() =>
-																			copyText(preview.statement.subject, 'Statement subject copied.')
+																			copyText(
+																				preview.takedown.subject,
+																				'Takedown subject copied.'
+																			)
 																		}
 																	>
 																		Copy subject
@@ -306,11 +355,11 @@
 															<div class="email-field">
 																<span class="email-label">Body</span>
 																<div class="email-row">
-																	<textarea rows="8" readonly>{preview.statement.body}</textarea>
+																	<textarea rows="7" readonly>{preview.takedown.body}</textarea>
 																	<button
 																		type="button"
 																		on:click={() =>
-																			copyText(preview.statement.body, 'Statement body copied.')
+																			copyText(preview.takedown.body, 'Takedown body copied.')
 																		}
 																	>
 																		Copy body
@@ -318,51 +367,14 @@
 																</div>
 															</div>
 														</div>
-
-														{#if preview.takedown}
-															<div class="email-block">
-																<h5>Takedown notice</h5>
-																<div class="email-field">
-																	<span class="email-label">Subject</span>
-																	<div class="email-row">
-																		<input type="text" value={preview.takedown.subject} readonly />
-																		<button
-																			type="button"
-																			on:click={() =>
-																				copyText(
-																					preview.takedown.subject,
-																					'Takedown subject copied.'
-																				)
-																			}
-																		>
-																			Copy subject
-																		</button>
-																	</div>
-																</div>
-																<div class="email-field">
-																	<span class="email-label">Body</span>
-																	<div class="email-row">
-																		<textarea rows="7" readonly>{preview.takedown.body}</textarea>
-																		<button
-																			type="button"
-																			on:click={() =>
-																				copyText(preview.takedown.body, 'Takedown body copied.')
-																			}
-																		>
-																			Copy body
-																		</button>
-																	</div>
-																</div>
-															</div>
-														{/if}
-													</div>
-												{/if}
-											</article>
-										{/each}
-									</div>
-								{/if}
-							</div>
-						{/each}
+													{/if}
+												</div>
+											{/if}
+										</article>
+									{/each}
+								</div>
+							{/if}
+						</div>
 					</div>
 				</article>
 			{/each}
@@ -418,35 +430,43 @@
 		display: grid;
 		gap: 12px;
 	}
-	.status-flow {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-		gap: 10px;
-		padding: 12px;
+	.status-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		padding: 6px;
 		border-radius: 12px;
 		border: 1px solid var(--hairline);
 		background: color-mix(in srgb, var(--fg) 3%, var(--bg));
 	}
-	.status-step {
-		display: grid;
-		gap: 4px;
-		padding: 8px 10px;
-		border-radius: 10px;
-		border: 1px solid var(--hairline);
-		background: var(--bg);
-	}
-	.status-name {
-		font-weight: 700;
-		font-size: 0.95rem;
-	}
-	.status-count {
-		font-weight: 700;
-		font-size: 1.05rem;
-		color: color-mix(in srgb, var(--fg) 75%, transparent);
-	}
-	.status-section {
-		display: grid;
+	.status-tab {
+		display: inline-flex;
+		align-items: center;
 		gap: 8px;
+		border-radius: 999px;
+		border: 1px solid var(--hairline);
+		padding: 6px 12px;
+		background: var(--bg);
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.status-tab.active {
+		background: color-mix(in srgb, var(--link) 20%, var(--bg));
+		border-color: color-mix(in srgb, var(--link) 40%, var(--hairline));
+	}
+	.status-pill {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 22px;
+		padding: 2px 8px;
+		border-radius: 999px;
+		font-size: 0.8rem;
+		background: color-mix(in srgb, var(--fg) 8%, var(--bg));
+	}
+	.status-panel {
+		display: grid;
+		gap: 10px;
 		padding: 12px;
 		border-radius: 12px;
 		border: 1px solid var(--hairline);
