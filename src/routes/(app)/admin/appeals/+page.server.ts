@@ -3,6 +3,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '$lib/supabase.types';
 import { isAdminUser } from '$lib/server/admin';
+import { recordModerationEvent } from '$lib/server/moderation-events';
 
 const STATUS_OPTIONS = new Set(['open', 'resolved', 'dismissed']);
 
@@ -54,7 +55,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 export const actions: Actions = {
 	updateStatus: async ({ request, locals, platform, url }) => {
 		const env = platform?.env as Env | undefined;
-		await requireAdmin(locals, env, url.pathname);
+		const adminUser = await requireAdmin(locals, env, url.pathname);
 
 		const form = await request.formData();
 		const appealId = (form.get('appeal_id') ?? '').toString().trim();
@@ -65,6 +66,26 @@ export const actions: Actions = {
 		}
 
 		const admin = getAdminClient(env);
+		const { data: appeal, error: appealFetchError } = await admin
+			.from('ad_moderation_appeals')
+			.select('id, ad_id, status, action_id')
+			.eq('id', appealId)
+			.maybeSingle();
+
+		if (appealFetchError || !appeal) {
+			return fail(404, { message: 'Appeal not found.' });
+		}
+
+		let reportId: string | null = null;
+		if (appeal.action_id) {
+			const { data: action } = await admin
+				.from('ad_moderation_actions')
+				.select('report_id')
+				.eq('id', appeal.action_id)
+				.maybeSingle();
+			reportId = action?.report_id ?? null;
+		}
+
 		const { error: updateError } = await admin
 			.from('ad_moderation_appeals')
 			.update({ status })
@@ -72,6 +93,29 @@ export const actions: Actions = {
 
 		if (updateError) {
 			return fail(500, { message: 'Failed to update appeal.' });
+		}
+
+		if (appeal.status !== status) {
+			if (status === 'resolved') {
+				await recordModerationEvent(admin, {
+					contentId: appeal.ad_id,
+					reportId,
+					userId: adminUser.id,
+					eventType: 'appeal_resolved',
+					decision: 'resolved',
+					automatedFlag: false
+				});
+			}
+			if (status === 'dismissed') {
+				await recordModerationEvent(admin, {
+					contentId: appeal.ad_id,
+					reportId,
+					userId: adminUser.id,
+					eventType: 'appeal_dismissed',
+					decision: 'dismissed',
+					automatedFlag: false
+				});
+			}
 		}
 
 		return { success: true };

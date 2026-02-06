@@ -128,6 +128,45 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			moderation_events: {
+				Row: {
+					automated_flag: boolean;
+					content_id: string;
+					content_type: string;
+					created_at: string;
+					decision: string | null;
+					event_type: string;
+					id: string;
+					legal_basis: string | null;
+					report_id: string | null;
+					user_id: string | null;
+				};
+				Insert: {
+					automated_flag?: boolean;
+					content_id: string;
+					content_type?: string;
+					created_at?: string;
+					decision?: string | null;
+					event_type: string;
+					id?: string;
+					legal_basis?: string | null;
+					report_id?: string | null;
+					user_id?: string | null;
+				};
+				Update: {
+					automated_flag?: boolean;
+					content_id?: string;
+					content_type?: string;
+					created_at?: string;
+					decision?: string | null;
+					event_type?: string;
+					id?: string;
+					legal_basis?: string | null;
+					report_id?: string | null;
+					user_id?: string | null;
+				};
+				Relationships: [];
+			};
 			ads: {
 				Row: {
 					category: string;

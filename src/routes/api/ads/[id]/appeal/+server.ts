@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { isSameOrigin } from '$lib/server/csrf';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '$lib/supabase.types';
+import { recordModerationEvent } from '$lib/server/moderation-events';
 
 type Body = {
 	details?: string;
@@ -67,7 +68,7 @@ export const POST: RequestHandler = async ({ params, request, url, locals, platf
 
 	const { data: action } = await admin
 		.from('ad_moderation_actions')
-		.select('id')
+		.select('id, report_id')
 		.eq('ad_id', adId)
 		.order('created_at', { ascending: false })
 		.limit(1)
@@ -92,6 +93,14 @@ export const POST: RequestHandler = async ({ params, request, url, locals, platf
 		console.warn('Appeal insert failed', appealError);
 		return errorResponse('We could not submit your appeal. Try again.', 500);
 	}
+
+	await recordModerationEvent(admin, {
+		contentId: adId,
+		reportId: action?.report_id ?? null,
+		userId: user.id,
+		eventType: 'appeal_opened',
+		automatedFlag: false
+	});
 
 	return json({ success: true, appealId: appeal.id }, { status: 200 });
 };

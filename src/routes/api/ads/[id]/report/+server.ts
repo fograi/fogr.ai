@@ -5,6 +5,7 @@ import type { KVNamespace } from '@cloudflare/workers-types';
 import { checkRateLimit } from '$lib/server/rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '$lib/supabase.types';
+import { recordModerationEvent } from '$lib/server/moderation-events';
 
 type Body = {
 	name?: string;
@@ -192,6 +193,14 @@ export const POST: RequestHandler = async ({ params, request, url, platform, loc
 		console.warn('Report insert failed', reportError);
 		return errorResponse('We could not submit your report. Try again.', 500);
 	}
+
+	await recordModerationEvent(admin, {
+		contentId: adId,
+		reportId: report.id,
+		userId: user?.id ?? null,
+		eventType: 'report_received',
+		automatedFlag: false
+	});
 
 	return json({ success: true, reportId: report.id }, { status: 200 });
 };

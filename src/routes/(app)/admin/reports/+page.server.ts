@@ -3,6 +3,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '$lib/supabase.types';
 import { isAdminUser } from '$lib/server/admin';
+import { recordModerationEvent } from '$lib/server/moderation-events';
 
 const STATUS_OPTIONS = new Set(['open', 'in_review', 'actioned', 'dismissed']);
 const ACTION_TYPES = new Set(['reject', 'expire', 'restore']);
@@ -67,7 +68,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 export const actions: Actions = {
 	updateStatus: async ({ request, locals, platform, url }) => {
 		const env = platform?.env as Env | undefined;
-		await requireAdmin(locals, env, url.pathname);
+		const adminUser = await requireAdmin(locals, env, url.pathname);
 
 		const form = await request.formData();
 		const reportId = (form.get('report_id') ?? '').toString().trim();
@@ -78,6 +79,16 @@ export const actions: Actions = {
 		}
 
 		const admin = getAdminClient(env);
+		const { data: report, error: reportFetchError } = await admin
+			.from('ad_reports')
+			.select('id, ad_id, status')
+			.eq('id', reportId)
+			.maybeSingle();
+
+		if (reportFetchError || !report) {
+			return fail(404, { message: 'Report not found.' });
+		}
+
 		const { error: updateError } = await admin
 			.from('ad_reports')
 			.update({ status })
@@ -85,6 +96,28 @@ export const actions: Actions = {
 
 		if (updateError) {
 			return fail(500, { message: 'Failed to update report.' });
+		}
+
+		if (report.status !== status) {
+			if (status === 'in_review') {
+				await recordModerationEvent(admin, {
+					contentId: report.ad_id,
+					reportId: report.id,
+					userId: adminUser.id,
+					eventType: 'review_started',
+					automatedFlag: false
+				});
+			}
+			if (status === 'dismissed') {
+				await recordModerationEvent(admin, {
+					contentId: report.ad_id,
+					reportId: report.id,
+					userId: adminUser.id,
+					eventType: 'decision_made',
+					decision: 'dismissed',
+					automatedFlag: false
+				});
+			}
 		}
 
 		return { success: true };
@@ -138,6 +171,25 @@ export const actions: Actions = {
 		if (actionError) {
 			return fail(500, { message: 'Failed to record moderation action.' });
 		}
+
+		await recordModerationEvent(admin, {
+			contentId: adId,
+			reportId: reportId || null,
+			userId: adminUser.id,
+			eventType: 'decision_made',
+			decision: actionType,
+			legalBasis: legalBasis || null,
+			automatedFlag: false
+		});
+		await recordModerationEvent(admin, {
+			contentId: adId,
+			reportId: reportId || null,
+			userId: adminUser.id,
+			eventType: 'statement_sent',
+			decision: actionType,
+			legalBasis: legalBasis || null,
+			automatedFlag: false
+		});
 
 		if (reportId) {
 			const { error: reportError } = await admin
