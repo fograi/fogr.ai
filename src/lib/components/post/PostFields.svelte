@@ -111,48 +111,53 @@
 	{/if}
 
 	{#if step === 2}
-		<div class="row">
-			<div class="field">
-				<label for="price-type">Price type</label>
-				<select
-					id="price-type"
-					bind:value={priceType}
-					disabled={loading || category === 'Free / Giveaway'}
-				>
-					<option value="fixed">Fixed price</option>
-					<option value="free">Free</option>
-					{#if poaAllowed}
-						<option value="poa">Price on application</option>
-					{/if}
-				</select>
-				{#if category === 'Free / Giveaway'}
-					<small class="muted">Free / Giveaway always uses Free pricing.</small>
-				{/if}
+		{#if category === 'Free / Giveaway'}
+			<div class="free-card" aria-live="polite">
+				<div class="free-pill">Free / Giveaway</div>
+				<p class="free-text">This listing will be shown as free. No price required.</p>
+				<div class="free-meta">
+					<span class="label">Price</span>
+					<span class="value">Free</span>
+				</div>
+				<small class="muted">Need a price? Go back and choose another category.</small>
 			</div>
-			<div class="field">
-				<label for="price">
-					Price
-					{#if priceType === 'free'}
-						<span class="muted">(shown as Free)</span>
-					{:else if priceType === 'poa'}
-						<span class="muted">(shown as POA)</span>
-					{/if}
-				</label>
-				<input
-					id="price"
-					type="number"
-					min="0"
-					step="1"
-					inputmode="numeric"
-					pattern="[0-9]*"
-					bind:value={price}
-					required={priceType === 'fixed'}
-					disabled={priceType !== 'fixed' || loading}
-					placeholder={priceType === 'fixed' ? 'e.g., 50' : '—'}
-					aria-invalid={showErrors ? priceInvalid : undefined}
-				/>
+		{:else}
+			<div class="row">
+				<div class="field">
+					<label for="price-type">Price type</label>
+					<select id="price-type" bind:value={priceType} disabled={loading}>
+						<option value="fixed">Fixed price</option>
+						<option value="free">Free</option>
+						{#if poaAllowed}
+							<option value="poa">Price on application</option>
+						{/if}
+					</select>
+				</div>
+				<div class="field">
+					<label for="price">
+						Price
+						{#if priceType === 'free'}
+							<span class="muted">(shown as Free)</span>
+						{:else if priceType === 'poa'}
+							<span class="muted">(shown as POA)</span>
+						{/if}
+					</label>
+					<input
+						id="price"
+						type="number"
+						min="0"
+						step="1"
+						inputmode="numeric"
+						pattern="[0-9]*"
+						bind:value={price}
+						required={priceType === 'fixed'}
+						disabled={priceType !== 'fixed' || loading}
+						placeholder={priceType === 'fixed' ? 'e.g., 50' : '—'}
+						aria-invalid={showErrors ? priceInvalid : undefined}
+					/>
+				</div>
 			</div>
-		</div>
+		{/if}
 
 		{#if priceType === 'fixed'}
 			<div class="field">
@@ -238,6 +243,50 @@
 	.row > .field {
 		flex: 1 1 auto;
 		min-width: 0;
+	}
+
+	.free-card {
+		border: 1px solid var(--hairline);
+		background: color-mix(in srgb, var(--fg) 6%, var(--surface));
+		border-radius: 14px;
+		padding: 16px;
+		display: grid;
+		gap: 10px;
+	}
+	.free-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 10px;
+		border-radius: 999px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		background: color-mix(in srgb, var(--fg) 16%, var(--bg));
+		color: var(--fg);
+		width: max-content;
+	}
+	.free-text {
+		margin: 0;
+		color: color-mix(in srgb, var(--fg) 80%, transparent);
+		font-weight: 600;
+	}
+	.free-meta {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 10px 12px;
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--fg) 10%, var(--bg));
+		font-weight: 800;
+	}
+	.free-meta .label {
+		font-size: 0.9rem;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+	}
+	.free-meta .value {
+		font-size: 1rem;
 	}
 	.checkbox {
 		display: inline-flex;
