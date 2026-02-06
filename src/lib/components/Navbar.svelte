@@ -12,7 +12,13 @@
 
 	export let title = 'fogr.ai';
 	// minimal nav: primary CTA + compact menu
-	type NavHref = '/' | '/(public)/about' | '/(app)/post' | '/(app)/account' | '/(app)/messages';
+	type NavHref =
+		| '/'
+		| '/(public)/about'
+		| '/(app)/post'
+		| '/(app)/account'
+		| '/(app)/messages'
+		| '/(app)/ads';
 	const baseLinks: Array<{ href: NavHref; label: string }> = [];
 	let authedLinks: Array<{ href: NavHref; label: string }> = baseLinks;
 
