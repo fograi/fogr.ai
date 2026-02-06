@@ -234,6 +234,7 @@
 		padding: 24px var(--page-pad) 80px;
 		display: grid;
 		gap: 16px;
+		color: var(--fg);
 	}
 	.head h1 {
 		margin: 0 0 4px;
@@ -292,6 +293,7 @@
 	.list {
 		display: grid;
 		gap: 12px;
+		width: 100%;
 	}
 	.card {
 		border: 1px solid var(--hairline);
@@ -299,9 +301,11 @@
 		background: var(--surface);
 		padding: 12px;
 		display: grid;
-		grid-template-columns: 120px 1fr auto;
+		grid-template-columns: 120px minmax(0, 1fr) auto;
 		gap: 14px;
 		align-items: center;
+		width: 100%;
+		min-width: 0;
 	}
 	.media {
 		width: 120px;
@@ -332,6 +336,7 @@
 	.meta {
 		display: grid;
 		gap: 6px;
+		min-width: 0;
 	}
 	.top {
 		display: flex;
@@ -385,6 +390,7 @@
 		flex-direction: column;
 		gap: 6px;
 		align-items: flex-end;
+		min-width: 0;
 	}
 	.btn {
 		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
