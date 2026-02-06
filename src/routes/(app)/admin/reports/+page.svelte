@@ -144,6 +144,8 @@
 		<div class="report-list">
 			{#each data.reportGroups as group}
 				{@const reportsByStatus = groupReportsByStatus(group.reports)}
+				{@const activeStatus = getActiveTab(group.adId)}
+				{@const activeBucket = reportsByStatus.get(activeStatus) ?? []}
 				<article class="report-group">
 					<header class="group-header">
 						<div>
@@ -160,9 +162,6 @@
 					</header>
 
 					<div class="group-body">
-						{@const activeStatus = getActiveTab(group.adId)}
-						{@const activeBucket = reportsByStatus.get(activeStatus) ?? []}
-
 						<div class="status-tabs" role="tablist" aria-label="Report status tabs">
 							{#each statusOrder as status}
 								{@const count = reportsByStatus.get(status)?.length ?? 0}
