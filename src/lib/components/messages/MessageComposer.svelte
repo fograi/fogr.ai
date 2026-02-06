@@ -150,11 +150,6 @@
 	<div class="offer-rules">
 		{#if firmPrice}
 			<p class="rule">Firm price. Offers will be auto-declined.</p>
-		{:else if minOffer}
-			<p class="rule">Minimum offer: {formatMoney(minOffer)}.</p>
-		{/if}
-		{#if autoDeclineMessage}
-			<p class="rule muted">Auto-decline: "{autoDeclineMessage}"</p>
 		{/if}
 	</div>
 

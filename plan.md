@@ -103,6 +103,7 @@
 - [x] Validate offers server-side against floor/firm rules with clear errors.
 - [x] Track metrics: lowball rate, time-to-first-serious-inquiry, offer acceptance rate.
 - [x] Add or update unit and e2e tests for message flow and offer validation.
+- [ ] Show auto-decline messages in the chat flow when offers are rejected automatically.
 
 ### P0.4 Privacy-First Messaging
 
