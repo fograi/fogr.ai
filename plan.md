@@ -129,6 +129,15 @@
 - [x] Add server-side logging/flagging to refine rules.
 - [x] Add or update tests for warning triggers.
 
+## Ad Card UX Improvements (Action Items)
+
+- [ ] Clamp listing title to 2 lines and description to 3 lines for faster scanning.
+- [ ] Add a consistent no‑image placeholder for text‑only listings.
+- [ ] Emphasize price visually to reduce wasted clicks.
+- [ ] Add “Firm price / Offers” badges (requires exposing `firm_price`/`min_offer` in list API).
+- [ ] Add “New / Updated” chip (requires `created_at`/`updated_at` in list API).
+- [ ] Add “Verified seller” badge once verification exists.
+
 ## Workflow Notes
 
 - Add or edit unit and e2e tests as needed for each task.

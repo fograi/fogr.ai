@@ -90,6 +90,12 @@
 						class:loading={!imgLoaded}
 					/>
 				</div>
+			{:else}
+				<div class="media placeholder" aria-hidden="true">
+					<div class="placeholder__inner">
+						<span class="placeholder__text">No photo</span>
+					</div>
+				</div>
 			{/if}
 
 			<h3 class="title title--text">{title}</h3>
@@ -170,6 +176,25 @@
 	.media {
 		margin: 8px 0 6px;
 	}
+	.media.placeholder {
+		aspect-ratio: 4 / 3;
+		border: 1px dashed color-mix(in srgb, var(--fg) 18%, transparent);
+		border-radius: 6px;
+		background: color-mix(in srgb, var(--fg) 6%, var(--bg));
+		display: grid;
+		place-items: center;
+	}
+	.placeholder__inner {
+		display: grid;
+		place-items: center;
+		color: color-mix(in srgb, var(--fg) 65%, transparent);
+		font-weight: 700;
+	}
+	.placeholder__text {
+		font-size: 0.85rem;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+	}
 	.media img {
 		display: block;
 		width: 100%;
@@ -208,6 +233,10 @@
 		font-size: 1rem;
 		font-weight: 800;
 		line-height: 1.25;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
 	}
 	.desc {
 		margin: 0 0 0;
@@ -216,7 +245,8 @@
 		color: color-mix(in srgb, var(--fg) 70%, transparent);
 		display: -webkit-box;
 		-webkit-box-orient: vertical;
-		overflow: visible;
+		-webkit-line-clamp: 3;
+		overflow: hidden;
 		word-break: break-word;
 	}
 	/* Price badge: bottom-right, monochrome */
@@ -224,11 +254,11 @@
 		position: absolute;
 		right: 8px;
 		bottom: 8px;
-		padding: 4px 8px;
+		padding: 6px 10px;
 		background: color-mix(in srgb, var(--fg) 18%, var(--bg));
 		color: var(--fg);
-		font-weight: 800;
-		font-size: 0.85rem;
+		font-weight: 900;
+		font-size: 0.95rem;
 		border: 1px solid var(--hairline);
 		line-height: 1;
 	}
