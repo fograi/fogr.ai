@@ -372,6 +372,8 @@
 <style>
 	.post {
 		padding: 0 var(--page-pad) calc(72px + env(safe-area-inset-bottom));
+		max-width: var(--page-max);
+		margin: 0 auto;
 	}
 	.head {
 		text-align: center;

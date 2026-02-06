@@ -266,7 +266,8 @@
 	.masonry-grid {
 		list-style: none;
 		padding: 0 var(--page-pad);
-		margin: 0;
+		margin: 0 auto;
+		max-width: var(--page-max);
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 		gap: 16px;
