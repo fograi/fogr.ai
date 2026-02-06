@@ -2,6 +2,17 @@
 
 ## Open Work
 
+### Moderation Ops (Low-Cost)
+
+- [ ] Implement moderation workflow states (report received → review → decision → SoR sent → appeal → final).
+- [ ] Add Supabase tables `moderation_events` and `reports`.
+- [ ] Ensure moderation logging captures `content_id`, `user_id`, `report_id`, `decision`, `legal_basis`, `automated_flag`, `timestamp`.
+- [ ] Add email templates for takedown, SoR, and appeal outcomes.
+
+### Safety + Abuse
+
+- [ ] Add image reuse detection (hashing).
+
 ### Ad Card UX Improvements
 
 - [ ] Add “New / Updated” chip (requires `created_at`/`updated_at` in list API).
@@ -14,17 +25,6 @@
 - [ ] Finalize refund/withdrawal flow at checkout (no refunds except required by law).
 - [ ] Capture withdrawal waiver + consent at checkout (EEA digital services).
 - [ ] Record proof of publication for paid ads for chargeback protection (published_at, audit log, consent timestamp, IP, user agent, terms version, payment IDs).
-
-### Safety + Abuse
-
-- [ ] Add image reuse detection (hashing).
-
-### Moderation Ops (Low-Cost)
-
-- [ ] Implement moderation workflow states (report received → review → decision → SoR sent → appeal → final).
-- [ ] Add Supabase tables `moderation_events` and `reports`.
-- [ ] Ensure moderation logging captures `content_id`, `user_id`, `report_id`, `decision`, `legal_basis`, `automated_flag`, `timestamp`.
-- [ ] Add email templates for takedown, SoR, and appeal outcomes.
 
 ### Legal + Compliance (EU/UK, DSA)
 
