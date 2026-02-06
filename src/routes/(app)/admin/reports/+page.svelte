@@ -121,7 +121,6 @@
 	};
 
 	let activeTabByAd: Record<string, string> = {};
-	const getActiveTab = (adId: string) => activeTabByAd[adId] ?? 'open';
 	const setActiveTab = (adId: string, status: string) => {
 		activeTabByAd = { ...activeTabByAd, [adId]: status };
 	};
@@ -144,7 +143,7 @@
 		<div class="report-list">
 			{#each data.reportGroups as group}
 				{@const reportsByStatus = groupReportsByStatus(group.reports)}
-				{@const activeStatus = getActiveTab(group.adId)}
+				{@const activeStatus = activeTabByAd[group.adId] ?? 'open'}
 				{@const activeBucket = reportsByStatus.get(activeStatus) ?? []}
 				<article class="report-group">
 					<header class="group-header">
