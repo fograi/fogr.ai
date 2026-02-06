@@ -6,8 +6,6 @@
 	export let price: number | null = null;
 	export let currency = 'EUR';
 	export let firmPrice = false;
-	export let minOffer: number | null = null;
-	export let autoDeclineMessage: string | null = null;
 	export let directContactEnabled = false;
 
 	type Kind = 'availability' | 'offer' | 'pickup' | 'question';

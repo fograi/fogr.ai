@@ -240,8 +240,6 @@
 				price={data.ad.price ?? null}
 				currency={data.ad.currency ?? 'EUR'}
 				firmPrice={data.offerRules?.firmPrice ?? false}
-				minOffer={data.offerRules?.minOffer ?? null}
-				autoDeclineMessage={data.offerRules?.autoDeclineMessage ?? null}
 				directContactEnabled={data.contactRules?.directContactEnabled ?? false}
 				on:flag={() => openPanel('report')}
 			/>
