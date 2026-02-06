@@ -83,6 +83,9 @@
 				value={q}
 				placeholder="Search"
 			/>
+			<button type="submit" aria-label="Search">
+				<span class="icon" aria-hidden="true">🔍</span>
+			</button>
 			<label class="sr-only" for="search-category">Category</label>
 			<select id="search-category" name="category" value={category} onchange={submitFilters}>
 				<option value="">All categories</option>
@@ -102,9 +105,6 @@
 				<option value="free">Free</option>
 				<option value="poa">POA</option>
 			</select>
-			<button type="submit" aria-label="Search">
-				<span class="icon" aria-hidden="true">🔍</span>
-			</button>
 			{#if q || category || priceState}
 				<a class="clear" href={resolve('/')} rel="external">Clear</a>
 			{/if}
