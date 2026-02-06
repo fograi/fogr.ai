@@ -505,7 +505,6 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 						: null,
 				direct_contact_enabled: directContactEnabled,
 				image_keys: nextImageKeys,
-				images_count: nextImageKeys.length,
 				status: nextStatus,
 				updated_at: new Date().toISOString()
 			})

@@ -160,6 +160,7 @@
 		max-width: 1100px;
 		margin: 24px auto 48px;
 		padding: 0 var(--page-pad);
+		width: 100%;
 	}
 	.admin-header {
 		display: flex;
@@ -186,12 +187,14 @@
 		background: var(--surface);
 		display: grid;
 		gap: 10px;
+		min-width: 0;
 	}
 	.card-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
 		gap: 12px;
+		min-width: 0;
 	}
 	.card-header h2 {
 		margin: 0;
@@ -203,6 +206,11 @@
 		display: flex;
 		gap: 12px;
 		flex-wrap: wrap;
+		min-width: 0;
+	}
+	.meta span {
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 	.badge {
 		padding: 4px 10px;
@@ -231,10 +239,14 @@
 		margin: 0;
 		white-space: pre-wrap;
 		color: color-mix(in srgb, var(--fg) 80%, transparent);
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 	.reporter {
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 70%, transparent);
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 	.actions {
 		display: flex;
@@ -246,6 +258,8 @@
 		display: inline-flex;
 		gap: 8px;
 		align-items: center;
+		flex-wrap: wrap;
+		min-width: 0;
 	}
 	select {
 		padding: 6px 10px;
@@ -253,6 +267,7 @@
 		border: 1px solid var(--hairline);
 		background: var(--bg);
 		color: var(--fg);
+		max-width: 100%;
 	}
 	button {
 		padding: 6px 12px;
@@ -261,6 +276,7 @@
 		background: color-mix(in srgb, var(--fg) 12%, var(--bg));
 		font-weight: 600;
 		cursor: pointer;
+		max-width: 100%;
 	}
 	.link {
 		color: inherit;
@@ -278,6 +294,7 @@
 		margin-top: 10px;
 		display: grid;
 		gap: 10px;
+		min-width: 0;
 	}
 	.action-form label {
 		display: grid;
@@ -306,5 +323,7 @@
 		border: 1px solid var(--hairline);
 		background: var(--bg);
 		color: var(--fg);
+		width: 100%;
+		box-sizing: border-box;
 	}
 </style>
