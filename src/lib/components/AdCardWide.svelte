@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { catBase, catIcon } from '$lib/constants';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
 
@@ -42,6 +42,9 @@
 	let isPortrait = false;
 	let showImg = !!img && status !== 'pending';
 	let imgEl: HTMLImageElement | null = null;
+	let lightboxOpen = false;
+	let closeButton: HTMLButtonElement | null = null;
+	let lastActive: Element | null = null;
 	$: showImg = !!img && status !== 'pending';
 
 	function onImgError() {
@@ -59,6 +62,32 @@
 			} else onImgError();
 		}
 	});
+	onDestroy(() => {
+		if (typeof document !== 'undefined') {
+			document.body.style.overflow = '';
+		}
+	});
+
+	async function openLightbox() {
+		if (!showImg) return;
+		if (typeof document !== 'undefined') {
+			lastActive = document.activeElement;
+			document.body.style.overflow = 'hidden';
+		}
+		lightboxOpen = true;
+		await tick();
+		closeButton?.focus();
+	}
+
+	function closeLightbox() {
+		lightboxOpen = false;
+		if (typeof document !== 'undefined') {
+			document.body.style.overflow = '';
+		}
+		if (lastActive instanceof HTMLElement) {
+			lastActive.focus();
+		}
+	}
 
 	async function share() {
 		try {
@@ -80,7 +109,12 @@
 			</div>
 
 			<!-- Full-height image, NO overlays/chips -->
-			<div class="media">
+			<button
+				type="button"
+				class="media media-button"
+				on:click={openLightbox}
+				aria-label="View listing image full screen"
+			>
 				<img
 					bind:this={imgEl}
 					src={`${PUBLIC_R2_BASE.replace(/\/+$/, '')}/${img.replace(/^\/+/, '')}`}
@@ -90,7 +124,7 @@
 					on:load={onImgLoad}
 					on:error={onImgError}
 				/>
-			</div>
+			</button>
 
 			<!-- Text meta beside/under the image -->
 			<div class="meta">
@@ -159,6 +193,40 @@
 	{/if}
 </article>
 
+{#if lightboxOpen}
+	<svelte:window
+		on:keydown={(event) => {
+			if (event.key === 'Escape') closeLightbox();
+		}}
+	/>
+	<div
+		class="lightbox"
+		role="dialog"
+		aria-modal="true"
+		aria-label={`Full screen image: ${title}`}
+		on:click={closeLightbox}
+	>
+		<div class="lightbox__chrome" on:click|stopPropagation>
+			<button
+				type="button"
+				class="lightbox__close"
+				on:click={closeLightbox}
+				bind:this={closeButton}
+			>
+				Close
+			</button>
+		</div>
+		<img
+			class="lightbox__image"
+			src={`${PUBLIC_R2_BASE.replace(/\/+$/, '')}/${img.replace(/^\/+/, '')}`}
+			alt={title}
+			loading="eager"
+			decoding="async"
+			on:click|stopPropagation
+		/>
+	</div>
+{/if}
+
 <style>
 	.listing-wide {
 		max-width: none; /* let inner grid control width */
@@ -214,11 +282,21 @@
 
 	/* Media */
 	.media {
+		display: block;
 		width: 100%; /* <-- important: fill the grid column */
 		border: 8px solid color-mix(in srgb, var(--fg) 8%, transparent);
 		border-radius: 6px;
 		overflow: hidden;
 		background: color-mix(in srgb, var(--fg) 6%, transparent);
+	}
+	.media-button {
+		padding: 0;
+		appearance: none;
+		cursor: zoom-in;
+	}
+	.media-button:focus-visible {
+		outline: 2px solid var(--link);
+		outline-offset: 3px;
 	}
 
 	.media img {
@@ -334,5 +412,55 @@
 		width: max-content;
 		min-width: 0;
 		margin-inline: auto;
+	}
+
+	.lightbox {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.86);
+		display: grid;
+		grid-template-rows: auto 1fr;
+		gap: 12px;
+		align-items: center;
+		justify-items: center;
+		padding: 20px;
+		z-index: 1200;
+	}
+	.lightbox__chrome {
+		width: 100%;
+		display: flex;
+		justify-content: flex-end;
+		max-width: min(1200px, 96vw);
+	}
+	.lightbox__close {
+		border-radius: 999px;
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		background: rgba(0, 0, 0, 0.6);
+		color: #fff;
+		padding: 8px 14px;
+		font-weight: 700;
+	}
+	.lightbox__close:focus-visible {
+		outline: 2px solid #fff;
+		outline-offset: 2px;
+	}
+	.lightbox__image {
+		max-width: min(1200px, 96vw);
+		max-height: min(88vh, 1200px);
+		width: auto;
+		height: auto;
+		object-fit: contain;
+		border-radius: 12px;
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+	}
+
+	@media (orientation: portrait) {
+		.lightbox {
+			padding: 14px;
+		}
+		.lightbox__image {
+			max-width: 96vw;
+			max-height: 82vh;
+		}
 	}
 </style>
