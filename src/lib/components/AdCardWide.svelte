@@ -199,16 +199,16 @@
 		aria-label={`Full screen image: ${title}`}
 		on:click={closeLightbox}
 	>
-		<div class="lightbox__chrome" on:click|stopPropagation>
-			<button
-				type="button"
-				class="lightbox__close"
-				on:click={closeLightbox}
-				bind:this={closeButton}
-			>
-				Close
-			</button>
-		</div>
+		<button
+			type="button"
+			class="lightbox__close"
+			on:click={closeLightbox}
+			on:click|stopPropagation
+			aria-label="Close image"
+			bind:this={closeButton}
+		>
+			<span aria-hidden="true">×</span>
+		</button>
 		<img
 			class="lightbox__image"
 			src={`${PUBLIC_R2_BASE.replace(/\/+$/, '')}/${img.replace(/^\/+/, '')}`}
@@ -412,26 +412,27 @@
 		inset: 0;
 		background: rgba(0, 0, 0, 0.86);
 		display: grid;
-		grid-template-rows: auto 1fr;
-		gap: 12px;
 		align-items: center;
 		justify-items: center;
 		padding: 20px;
 		z-index: 1200;
 	}
-	.lightbox__chrome {
-		width: 100%;
-		display: flex;
-		justify-content: flex-end;
-		max-width: min(1200px, 96vw);
-	}
 	.lightbox__close {
+		position: absolute;
+		top: 16px;
+		right: 16px;
+		width: 38px;
+		height: 38px;
+		display: grid;
+		place-items: center;
 		border-radius: 999px;
 		border: 1px solid rgba(255, 255, 255, 0.25);
 		background: rgba(0, 0, 0, 0.6);
 		color: #fff;
-		padding: 8px 14px;
-		font-weight: 700;
+		font-size: 1.4rem;
+		font-weight: 600;
+		line-height: 1;
+		cursor: pointer;
 	}
 	.lightbox__close:focus-visible {
 		outline: 2px solid #fff;

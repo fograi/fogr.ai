@@ -115,7 +115,7 @@
 <section class="composer" aria-label="Message seller">
 	<div class="header">
 		<h2>Message seller</h2>
-		<p class="muted">Keep communication in-app. Share contact details only if you choose.</p>
+		<p class="muted">Messages are anonymous by default.</p>
 	</div>
 
 	<div class="offer-rules">
