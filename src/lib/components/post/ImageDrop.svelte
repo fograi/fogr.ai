@@ -28,7 +28,6 @@
 	const MAX_DIMENSION = 2048;
 	const WEBP_QUALITY = 0.85;
 	const WEBP_MIN_QUALITY = 0.7;
-	const WEBP_REENCODE_THRESHOLD = 1 * 1024 * 1024; // 1MB
 
 	let picaInstance: ReturnType<typeof pica> | null = null;
 	const getPica = () => {
@@ -90,7 +89,7 @@
 		const targetH = Math.max(1, Math.round(height * scale));
 
 		const shouldResize = scale < 1;
-		const shouldReencode = f.type !== 'image/webp' || f.size > WEBP_REENCODE_THRESHOLD || shouldResize;
+		const shouldReencode = true;
 
 		if (!shouldResize && !shouldReencode) {
 			if ('close' in bitmap) bitmap.close();
