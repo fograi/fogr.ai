@@ -4,6 +4,12 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [sveltekit()],
+	ssr: {
+		noExternal: ['lucide-svelte']
+	},
+	optimizeDeps: {
+		include: ['lucide-svelte']
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
