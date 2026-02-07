@@ -10,6 +10,7 @@
 	import PostFields from '$lib/components/post/PostFields.svelte';
 	import ImageDrop from '$lib/components/post/ImageDrop.svelte';
 	import { createModerationClient } from '$lib/clients/moderationClient';
+	import { formatPriceLabel } from '$lib/utils/price';
 
 	type EditAdRow = {
 		id: string;
@@ -309,7 +310,7 @@
 		err = '';
 		ok = '';
 		showErrors = true;
-		const v = validateAll();
+		const v = validateBasics() || validateDetails();
 		if (v) {
 			err = v;
 			return;
@@ -327,18 +328,13 @@
 
 	onDestroy(() => mod.destroy());
 
-	$: previewPrice =
-		priceType === 'poa'
-			? 'POA'
-			: priceType === 'free' || Number(price) === 0
-				? 'Free'
-				: price !== ''
-					? new Intl.NumberFormat(locale, {
-							style: 'currency',
-							currency,
-							maximumFractionDigits: 0
-						}).format(Number(price))
-					: '';
+	$: previewPrice = formatPriceLabel({
+		price: price === '' ? null : Number(price),
+		category,
+		currency,
+		locale,
+		showRewardWhenMissing: true
+	});
 </script>
 
 {#if !editable}
@@ -396,7 +392,6 @@
 					bind:firmPrice
 					bind:minOffer
 					bind:autoDeclineMessage
-					bind:ageConfirmed
 					{loading}
 					{showErrors}
 				/>
@@ -420,7 +415,6 @@
 					bind:firmPrice
 					bind:minOffer
 					bind:autoDeclineMessage
-					bind:ageConfirmed
 					{loading}
 					{showErrors}
 				/>
@@ -443,7 +437,6 @@
 					showMeta={false}
 					{title}
 					{category}
-					{priceType}
 					{price}
 					{currency}
 					{locale}
@@ -456,12 +449,11 @@
 					bind:price
 					bind:priceType
 					bind:firmPrice
-				bind:minOffer
-				bind:autoDeclineMessage
-				bind:ageConfirmed
-				{loading}
-				{showErrors}
-			/>
+					bind:minOffer
+					bind:autoDeclineMessage
+					{loading}
+					{showErrors}
+				/>
 				<div class="actions">
 					<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>
 						Back
@@ -515,6 +507,16 @@
 						{/if}
 						<p>{description || 'Your description will appear here.'}</p>
 					</div>
+				</div>
+				<div class="preview-confirm">
+					<label class="checkbox">
+						<input
+							type="checkbox"
+							bind:checked={ageConfirmed}
+							disabled={loading}
+						/>
+						<span>I am 18 or older.</span>
+					</label>
 				</div>
 			</div>
 			<footer class="modal-actions">
@@ -714,6 +716,18 @@
 	.preview-price {
 		font-weight: 800;
 		font-size: 1.1rem;
+	}
+	.preview-confirm {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding-top: 4px;
+	}
+	.preview-confirm .checkbox {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-weight: 600;
 	}
 	.modal-actions {
 		display: flex;

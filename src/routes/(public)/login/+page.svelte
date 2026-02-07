@@ -252,7 +252,7 @@
 	.form input[type='email'],
 	.form button[type='submit'] {
 		width: 100%;
-		box-sizing: border-box; /* 🔑 ensures borders + padding are included */
+		box-sizing: border-box; /* ensures borders + padding are included */
 	}
 
 	label {

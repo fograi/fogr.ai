@@ -34,8 +34,8 @@ test('post page allows submitting a listing with mocked API', async ({ page }) =
 		});
 	});
 
-	await page.getByLabel('I am 18 or older.').check();
 	await page.getByRole('button', { name: 'Preview' }).click();
+	await page.getByLabel('I am 18 or older.').check();
 	await page.getByRole('button', { name: 'Post ad' }).click();
 	await expect(page).toHaveURL(/\/ad\/e2e-ad-1/);
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
@@ -72,8 +72,8 @@ test('edit ad page saves updates with mocked API', async ({ page }) => {
 		});
 	});
 
-	await page.getByLabel('I am 18 or older.').check();
 	await page.getByRole('button', { name: 'Preview' }).click();
+	await page.getByLabel('I am 18 or older.').check();
 	await page.getByRole('button', { name: 'Save changes' }).click();
 	await expect(page).toHaveURL(/\/ad\/e2e-ad-1/);
 });

@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
 	import { formatPriceLabel } from '$lib/utils/price';
+	import { FilterIcon, LinkIcon } from '$lib/icons';
 
 	type AdRow = {
 		id: string;
@@ -101,6 +102,12 @@
 		<p class="sub">Manage status, share, or archive your listings.</p>
 	</header>
 
+	<div class="filters-label">
+		<span class="filters-icon" aria-hidden="true">
+			<FilterIcon size={16} strokeWidth={1.8} />
+		</span>
+		<span>Filter by status</span>
+	</div>
 	<div class="filters" role="tablist" aria-label="Filter ads by status">
 		<button
 			type="button"
@@ -172,6 +179,9 @@
 							<a class="btn ghost" href={resolve(`/ads/${ad.id}/edit`)}>Edit</a>
 						{/if}
 						<button type="button" class="btn ghost" on:click={() => copyLink(ad)}>
+							<span class="btn-icon" aria-hidden="true">
+								<LinkIcon size={16} strokeWidth={1.8} />
+							</span>
 							Copy link
 						</button>
 						{#if ad.status === 'active'}
@@ -244,6 +254,17 @@
 	.sub {
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 55%, transparent);
+	}
+	.filters-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-weight: 700;
+		color: color-mix(in srgb, var(--fg) 75%, transparent);
+	}
+	.filters-icon {
+		display: inline-flex;
+		align-items: center;
 	}
 	.filters {
 		display: flex;
@@ -393,6 +414,10 @@
 		min-width: 0;
 	}
 	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
 		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
 		background: var(--surface);
 		border-radius: 10px;
@@ -401,6 +426,10 @@
 		cursor: pointer;
 		color: inherit;
 		text-decoration: none;
+	}
+	.btn-icon {
+		display: inline-flex;
+		align-items: center;
 	}
 	.btn.ghost {
 		background: transparent;

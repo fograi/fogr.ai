@@ -3,7 +3,7 @@
 	import { catBase } from '$lib/constants';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
 	import { formatPriceLabel } from '$lib/utils/price';
-	import { CATEGORY_ICON_MAP, DefaultCategoryIcon } from '$lib/icons';
+	import { CATEGORY_ICON_MAP, DefaultCategoryIcon, ShareIcon } from '$lib/icons';
 
 	// Props
 	export let title: string;
@@ -146,7 +146,12 @@
 						{#if email}
 							<a class="btn primary" href={mailtoHref} rel="external">Contact</a>
 						{/if}
-						<button type="button" class="btn" on:click={share}>Share</button>
+						<button type="button" class="btn" on:click={share}>
+							<span class="btn-icon" aria-hidden="true">
+								<ShareIcon size={16} strokeWidth={1.8} />
+							</span>
+							Share
+						</button>
 					</div>
 				{/if}
 			</div>
@@ -177,7 +182,12 @@
 						{#if email}
 							<a class="btn primary" href={mailtoHref} rel="external">Contact</a>
 						{/if}
-						<button type="button" class="btn" on:click={share}>Share</button>
+						<button type="button" class="btn" on:click={share}>
+							<span class="btn-icon" aria-hidden="true">
+								<ShareIcon size={16} strokeWidth={1.8} />
+							</span>
+							Share
+						</button>
 					</div>
 				{/if}
 			</div>
@@ -191,7 +201,12 @@
 			{#if email}
 				<a class="btn primary btn--cta" href={mailtoHref} rel="external">Contact</a>
 			{/if}
-			<button type="button" class="btn" on:click={share}>Share</button>
+			<button type="button" class="btn" on:click={share}>
+				<span class="btn-icon" aria-hidden="true">
+					<ShareIcon size={16} strokeWidth={1.8} />
+				</span>
+				Share
+			</button>
 		</div>
 	{/if}
 </article>
@@ -200,15 +215,20 @@
 	<div
 		class="lightbox"
 		role="dialog"
+		tabindex="-1"
 		aria-modal="true"
 		aria-label={`Full screen image: ${title}`}
-		on:click={closeLightbox}
 	>
+		<button
+			type="button"
+			class="lightbox__backdrop"
+			on:click={closeLightbox}
+			aria-label="Close image"
+		></button>
 		<button
 			type="button"
 			class="lightbox__close"
 			on:click={closeLightbox}
-			on:click|stopPropagation
 			aria-label="Close image"
 			bind:this={closeButton}
 		>
@@ -220,7 +240,6 @@
 			alt={title}
 			loading="eager"
 			decoding="async"
-			on:click|stopPropagation
 		/>
 	</div>
 {/if}
@@ -356,14 +375,20 @@
 		align-items: center;
 	}
 	.btn {
-		display: inline-grid;
-		place-items: center;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
 		padding: 8px 12px;
 		border-radius: 10px;
 		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
 		background: var(--surface);
 		color: inherit;
 		cursor: pointer;
+	}
+	.btn-icon {
+		display: inline-flex;
+		align-items: center;
 	}
 	.btn.primary {
 		background: color-mix(in srgb, var(--fg) 18%, var(--bg));
@@ -422,6 +447,15 @@
 		padding: 20px;
 		z-index: 1200;
 	}
+	.lightbox__backdrop {
+		position: absolute;
+		inset: 0;
+		border: 0;
+		background: transparent;
+		padding: 0;
+		cursor: zoom-out;
+		z-index: 0;
+	}
 	.lightbox__close {
 		position: absolute;
 		top: 16px;
@@ -438,6 +472,7 @@
 		font-weight: 600;
 		line-height: 1;
 		cursor: pointer;
+		z-index: 2;
 	}
 	.lightbox__close:focus-visible {
 		outline: 2px solid #fff;
@@ -451,6 +486,7 @@
 		object-fit: contain;
 		border-radius: 12px;
 		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+		z-index: 1;
 	}
 
 	@media (orientation: portrait) {

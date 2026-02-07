@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { hasPaidPrice } from '$lib/utils/price';
+	import { ReportIcon } from '$lib/icons';
 
 	const dispatch = createEventDispatcher<{ flag: void }>();
 	export let adId: string;
@@ -201,6 +202,9 @@
 		<div class="warning-row" role="alert">
 			<p class="notice warn">{warning}</p>
 			<button type="button" class="btn ghost" on:click={() => dispatch('flag')}>
+				<span class="btn-icon" aria-hidden="true">
+					<ReportIcon size={16} strokeWidth={1.8} />
+				</span>
 				Report
 			</button>
 		</div>
@@ -296,8 +300,10 @@
 		gap: 8px;
 	}
 	.btn {
-		display: inline-grid;
-		place-items: center;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
 		padding: 8px 12px;
 		border-radius: 10px;
 		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
@@ -305,6 +311,10 @@
 		color: inherit;
 		font-weight: 700;
 		cursor: pointer;
+	}
+	.btn-icon {
+		display: inline-flex;
+		align-items: center;
 	}
 	.btn.ghost {
 		background: transparent;

@@ -19,7 +19,6 @@
 	export let firmPrice = false;
 	export let minOffer: number | '' = '';
 	export let autoDeclineMessage = '';
-	export let ageConfirmed = false;
 	export let step = 1;
 	export let showErrors = false;
 
@@ -61,7 +60,6 @@
 		(!description.trim() ||
 			description.trim().length < MIN_DESC_LENGTH ||
 			description.length > MAX_DESC_LENGTH);
-	$: ageInvalid = showErrors && !ageConfirmed;
 </script>
 
 <section class="fields" aria-busy={loading}>
@@ -229,19 +227,6 @@
 		{/if}
 	{/if}
 
-	{#if step === 3}
-		<div class="row">
-			<label class="checkbox">
-				<input
-					type="checkbox"
-					bind:checked={ageConfirmed}
-					disabled={loading}
-					aria-invalid={showErrors ? ageInvalid : undefined}
-				/>
-				<span>I am 18 or older.</span>
-			</label>
-		</div>
-	{/if}
 </section>
 
 <style>

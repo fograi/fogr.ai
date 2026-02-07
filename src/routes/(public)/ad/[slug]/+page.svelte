@@ -3,6 +3,7 @@
 	import AdCardWide from '$lib/components/AdCardWide.svelte';
 	import MessageComposer from '$lib/components/messages/MessageComposer.svelte';
 	import type { AdCard, ModerationAction } from '../../../../types/ad-types';
+	import { ModerationIcon, ReportIcon, ShareIcon } from '$lib/icons';
 	export let data: {
 		ad: AdCard;
 		moderation?: ModerationAction | null;
@@ -215,14 +216,25 @@
 		<AdCardWide {...data.ad} showActions={false} showExpires={data.isOwner ?? false} />
 
 		<section class="action-rail" aria-label="Ad actions">
-			<button type="button" class="btn primary" on:click={share}>Share</button>
+			<button type="button" class="btn primary" on:click={share}>
+				<span class="btn-icon" aria-hidden="true">
+					<ShareIcon size={16} strokeWidth={1.8} />
+				</span>
+				Share
+			</button>
 			{#if !data.isOwner}
 				<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
+					<span class="btn-icon" aria-hidden="true">
+						<ReportIcon size={16} strokeWidth={1.8} />
+					</span>
 					Report
 				</button>
 			{/if}
 			{#if data.moderation}
 				<button type="button" class="btn ghost" on:click={() => openPanel('moderation')}>
+					<span class="btn-icon" aria-hidden="true">
+						<ModerationIcon size={16} strokeWidth={1.8} />
+					</span>
 					Moderation decision
 				</button>
 			{/if}
@@ -478,8 +490,9 @@
 		justify-content: center;
 	}
 	.action-rail .btn {
-		display: inline-grid;
-		place-items: center;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		gap: 6px;
 		padding: 10px 14px;
 		border-radius: 999px;
@@ -487,6 +500,10 @@
 		background: var(--surface);
 		cursor: pointer;
 		font-weight: 700;
+	}
+	.action-rail .btn-icon {
+		display: inline-flex;
+		align-items: center;
 	}
 	.action-rail .btn.primary {
 		background: var(--fg);

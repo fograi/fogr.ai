@@ -3,7 +3,6 @@
 		ALLOWED_IMAGE_TYPES,
 		MAX_IMAGE_SIZE,
 		catBase,
-		type PriceType
 	} from '$lib/constants';
 	import pica from 'pica';
 	import { formatPriceLabel } from '$lib/utils/price';
@@ -14,7 +13,6 @@
 	export let previewUrl: string | null = null;
 	export let title: string = '';
 	export let category: keyof typeof catBase | '' = '';
-	export let priceType: PriceType = 'fixed';
 	export let price: number | '' = '';
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
