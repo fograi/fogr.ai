@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 
 	type MessageView = {
 		id: string;
@@ -11,7 +10,15 @@
 	};
 
 	export let data: {
-		conversation: { id: string; adId: string; adTitle: string };
+		conversation: {
+			id: string;
+			adId: string;
+			adTitle: string;
+			adPrice: number | null;
+			adCurrency: string | null;
+			adCategory: string | null;
+			adStatus: string | null;
+		};
 		readMeta: { viewerRole: 'buyer' | 'seller'; otherLastReadAt: string | null; viewerLastReadAt: string };
 		autoDeclineMessage?: string;
 		messages: MessageView[];
@@ -67,6 +74,19 @@
 			new Date(iso)
 		);
 
+	const formatPrice = () => {
+		const price = data.conversation.adPrice;
+		const category = data.conversation.adCategory ?? '';
+		const currency = data.conversation.adCurrency ?? 'EUR';
+		if (price === null) return 'POA';
+		if (price === 0 || category === 'Free / Giveaway') return 'Free';
+		return new Intl.NumberFormat('en-IE', {
+			style: 'currency',
+			currency,
+			maximumFractionDigits: 0
+		}).format(price);
+	};
+
 	async function send() {
 		err = '';
 		ok = '';
@@ -108,7 +128,27 @@
 	<header class="head">
 		<div>
 			<h1>{data.conversation.adTitle}</h1>
-			<a class="link" href={`/ad/${data.conversation.adId}`}>View listing</a>
+			<details class="ad-summary">
+				<summary>
+					<span class="summary-label">Listing details</span>
+					<span class="summary-price">{formatPrice()}</span>
+				</summary>
+				<div class="summary-body">
+					{#if data.conversation.adCategory}
+						<div class="summary-row">
+							<span>Category</span>
+							<span>{data.conversation.adCategory}</span>
+						</div>
+					{/if}
+					{#if data.conversation.adStatus}
+						<div class="summary-row">
+							<span>Status</span>
+							<span>{data.conversation.adStatus.replace('_', ' ')}</span>
+						</div>
+					{/if}
+					<a class="summary-link" href={`/ad/${data.conversation.adId}`}>Open listing</a>
+				</div>
+			</details>
 		</div>
 	</header>
 
@@ -178,10 +218,56 @@
 		font-size: 1.5rem;
 		font-weight: 800;
 	}
-	.link {
-		text-decoration: none;
-		color: inherit;
+	.ad-summary {
+		margin-top: 6px;
+	}
+	.ad-summary summary {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		cursor: pointer;
 		font-weight: 700;
+		list-style: none;
+	}
+	.ad-summary summary::-webkit-details-marker {
+		display: none;
+	}
+	.summary-label {
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+	}
+	.summary-price {
+		padding: 2px 8px;
+		border-radius: 999px;
+		border: 1px solid var(--hairline);
+		background: color-mix(in srgb, var(--fg) 6%, var(--bg));
+		font-weight: 800;
+	}
+	.summary-body {
+		margin-top: 8px;
+		border: 1px solid var(--hairline);
+		border-radius: 12px;
+		padding: 10px 12px;
+		background: var(--surface);
+		display: grid;
+		gap: 6px;
+	}
+	.summary-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 12px;
+		color: color-mix(in srgb, var(--fg) 80%, transparent);
+		font-weight: 600;
+	}
+	.summary-link {
+		justify-self: start;
+		margin-top: 6px;
+		text-decoration: none;
+		font-weight: 700;
+		color: inherit;
+		padding: 6px 10px;
+		border-radius: 999px;
+		border: 1px solid var(--hairline);
+		background: var(--surface);
 	}
 	.messages {
 		display: grid;

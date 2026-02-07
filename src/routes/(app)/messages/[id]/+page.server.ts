@@ -37,7 +37,11 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 			conversation: {
 				id: E2E_MOCK_CONVERSATION.id,
 				adId: E2E_MOCK_AD.id,
-				adTitle: E2E_MOCK_AD.title
+				adTitle: E2E_MOCK_AD.title,
+				adPrice: E2E_MOCK_AD.price ?? null,
+				adCurrency: E2E_MOCK_AD.currency ?? null,
+				adCategory: E2E_MOCK_AD.category ?? null,
+				adStatus: E2E_MOCK_AD.status ?? null
 			},
 			readMeta: {
 				viewerRole: 'buyer',
@@ -81,7 +85,7 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 
 	const { data: ad } = await locals.supabase
 		.from('ads')
-		.select('id, title, firm_price, min_offer, currency, auto_decline_message')
+		.select('id, title, price, currency, category, status, firm_price, min_offer, auto_decline_message')
 		.eq('id', convo.ad_id)
 		.maybeSingle();
 
@@ -97,7 +101,11 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 		conversation: {
 			id: convo.id,
 			adId: convo.ad_id,
-			adTitle: ad?.title ?? 'Listing'
+			adTitle: ad?.title ?? 'Listing',
+			adPrice: ad?.price ?? null,
+			adCurrency: ad?.currency ?? null,
+			adCategory: ad?.category ?? null,
+			adStatus: ad?.status ?? null
 		},
 		readMeta: {
 			viewerRole: isSeller ? 'seller' : 'buyer',
