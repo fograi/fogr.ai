@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+	import { hasPaidPrice } from '$lib/utils/price';
 
 	const dispatch = createEventDispatcher<{ flag: void }>();
 	export let adId: string;
@@ -19,6 +20,7 @@
 	let warning = '';
 	let autoDeclined = false;
 	let autoDeclineText = '';
+	$: isPaidPrice = hasPaidPrice(price);
 
 	const formatMoney = (value: number) =>
 		new Intl.NumberFormat('en-IE', {
@@ -117,7 +119,7 @@
 	</div>
 
 	<div class="offer-rules">
-		{#if firmPrice}
+		{#if firmPrice && isPaidPrice}
 			<p class="rule">Firm price. Offers will be auto-declined.</p>
 		{/if}
 	</div>

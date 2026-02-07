@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { E2E_MOCK_AD, E2E_MOCK_CONVERSATION, E2E_MOCK_MESSAGES, isE2eMock } from '$lib/server/e2e-mocks';
+import { hasPaidPrice } from '$lib/utils/price';
 
 const formatMoney = (value: number, currency = 'EUR') =>
 	new Intl.NumberFormat('en-IE', {
@@ -13,12 +14,15 @@ const buildAutoDeclineMessage = (ad: {
 	auto_decline_message?: string | null;
 	firm_price?: boolean | null;
 	min_offer?: number | null;
+	price?: number | null;
 	currency?: string | null;
 }) => {
 	const custom = ad.auto_decline_message?.trim();
 	if (custom) return custom;
-	if (ad.firm_price) return 'Thanks — the price is firm.';
-	if (ad.min_offer) return `Thanks — minimum offer is ${formatMoney(ad.min_offer, ad.currency ?? 'EUR')}.`;
+	const paidPrice = hasPaidPrice(ad.price ?? null);
+	if (paidPrice && ad.firm_price) return 'Thanks — the price is firm.';
+	if (paidPrice && ad.min_offer)
+		return `Thanks — minimum offer is ${formatMoney(ad.min_offer, ad.currency ?? 'EUR')}.`;
 	return '';
 };
 

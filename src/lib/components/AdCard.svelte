@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
 	import { resolve } from '$app/paths';
+	import { hasPaidPrice } from '$lib/utils/price';
 
 	export let id: number | string;
 	export let title: string;
@@ -27,8 +28,15 @@
 						}).format(price)
 					: null;
 
+	$: isPaidPrice = hasPaidPrice(price);
 	$: offerBadge =
-		firmPrice ? 'Firm price' : typeof minOffer === 'number' && minOffer > 0 ? 'Offers' : '';
+		isPaidPrice
+			? firmPrice
+				? 'Firm price'
+				: typeof minOffer === 'number' && minOffer > 0
+					? 'Offers'
+					: ''
+			: '';
 
 	let isPortrait = false;
 	let hasImageError = false;

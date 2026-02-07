@@ -4,6 +4,7 @@ import { isSameOrigin } from '$lib/server/csrf';
 import { detectScamPatterns } from '$lib/server/scam-patterns';
 import { E2E_MOCK_MESSAGES, isE2eMock } from '$lib/server/e2e-mocks';
 import { recordMetric } from '$lib/server/metrics';
+import { hasPaidPrice } from '$lib/utils/price';
 
 const ALLOWED_KINDS = new Set(['availability', 'offer', 'pickup', 'question']);
 
@@ -107,6 +108,8 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 	if (ad.expires_at && ad.expires_at <= new Date().toISOString())
 		return errorResponse('Listing has expired.', 400);
 
+	const paidPrice = hasPaidPrice(ad.price ?? null);
+
 	if (kind === 'offer') {
 		if (isSeller) return errorResponse('Sellers cannot make offers.', 400);
 		const amount = Number(offerAmount);
@@ -146,8 +149,8 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 
 	let autoDeclined = false;
 	if (kind === 'offer') {
-		if (ad.firm_price) autoDeclined = true;
-		else if (ad.min_offer && Number(offerAmount) < ad.min_offer) autoDeclined = true;
+		if (paidPrice && ad.firm_price) autoDeclined = true;
+		else if (paidPrice && ad.min_offer && Number(offerAmount) < ad.min_offer) autoDeclined = true;
 	}
 
 	const scam = detectScamPatterns(messageBody);
@@ -202,15 +205,22 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 			userId: user.id,
 			adId: ad.id,
 			conversationId: activeConversationId,
-			properties: { reason: ad.firm_price ? 'firm_price' : ad.min_offer ? 'below_min' : 'unknown' }
+			properties: {
+				reason:
+					paidPrice && ad.firm_price
+						? 'firm_price'
+						: paidPrice && ad.min_offer
+							? 'below_min'
+							: 'unknown'
+			}
 		});
 	}
 
 	const autoDeclineMessage =
 		ad.auto_decline_message ||
-		(ad.firm_price
+		(paidPrice && ad.firm_price
 			? 'Thanks — the price is firm.'
-			: ad.min_offer
+			: paidPrice && ad.min_offer
 				? `Thanks — minimum offer is ${formatMoney(ad.min_offer, ad.currency ?? 'EUR')}.`
 				: '');
 
