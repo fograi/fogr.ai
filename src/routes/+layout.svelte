@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.ico';
+	import fograiWordmark from '$lib/assets/fógraí.svg?raw';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
@@ -22,7 +23,7 @@
 <footer class="site-footer">
 	<div class="wrap">
 		<div class="brand-line">
-			<span class="brand-name"><i>fógraí</i></span>
+			<span class="brand-logo" aria-label="fógraí">{@html fograiWordmark}</span>
 			<span class="dot">•</span>
 			<span>© {year}</span>
 		</div>
@@ -72,8 +73,19 @@
 		font-weight: 700;
 		color: color-mix(in srgb, var(--fg) 80%, transparent);
 	}
-	.brand-name {
-		letter-spacing: 0.2px;
+	.brand-logo {
+		display: inline-flex;
+		align-items: center;
+		color: color-mix(in srgb, var(--fg) 80%, transparent);
+		--fogr-accent-o: var(--accent-green);
+		--fogr-accent-i: var(--accent-orange);
+		transform: skewX(-10deg);
+	}
+	.brand-logo :global(svg) {
+		display: block;
+		height: 24px;
+		width: auto;
+		filter: saturate(1.1);
 	}
 	.dot {
 		opacity: 0.4;
