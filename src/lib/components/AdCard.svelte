@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
 	import { resolve } from '$app/paths';
+	import { getBikeProfileSummary, isBikesCategory } from '$lib/category-profiles';
 	import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 
 	export let id: number | string;
@@ -10,6 +11,7 @@
 	export let img: string | undefined;
 	export let description: string;
 	export let category: string;
+	export let categoryProfileData: Record<string, unknown> | null = null;
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 	export let firmPrice = false;
@@ -18,14 +20,28 @@
 	$: priceLabel = formatPriceLabel({ price, category, currency, locale });
 
 	$: isPaidPrice = hasPaidPrice(price);
-	$: offerBadge =
-		isPaidPrice
-			? firmPrice
-				? 'Firm price'
-				: typeof minOffer === 'number' && minOffer > 0
-					? 'Offers'
-					: ''
-			: '';
+	$: offerBadge = isPaidPrice
+		? firmPrice
+			? 'Firm price'
+			: typeof minOffer === 'number' && minOffer > 0
+				? 'Offers'
+				: ''
+		: '';
+	$: bikeSummary =
+		isBikesCategory(category) && categoryProfileData
+			? getBikeProfileSummary(categoryProfileData)
+			: null;
+	$: bikeChips = bikeSummary
+		? [
+				bikeSummary.subtypeLabel,
+				bikeSummary.bikeTypeLabel,
+				bikeSummary.conditionLabel,
+				bikeSummary.sizeLabel
+			].filter((value): value is string => !!value)
+		: [];
+	$: bikeSummaryLine = bikeSummary
+		? bikeSummary.reasonForSelling || bikeSummary.usageSummary || bikeSummary.knownIssues || ''
+		: '';
 
 	let isPortrait = false;
 	let hasImageError = false;
@@ -83,6 +99,13 @@
 					<span class={`badge ${firmPrice ? 'firm' : 'offers'}`}>{offerBadge}</span>
 				</div>
 			{/if}
+			{#if bikeChips.length > 0}
+				<div class="bike-chips" aria-label="Bike highlights">
+					{#each bikeChips as chip (chip)}
+						<span class="bike-chip">{chip}</span>
+					{/each}
+				</div>
+			{/if}
 
 			{#if showImg}
 				<div class="media">
@@ -101,6 +124,7 @@
 
 			<h3 class="title title--text">{title}</h3>
 			{#if description}<p class="desc">{description}</p>{/if}
+			{#if bikeSummaryLine}<p class="bike-summary">{bikeSummaryLine}</p>{/if}
 
 			<!-- Price pinned to bottom-right -->
 			{#if priceLabel}
@@ -176,6 +200,23 @@
 	}
 	.badge.firm {
 		background: color-mix(in srgb, var(--fg) 16%, var(--bg));
+	}
+	.bike-chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+		margin: 8px 0 0;
+	}
+	.bike-chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 3px 8px;
+		border-radius: 999px;
+		font-size: 0.72rem;
+		font-weight: 700;
+		border: 1px solid color-mix(in srgb, var(--fg) 16%, transparent);
+		background: color-mix(in srgb, var(--fg) 6%, var(--surface));
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -272,6 +313,16 @@
 		-webkit-line-clamp: 3;
 		overflow: hidden;
 		word-break: break-word;
+	}
+	.bike-summary {
+		margin: 4px 0 0;
+		font-size: 0.86rem;
+		font-weight: 600;
+		color: color-mix(in srgb, var(--fg) 62%, transparent);
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
 	}
 	/* Price badge: bottom-right, monochrome */
 	.price {

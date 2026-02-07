@@ -44,6 +44,7 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 		img: ad.image_keys?.[0] ?? '',
 		description: ad.description ?? '',
 		category: ad.category ?? '',
+		categoryProfileData: ad.category_profile_data ?? null,
 		currency: ad.currency ?? undefined,
 		firmPrice: ad.firm_price ?? false,
 		minOffer: ad.min_offer ?? null

@@ -5,6 +5,7 @@ export interface AdCard {
 	img: string;
 	description: string;
 	category: string;
+	categoryProfileData?: Record<string, unknown> | null;
 	currency?: string;
 	locale?: string;
 	status?: string;

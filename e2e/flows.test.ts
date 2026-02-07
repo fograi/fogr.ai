@@ -54,8 +54,8 @@ test('bike subtype resets when bike type changes to a different branch', async (
 	await page.getByRole('button', { name: 'Adult bike' }).click();
 
 	await page.getByRole('button', { name: 'Continue' }).click();
-	await expect(page.getByText('Bike subtype is required.')).toBeVisible();
-	await expect(page.getByText('Choose a bike subtype.')).toBeVisible();
+	await expect(page.getByText('Bike type is required.')).toBeVisible();
+	await expect(page.getByText('Choose a bike type.')).toBeVisible();
 });
 
 test('bike subtype options are scoped to selected bike type', async ({ page }) => {
@@ -98,7 +98,9 @@ test('kids bike requires age-range size before continuing', async ({ page }) => 
 	await expect(page.getByText('Add a size.')).toBeVisible();
 });
 
-test('adult bike with subtype, condition, and size can continue to price step', async ({ page }) => {
+test('adult bike with subtype, condition, and size can continue to price step', async ({
+	page
+}) => {
 	await page.goto('/post');
 
 	await page.selectOption('#category', 'Bikes');
@@ -116,7 +118,9 @@ test('adult bike with subtype, condition, and size can continue to price step', 
 	await expect(page.getByLabel('Price type')).toBeVisible();
 });
 
-test('electric bike with subtype, condition, and size can continue to price step', async ({ page }) => {
+test('electric bike with subtype, condition, and size can continue to price step', async ({
+	page
+}) => {
 	await page.goto('/post');
 
 	await page.selectOption('#category', 'Bikes');
@@ -178,7 +182,68 @@ test('bike min-offer preset submits expected offer rules payload', async ({ page
 	expect(createPayload).toContain('name="category"');
 	expect(createPayload).toContain('Bikes');
 	expect(createPayload).toMatch(/name="min_offer"[\s\S]*\b70\b/);
-	expect(createPayload).toMatch(/name="auto_decline_message"[\s\S]*Thanks, minimum offer is 70 EUR\./);
+	expect(createPayload).toMatch(
+		/name="auto_decline_message"[\s\S]*Thanks, minimum offer is 70 EUR\./
+	);
+});
+
+test('bike description assist pills populate profile payload', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Adult bike' }).click();
+	await page.getByRole('button', { name: 'Road' }).click();
+	await page.getByRole('button', { name: 'Used - good' }).click();
+	await page.getByRole('button', { name: 'M', exact: true }).click();
+
+	await page.getByRole('button', { name: /Reason for selling/i }).click();
+	await page.getByRole('button', { name: 'Upgrading bike' }).click();
+	await page.getByRole('button', { name: 'Done' }).click();
+
+	await page.getByRole('button', { name: /How it has been used/i }).click();
+	await page.getByRole('button', { name: 'Weekend rides' }).click();
+	await page.getByRole('button', { name: 'Done' }).click();
+
+	await page.getByRole('button', { name: /Known issues or maintenance needed/i }).click();
+	await page.getByRole('button', { name: 'No known issues' }).click();
+	await page.getByRole('button', { name: 'Done' }).click();
+
+	const generatedDescription = await page.locator('#description').inputValue();
+	expect(generatedDescription).toContain('Reason for selling: Upgrading bike');
+	expect(generatedDescription).toContain('How it has been used: Weekend rides');
+	expect(generatedDescription).toContain('Known issues or maintenance needed: No known issues');
+
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await page.fill('#price', '120');
+
+	let createPayload = '';
+	await page.route('**/api/ads', async (route) => {
+		if (route.request().method() !== 'POST') return route.continue();
+		createPayload = route.request().postData() ?? '';
+		return route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				success: true,
+				id: 'e2e-ad-1',
+				message: 'Ad submitted successfully!'
+			})
+		});
+	});
+
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await page.getByRole('button', { name: 'Preview' }).click();
+	await page.getByLabel('I am 18 or older.').check();
+	await page.getByRole('button', { name: 'Post ad' }).click();
+	await expect(page).toHaveURL(/\/ad\/e2e-ad-1/);
+
+	expect(createPayload).toContain('name="category_profile_data"');
+	expect(createPayload).toContain('reasonForSelling');
+	expect(createPayload).toContain('Upgrading bike');
+	expect(createPayload).toContain('usageSummary');
+	expect(createPayload).toContain('Weekend rides');
+	expect(createPayload).toContain('knownIssues');
+	expect(createPayload).toContain('No known issues');
 });
 
 test('navbar shows Post ad and Logout when signed in (mocked)', async ({ page }) => {
@@ -221,6 +286,12 @@ test('edit ad page saves updates with mocked API', async ({ page }) => {
 test('ad detail page renders with mocked data', async ({ page }) => {
 	await page.goto('/ad/e2e-ad-1');
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
+	await expect(page.getByText('Adult')).toBeVisible();
+	await expect(page.getByText('Road')).toBeVisible();
+	await expect(page.getByText('Used - good')).toBeVisible();
+	await expect(page.getByText('Size M')).toBeVisible();
+	await expect(page.getByText('Reason for selling')).toBeVisible();
+	await expect(page.getByText('Upgrading bike')).toBeVisible();
 });
 
 test('report form submits and shows reference', async ({ page }) => {
@@ -239,7 +310,10 @@ test('report form submits and shows reference', async ({ page }) => {
 	await page.fill('#report-name', 'E2E Reporter');
 	await page.fill('#report-email', 'reporter@example.com');
 	await page.selectOption('#report-reason', 'spam');
-	await page.fill('#report-details', 'This is a test report with enough detail to pass validation.');
+	await page.fill(
+		'#report-details',
+		'This is a test report with enough detail to pass validation.'
+	);
 	await page.getByRole('checkbox', { name: /good faith/i }).check();
 
 	await page.getByRole('button', { name: 'Submit report' }).click();

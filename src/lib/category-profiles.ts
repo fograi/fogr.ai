@@ -35,6 +35,7 @@ export type BikeKidsSizePreset = (typeof BIKE_KIDS_SIZE_PRESETS)[number];
 export type BikeSizePreset = BikeAdultSizePreset | BikeKidsSizePreset;
 
 export const BIKE_MIN_OFFER_PRESET_RATIOS = [0.7, 0.8] as const;
+export const BIKE_GUIDED_FIELD_MAX_LENGTH = 120 as const;
 
 export const BIKE_SUBTYPE_OPTIONS: ReadonlyArray<{ value: BikeSubtype; label: string }> = [
 	{ value: 'adult', label: 'Adult bike' },
@@ -86,6 +87,44 @@ export const BIKE_CONDITION_OPTIONS: ReadonlyArray<{ value: BikeCondition; label
 	{ value: 'needs_work', label: 'Needs work' }
 ];
 
+export const BIKE_DESCRIPTION_ASSIST_PROMPTS = [
+	{
+		key: 'reasonForSelling',
+		label: 'Reason for selling',
+		options: [
+			'Upgrading bike',
+			'Not using it enough',
+			'Child outgrew it',
+			'Moving away',
+			'Too small or too big now'
+		]
+	},
+	{
+		key: 'usageSummary',
+		label: 'How it has been used',
+		options: [
+			'Weekend rides',
+			'Daily commuting',
+			'School runs',
+			'Light trail riding',
+			'Occasional use only'
+		]
+	},
+	{
+		key: 'knownIssues',
+		label: 'Known issues or maintenance needed',
+		options: [
+			'No known issues',
+			'Minor cosmetic scratches',
+			'Needs brake tune-up',
+			'Needs new tyres soon',
+			'Recently serviced'
+		]
+	}
+] as const;
+
+export type BikeDescriptionAssistKey = (typeof BIKE_DESCRIPTION_ASSIST_PROMPTS)[number]['key'];
+
 export const BIKE_PHOTO_CHECKLIST = [
 	'Full bike (side view)',
 	'Frame close-up',
@@ -101,8 +140,21 @@ export type BikesProfileData = {
 	bikeType: BikeType;
 	sizePreset?: BikeSizePreset;
 	sizeManual?: string;
+	reasonForSelling?: string;
+	usageSummary?: string;
+	knownIssues?: string;
 	titleAutoFilled?: boolean;
 	descriptionTemplateUsed?: boolean;
+};
+
+export type BikeProfileSummary = {
+	subtypeLabel: string;
+	bikeTypeLabel: string;
+	conditionLabel: string;
+	sizeLabel: string | null;
+	reasonForSelling?: string;
+	usageSummary?: string;
+	knownIssues?: string;
 };
 
 const bikeSubtypeSet = new Set<string>(BIKE_SUBTYPES);
@@ -115,6 +167,35 @@ const bikeTypeSetBySubtype: Record<BikeSubtype, Set<string>> = {
 	electric: new Set(BIKE_TYPE_OPTIONS_BY_SUBTYPE.electric.map((option) => option.value))
 };
 
+const BIKE_SUBTYPE_DISPLAY_LABEL: Record<BikeSubtype, string> = {
+	adult: 'Adult',
+	kids: 'Kids',
+	electric: 'Electric'
+};
+
+const BIKE_TYPE_DISPLAY_LABEL: Record<BikeType, string> = {
+	road: 'Road',
+	mountain: 'Mountain',
+	hybrid: 'Hybrid',
+	gravel: 'Gravel',
+	commuter: 'Commuter',
+	touring: 'Touring',
+	cargo: 'Cargo',
+	folding: 'Folding',
+	balance: 'Balance',
+	bmx: 'BMX',
+	training: 'Training wheels',
+	other: 'Other'
+};
+
+const BIKE_CONDITION_DISPLAY_LABEL: Record<BikeCondition, string> = {
+	new: 'New',
+	like_new: 'Like new',
+	used_good: 'Used - good',
+	used_fair: 'Used - fair',
+	needs_work: 'Needs work'
+};
+
 const isObject = (value: unknown): value is Record<string, unknown> =>
 	typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -124,6 +205,12 @@ const asOptionalTrimmedString = (value: unknown) => {
 };
 
 const asOptionalBoolean = (value: unknown) => value === true;
+
+const asOptionalGuidedValue = (value: unknown) => {
+	const trimmed = asOptionalTrimmedString(value);
+	if (!trimmed) return undefined;
+	return trimmed.slice(0, BIKE_GUIDED_FIELD_MAX_LENGTH);
+};
 
 const BIKE_TYPE_TITLE_LABEL: Record<BikeType, string> = {
 	road: 'Road',
@@ -166,11 +253,18 @@ export function getBikePriceHint(subtype: BikeSubtype | '' | null | undefined): 
 	}
 }
 
-export function getBikeDescriptionTemplate() {
+export function getBikeDescriptionTemplate(values?: {
+	reasonForSelling?: string;
+	usageSummary?: string;
+	knownIssues?: string;
+}) {
+	const reason = asOptionalGuidedValue(values?.reasonForSelling) ?? '';
+	const usage = asOptionalGuidedValue(values?.usageSummary) ?? '';
+	const issues = asOptionalGuidedValue(values?.knownIssues) ?? '';
 	return [
-		'Reason for selling:',
-		'How it has been used:',
-		'Known issues or maintenance needed:'
+		`Reason for selling: ${reason}`.trimEnd(),
+		`How it has been used: ${usage}`.trimEnd(),
+		`Known issues or maintenance needed: ${issues}`.trimEnd()
 	].join('\n');
 }
 
@@ -226,6 +320,9 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 	const conditionValue = asOptionalTrimmedString(input.condition).toLowerCase();
 	const sizePresetValue = asOptionalTrimmedString(input.sizePreset);
 	const sizeManualValue = asOptionalTrimmedString(input.sizeManual);
+	const reasonForSelling = asOptionalGuidedValue(input.reasonForSelling);
+	const usageSummary = asOptionalGuidedValue(input.usageSummary);
+	const knownIssues = asOptionalGuidedValue(input.knownIssues);
 
 	if (versionValue !== CATEGORY_PROFILE_VERSION) {
 		return { data: null, error: 'Bike details are out of date. Please reselect bike details.' };
@@ -234,7 +331,7 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 		return { data: null, error: 'Invalid bike profile.' };
 	}
 	if (!bikeSubtypeSet.has(subtypeValue)) {
-		return { data: null, error: 'Bike type is required.' };
+		return { data: null, error: 'Bike subtype is required.' };
 	}
 	if (!bikeConditionSet.has(conditionValue)) {
 		return { data: null, error: 'Bike condition is required.' };
@@ -242,10 +339,10 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 
 	const subtype = subtypeValue as BikeSubtype;
 	if (!bikeTypeValue) {
-		return { data: null, error: 'Bike subtype is required.' };
+		return { data: null, error: 'Bike type is required.' };
 	}
 	if (!bikeTypeSetBySubtype[subtype].has(bikeTypeValue)) {
-		return { data: null, error: 'Invalid bike subtype for selected bike type.' };
+		return { data: null, error: 'Invalid bike type for selected bike subtype.' };
 	}
 	const hasManualSize = sizeManualValue.length > 0;
 	const hasSizePreset = sizePresetValue.length > 0;
@@ -272,9 +369,37 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 		bikeType: bikeTypeValue as BikeType,
 		sizePreset: hasSizePreset ? (sizePresetValue as BikeSizePreset) : undefined,
 		sizeManual: hasManualSize ? sizeManualValue.slice(0, 32) : undefined,
+		reasonForSelling,
+		usageSummary,
+		knownIssues,
 		titleAutoFilled: asOptionalBoolean(input.titleAutoFilled),
 		descriptionTemplateUsed: asOptionalBoolean(input.descriptionTemplateUsed)
 	};
 
 	return { data: normalized, error: null };
+}
+
+export function getBikeProfileSummary(profileData: unknown): BikeProfileSummary | null {
+	const result = validateAndNormalizeBikesProfileData(profileData);
+	if (!result.data) return null;
+	const data = result.data;
+	const sizeLabel =
+		data.subtype === 'kids'
+			? data.sizePreset
+				? `Ages ${data.sizePreset}`
+				: null
+			: data.sizeManual
+				? `Size ${data.sizeManual}`
+				: data.sizePreset
+					? `Size ${data.sizePreset}`
+					: null;
+	return {
+		subtypeLabel: BIKE_SUBTYPE_DISPLAY_LABEL[data.subtype],
+		bikeTypeLabel: BIKE_TYPE_DISPLAY_LABEL[data.bikeType],
+		conditionLabel: BIKE_CONDITION_DISPLAY_LABEL[data.condition],
+		sizeLabel,
+		reasonForSelling: data.reasonForSelling,
+		usageSummary: data.usageSummary,
+		knownIssues: data.knownIssues
+	};
 }

@@ -54,6 +54,11 @@
 	const initialBikeProfile = isBikesCategory(ad.category)
 		? validateAndNormalizeBikesProfileData(ad.category_profile_data).data
 		: null;
+	const initialBikeDescriptionTemplate = getBikeDescriptionTemplate({
+		reasonForSelling: initialBikeProfile?.reasonForSelling,
+		usageSummary: initialBikeProfile?.usageSummary,
+		knownIssues: initialBikeProfile?.knownIssues
+	});
 
 	let title = ad.title ?? '';
 	let description = ad.description ?? '';
@@ -75,12 +80,19 @@
 	let bikeCondition: BikeCondition | '' = initialBikeProfile?.condition ?? '';
 	let bikeSizePreset: BikeSizePreset | '' = initialBikeProfile?.sizePreset ?? '';
 	let bikeSizeManual = initialBikeProfile?.sizeManual ?? '';
+	let bikeReasonForSelling = initialBikeProfile?.reasonForSelling ?? '';
+	let bikeUsageSummary = initialBikeProfile?.usageSummary ?? '';
+	let bikeKnownIssues = initialBikeProfile?.knownIssues ?? '';
 	let bikeSizeManualEdited = !!initialBikeProfile?.sizeManual;
 	let titleManuallyEdited = !!title;
-	let descriptionManuallyEdited = !!description;
+	let descriptionManuallyEdited =
+		!!description && description.trim() !== initialBikeDescriptionTemplate.trim();
 	let bikeTitleAutoFilled = initialBikeProfile?.titleAutoFilled ?? false;
-	let bikeDescriptionTemplateUsed = initialBikeProfile?.descriptionTemplateUsed ?? false;
+	let bikeDescriptionTemplateUsed =
+		initialBikeProfile?.descriptionTemplateUsed ??
+		description.trim() === initialBikeDescriptionTemplate.trim();
 	let lastBikeTitleSeed = '';
+	let lastBikeDescriptionSeed = '';
 	let currency = ad.currency ?? 'EUR';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
@@ -119,10 +131,14 @@
 		bikeCondition = '';
 		bikeSizePreset = '';
 		bikeSizeManual = '';
+		bikeReasonForSelling = '';
+		bikeUsageSummary = '';
+		bikeKnownIssues = '';
 		bikeSizeManualEdited = false;
 		bikeTitleAutoFilled = false;
 		bikeDescriptionTemplateUsed = false;
 		lastBikeTitleSeed = '';
+		lastBikeDescriptionSeed = '';
 	}
 	$: bikeTitleSeed = `${bikeSubtype}|${bikeType}|${bikeSizePreset}|${bikeSizeManual.trim()}`;
 	$: suggestedBikeTitle = buildBikeTitle({
@@ -141,15 +157,24 @@
 		bikeTitleAutoFilled = true;
 		lastBikeTitleSeed = bikeTitleSeed;
 	}
-	$: bikeDescriptionTemplate = getBikeDescriptionTemplate();
+	$: bikeDescriptionSeed = [
+		bikeReasonForSelling.trim(),
+		bikeUsageSummary.trim(),
+		bikeKnownIssues.trim()
+	].join('|');
+	$: bikeDescriptionTemplate = getBikeDescriptionTemplate({
+		reasonForSelling: bikeReasonForSelling,
+		usageSummary: bikeUsageSummary,
+		knownIssues: bikeKnownIssues
+	});
 	$: if (
 		isBikes &&
-		!description.trim() &&
 		!descriptionManuallyEdited &&
-		!bikeDescriptionTemplateUsed
+		(bikeDescriptionSeed !== lastBikeDescriptionSeed || !description.trim())
 	) {
 		description = bikeDescriptionTemplate;
 		bikeDescriptionTemplateUsed = true;
+		lastBikeDescriptionSeed = bikeDescriptionSeed;
 	}
 	$: usedPresetOnly =
 		isBikes && !titleManuallyEdited && !descriptionManuallyEdited && !bikeSizeManualEdited;
@@ -190,6 +215,9 @@
 			condition: bikeCondition || undefined,
 			sizePreset: bikeSizePreset || undefined,
 			sizeManual: bikeSizeManual.trim() || undefined,
+			reasonForSelling: bikeReasonForSelling.trim() || undefined,
+			usageSummary: bikeUsageSummary.trim() || undefined,
+			knownIssues: bikeKnownIssues.trim() || undefined,
 			titleAutoFilled: bikeTitleAutoFilled,
 			descriptionTemplateUsed: bikeDescriptionTemplateUsed
 		};
@@ -490,6 +518,9 @@
 					bind:bikeCondition
 					bind:bikeSizePreset
 					bind:bikeSizeManual
+					bind:bikeReasonForSelling
+					bind:bikeUsageSummary
+					bind:bikeKnownIssues
 					bind:bikeSizeManualEdited
 					bind:titleManuallyEdited
 					bind:descriptionManuallyEdited
@@ -521,6 +552,9 @@
 					bind:bikeCondition
 					bind:bikeSizePreset
 					bind:bikeSizeManual
+					bind:bikeReasonForSelling
+					bind:bikeUsageSummary
+					bind:bikeKnownIssues
 					bind:bikeSizeManualEdited
 					bind:titleManuallyEdited
 					bind:descriptionManuallyEdited
@@ -565,6 +599,9 @@
 					bind:bikeCondition
 					bind:bikeSizePreset
 					bind:bikeSizeManual
+					bind:bikeReasonForSelling
+					bind:bikeUsageSummary
+					bind:bikeKnownIssues
 					bind:bikeSizeManualEdited
 					bind:titleManuallyEdited
 					bind:descriptionManuallyEdited

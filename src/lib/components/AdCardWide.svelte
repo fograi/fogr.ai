@@ -2,7 +2,8 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { catBase } from '$lib/constants';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
-import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
+	import { getBikeProfileSummary, isBikesCategory } from '$lib/category-profiles';
+	import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 	import { CATEGORY_ICON_MAP, DefaultCategoryIcon, ShareIcon } from '$lib/icons';
 
 	// Props
@@ -11,6 +12,7 @@ import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 	export let img: string;
 	export let description: string;
 	export let category: string;
+	export let categoryProfileData: Record<string, unknown> | null = null;
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 	export let email: string = '';
@@ -26,14 +28,25 @@ import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 	$: bannerIcon = CATEGORY_ICON_MAP[category?.trim?.() ?? ''] ?? DefaultCategoryIcon;
 	$: displayedPrice = formatPriceLabel({ price, category, currency, locale });
 	$: isPaidPrice = hasPaidPrice(price);
-	$: offerBadge =
-		isPaidPrice
-			? firmPrice
-				? 'Firm price'
-				: typeof minOffer === 'number' && minOffer > 0
-					? 'Offers'
-					: ''
-			: '';
+	$: offerBadge = isPaidPrice
+		? firmPrice
+			? 'Firm price'
+			: typeof minOffer === 'number' && minOffer > 0
+				? 'Offers'
+				: ''
+		: '';
+	$: bikeSummary =
+		isBikesCategory(category) && categoryProfileData
+			? getBikeProfileSummary(categoryProfileData)
+			: null;
+	$: bikeChips = bikeSummary
+		? [
+				bikeSummary.subtypeLabel,
+				bikeSummary.bikeTypeLabel,
+				bikeSummary.conditionLabel,
+				bikeSummary.sizeLabel
+			].filter((value): value is string => !!value)
+		: [];
 
 	$: expiresLabel = expiresAt
 		? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(expiresAt))
@@ -150,9 +163,39 @@ import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if description}<p class="desc">{description}</p>{/if}
+				{#if bikeChips.length > 0}
+					<div class="bike-chips" aria-label="Bike highlights">
+						{#each bikeChips as chip (chip)}
+							<span class="bike-chip">{chip}</span>
+						{/each}
+					</div>
+				{/if}
+				{#if bikeSummary && (bikeSummary.reasonForSelling || bikeSummary.usageSummary || bikeSummary.knownIssues)}
+					<dl class="bike-facts">
+						{#if bikeSummary.reasonForSelling}
+							<div>
+								<dt>Reason for selling</dt>
+								<dd>{bikeSummary.reasonForSelling}</dd>
+							</div>
+						{/if}
+						{#if bikeSummary.usageSummary}
+							<div>
+								<dt>Usage</dt>
+								<dd>{bikeSummary.usageSummary}</dd>
+							</div>
+						{/if}
+						{#if bikeSummary.knownIssues}
+							<div>
+								<dt>Known issues</dt>
+								<dd>{bikeSummary.knownIssues}</dd>
+							</div>
+						{/if}
+					</dl>
+				{/if}
 				{#if expiresLabel && showExpires}
 					<p class="meta-line">
-						{status === 'expired' ? 'Expired on' : 'Expires on'} {expiresLabel}
+						{status === 'expired' ? 'Expired on' : 'Expires on'}
+						{expiresLabel}
 					</p>
 				{/if}
 				{#if showActions}
@@ -191,9 +234,39 @@ import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if description}<p class="desc">{description}</p>{/if}
+				{#if bikeChips.length > 0}
+					<div class="bike-chips" aria-label="Bike highlights">
+						{#each bikeChips as chip (chip)}
+							<span class="bike-chip">{chip}</span>
+						{/each}
+					</div>
+				{/if}
+				{#if bikeSummary && (bikeSummary.reasonForSelling || bikeSummary.usageSummary || bikeSummary.knownIssues)}
+					<dl class="bike-facts">
+						{#if bikeSummary.reasonForSelling}
+							<div>
+								<dt>Reason for selling</dt>
+								<dd>{bikeSummary.reasonForSelling}</dd>
+							</div>
+						{/if}
+						{#if bikeSummary.usageSummary}
+							<div>
+								<dt>Usage</dt>
+								<dd>{bikeSummary.usageSummary}</dd>
+							</div>
+						{/if}
+						{#if bikeSummary.knownIssues}
+							<div>
+								<dt>Known issues</dt>
+								<dd>{bikeSummary.knownIssues}</dd>
+							</div>
+						{/if}
+					</dl>
+				{/if}
 				{#if expiresLabel && showExpires}
 					<p class="meta-line">
-						{status === 'expired' ? 'Expired on' : 'Expires on'} {expiresLabel}
+						{status === 'expired' ? 'Expired on' : 'Expires on'}
+						{expiresLabel}
 					</p>
 				{/if}
 
@@ -378,6 +451,44 @@ import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 	}
 	.badge.firm {
 		background: color-mix(in srgb, var(--fg) 16%, var(--bg));
+	}
+	.bike-chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+	}
+	.bike-chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 4px 9px;
+		border-radius: 999px;
+		font-size: 0.74rem;
+		font-weight: 700;
+		border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
+		background: color-mix(in srgb, var(--fg) 6%, var(--surface));
+	}
+	.bike-facts {
+		margin: 0;
+		display: grid;
+		gap: 6px;
+	}
+	.bike-facts div {
+		display: grid;
+		gap: 2px;
+	}
+	.bike-facts dt {
+		font-size: 0.78rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: color-mix(in srgb, var(--fg) 58%, transparent);
+	}
+	.bike-facts dd {
+		margin: 0;
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: color-mix(in srgb, var(--fg) 78%, transparent);
 	}
 	.desc {
 		margin: 0;

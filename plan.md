@@ -253,18 +253,18 @@
 
 #### Part L - Surface presets in listings + smarter description assist
 
-- [ ] Add optional guided pills for each description prompt in Step 1:
-  - [ ] `Reason for selling`
-  - [ ] `How it has been used`
-  - [ ] `Known issues or maintenance needed`
-- [ ] Keep same 3-step flow (no extra step, no hard block); user can still type manually.
-- [ ] Decide interaction pattern (inline expand vs small popover) and keep it lightweight.
-- [ ] Store selected guided values in `category_profile_data` (optional fields) for reliable display later.
-- [ ] Render structured bike summary on ad detail page (e.g. type, subtype, condition, size, guided answers).
-- [ ] Render compact structured bike badges on listing cards (without clutter).
-- [ ] Keep non-bike cards/details unchanged.
-- [ ] Add unit tests for normalization of new optional guided fields.
-- [ ] Add e2e for guided pills -> payload -> listing/detail render path.
+- [x] Add optional guided pills for each description prompt in Step 1:
+  - [x] `Reason for selling`
+  - [x] `How it has been used`
+  - [x] `Known issues or maintenance needed`
+- [x] Keep same 3-step flow (no extra step, no hard block); user can still type manually.
+- [x] Decide interaction pattern (inline expand vs small popover) and keep it lightweight.
+- [x] Store selected guided values in `category_profile_data` (optional fields) for reliable display later.
+- [x] Render structured bike summary on ad detail page (e.g. type, subtype, condition, size, guided answers).
+- [x] Render compact structured bike badges on listing cards (without clutter).
+- [x] Keep non-bike cards/details unchanged.
+- [x] Add unit tests for normalization of new optional guided fields.
+- [x] Add e2e for guided pills -> payload -> listing/detail render path.
 
 ### Acceptance Criteria (definition of done)
 
@@ -299,4 +299,4 @@
   - Consider if status like delivered on messages are useful or not? Maybe creates tension when un-replied?
   - Consider that the block must be two way, so the person who blocks won't accidentally chat to the via their ad
   - Need to ensure blocked lists or references are not send in gdpr, unless required.
-    - Will probably just use the uid which shoudl be some what safe, or probably expose partially masked such as 1111-****-1111
+    - Will probably just use the uid which shoudl be some what safe, or probably expose partially masked such as 1111-\*\*\*\*-1111

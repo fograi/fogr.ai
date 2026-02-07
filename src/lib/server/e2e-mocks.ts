@@ -4,8 +4,20 @@ export const E2E_MOCK_AD: ApiAdRow = {
 	id: 'e2e-ad-1',
 	user_id: '00000000-0000-0000-0000-000000000000',
 	title: 'E2E Test Ad',
-	description: 'This is a mocked ad used for end-to-end tests.',
-	category: 'Services & Gigs',
+	description:
+		'Reason for selling: Upgrading bike\\nHow it has been used: Weekend rides\\nKnown issues or maintenance needed: No known issues',
+	category: 'Bikes',
+	category_profile_data: {
+		version: 1,
+		profile: 'bikes',
+		subtype: 'adult',
+		bikeType: 'road',
+		condition: 'used_good',
+		sizePreset: 'M',
+		reasonForSelling: 'Upgrading bike',
+		usageSummary: 'Weekend rides',
+		knownIssues: 'No known issues'
+	},
 	price: 12,
 	currency: 'EUR',
 	image_keys: [],
@@ -69,10 +81,8 @@ export const E2E_MOCK_MESSAGES = [
 ];
 
 export function isE2eMock(platform?: App.Platform): boolean {
-	const platformFlag = platform?.env
-		? (platform.env as Record<string, unknown>).E2E_MOCK === '1'
-		: false;
-	const processFlag =
-		typeof process !== 'undefined' && process.env?.E2E_MOCK === '1';
+	const envRecord = platform?.env as unknown as Record<string, unknown> | undefined;
+	const platformFlag = envRecord ? envRecord.E2E_MOCK === '1' : false;
+	const processFlag = typeof process !== 'undefined' && process.env?.E2E_MOCK === '1';
 	return platformFlag || processFlag;
 }

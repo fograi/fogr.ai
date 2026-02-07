@@ -12,6 +12,8 @@
 	import {
 		BIKE_ADULT_SIZE_PRESETS,
 		BIKE_CONDITION_OPTIONS,
+		BIKE_DESCRIPTION_ASSIST_PROMPTS,
+		BIKE_GUIDED_FIELD_MAX_LENGTH,
 		BIKE_KIDS_SIZE_PRESETS,
 		BIKE_MIN_OFFER_PRESET_RATIOS,
 		BIKE_PHOTO_CHECKLIST,
@@ -20,6 +22,7 @@
 		getBikePriceHint,
 		isBikesCategory,
 		type BikeCondition,
+		type BikeDescriptionAssistKey,
 		type BikeSizePreset,
 		type BikeSubtype,
 		type BikeType
@@ -39,6 +42,9 @@
 	export let bikeCondition: BikeCondition | '' = '';
 	export let bikeSizePreset: BikeSizePreset | '' = '';
 	export let bikeSizeManual = '';
+	export let bikeReasonForSelling = '';
+	export let bikeUsageSummary = '';
+	export let bikeKnownIssues = '';
 	export let bikeSizeManualEdited = false;
 	export let titleManuallyEdited = false;
 	export let descriptionManuallyEdited = false;
@@ -115,6 +121,11 @@
 		(!description.trim() ||
 			description.trim().length < MIN_DESC_LENGTH ||
 			description.length > MAX_DESC_LENGTH);
+	$: activeDescriptionAssistPrompt =
+		BIKE_DESCRIPTION_ASSIST_PROMPTS.find((prompt) => prompt.key === descriptionAssistOpenKey) ??
+		null;
+
+	let descriptionAssistOpenKey: BikeDescriptionAssistKey | '' = '';
 
 	function pickBikeSubtype(nextSubtype: BikeSubtype) {
 		bikeSubtype = nextSubtype;
@@ -149,6 +160,27 @@
 		if (!Number.isFinite(numericPrice) || numericPrice <= 0) return;
 		minOffer = Math.max(1, Math.floor(numericPrice * ratio));
 	}
+
+	function getBikeDescriptionAssistValue(key: BikeDescriptionAssistKey): string {
+		if (key === 'reasonForSelling') return bikeReasonForSelling;
+		if (key === 'usageSummary') return bikeUsageSummary;
+		return bikeKnownIssues;
+	}
+
+	function setBikeDescriptionAssistValue(key: BikeDescriptionAssistKey, value: string) {
+		const normalized = value.trim().slice(0, BIKE_GUIDED_FIELD_MAX_LENGTH);
+		if (key === 'reasonForSelling') bikeReasonForSelling = normalized;
+		else if (key === 'usageSummary') bikeUsageSummary = normalized;
+		else bikeKnownIssues = normalized;
+	}
+
+	function clearBikeDescriptionAssistValue(key: BikeDescriptionAssistKey) {
+		setBikeDescriptionAssistValue(key, '');
+	}
+
+	function toggleDescriptionAssist(key: BikeDescriptionAssistKey) {
+		descriptionAssistOpenKey = descriptionAssistOpenKey === key ? '' : key;
+	}
 </script>
 
 <section class="fields" aria-busy={loading}>
@@ -171,8 +203,8 @@
 		{#if isBikes}
 			<div class="bike-panel">
 				<div class="field">
-					<p class="group-label">Bike type</p>
-					<div class="pill-row" role="radiogroup" aria-label="Bike type">
+					<p class="group-label">Bike subtype</p>
+					<div class="pill-row" role="radiogroup" aria-label="Bike subtype">
 						{#each BIKE_SUBTYPE_OPTIONS as option (option.value)}
 							<button
 								type="button"
@@ -187,14 +219,14 @@
 						{/each}
 					</div>
 					{#if bikeSubtypeInvalid}
-						<small class="error-text">Choose a bike type.</small>
+						<small class="error-text">Choose a bike subtype.</small>
 					{/if}
 				</div>
 
 				<div class="field">
-					<p class="group-label">Bike subtype</p>
+					<p class="group-label">Bike type</p>
 					{#if bikeSubtype}
-						<div class="pill-row" role="radiogroup" aria-label="Bike subtype">
+						<div class="pill-row" role="radiogroup" aria-label="Bike type">
 							{#each bikeTypeOptions as option (option.value)}
 								<button
 									type="button"
@@ -209,10 +241,10 @@
 							{/each}
 						</div>
 					{:else}
-						<small class="muted">Choose bike type first.</small>
+						<small class="muted">Choose bike subtype first.</small>
 					{/if}
 					{#if bikeTypeInvalid}
-						<small class="error-text">Choose a bike subtype.</small>
+						<small class="error-text">Choose a bike type.</small>
 					{/if}
 				</div>
 
@@ -281,7 +313,7 @@
 							}}
 						/>
 					{:else}
-						<small class="muted">Choose bike type first.</small>
+						<small class="muted">Choose bike subtype first.</small>
 					{/if}
 					{#if bikeSizeInvalid}
 						<small class="error-text">Add a size.</small>
@@ -329,6 +361,90 @@
 			></textarea>
 			<small class="muted">Min {MIN_DESC_LENGTH}, max {MAX_DESC_LENGTH}</small>
 		</div>
+
+		{#if isBikes}
+			<div class="field bike-description-assist">
+				<p class="group-label">Description assist (optional)</p>
+				<div class="pill-row" role="group" aria-label="Bike description assist">
+					{#each BIKE_DESCRIPTION_ASSIST_PROMPTS as prompt (prompt.key)}
+						<button
+							type="button"
+							class="pill assist-pill"
+							class:active={descriptionAssistOpenKey === prompt.key}
+							class:configured={!!getBikeDescriptionAssistValue(prompt.key)}
+							on:click={() => toggleDescriptionAssist(prompt.key)}
+							disabled={loading}
+							aria-expanded={descriptionAssistOpenKey === prompt.key}
+						>
+							<span>{prompt.label}</span>
+							{#if getBikeDescriptionAssistValue(prompt.key)}
+								<small class="assist-pill-state">Set</small>
+							{/if}
+						</button>
+					{/each}
+				</div>
+				{#if activeDescriptionAssistPrompt}
+					<div
+						class="assist-popover"
+						role="region"
+						aria-label={activeDescriptionAssistPrompt.label}
+					>
+						<p class="assist-title">{activeDescriptionAssistPrompt.label}</p>
+						<div
+							class="pill-row"
+							role="group"
+							aria-label={`${activeDescriptionAssistPrompt.label} options`}
+						>
+							{#each activeDescriptionAssistPrompt.options as option (option)}
+								<button
+									type="button"
+									class="pill"
+									class:active={getBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key) ===
+										option}
+									on:click={() =>
+										setBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key, option)}
+									disabled={loading}
+								>
+									{option}
+								</button>
+							{/each}
+						</div>
+						<label for={`bike-assist-${activeDescriptionAssistPrompt.key}`}>Custom</label>
+						<input
+							id={`bike-assist-${activeDescriptionAssistPrompt.key}`}
+							type="text"
+							value={getBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key)}
+							maxlength={BIKE_GUIDED_FIELD_MAX_LENGTH}
+							disabled={loading}
+							placeholder="Or write your own short detail"
+							on:input={(event) =>
+								setBikeDescriptionAssistValue(
+									activeDescriptionAssistPrompt.key,
+									(event.currentTarget as HTMLInputElement).value
+								)}
+						/>
+						<div class="assist-actions">
+							<button
+								type="button"
+								class="pill"
+								on:click={() => clearBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key)}
+								disabled={loading}
+							>
+								Clear
+							</button>
+							<button
+								type="button"
+								class="pill"
+								on:click={() => (descriptionAssistOpenKey = '')}
+								disabled={loading}
+							>
+								Done
+							</button>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
 	{/if}
 
 	{#if step === 2}
@@ -526,6 +642,37 @@
 	.pill.active {
 		background: color-mix(in srgb, var(--fg) 16%, var(--bg));
 		border-color: color-mix(in srgb, var(--fg) 36%, transparent);
+	}
+	.assist-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.assist-pill.configured {
+		border-color: color-mix(in srgb, var(--accent-green) 35%, transparent);
+	}
+	.assist-pill-state {
+		font-size: 0.72rem;
+		font-weight: 800;
+		color: color-mix(in srgb, var(--fg) 68%, transparent);
+		text-transform: uppercase;
+	}
+	.assist-popover {
+		border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+		border-radius: 12px;
+		padding: 10px;
+		display: grid;
+		gap: 8px;
+		background: color-mix(in srgb, var(--fg) 5%, var(--surface));
+	}
+	.assist-title {
+		margin: 0;
+		font-weight: 700;
+	}
+	.assist-actions {
+		display: flex;
+		gap: 8px;
+		justify-content: flex-end;
 	}
 	.error-text {
 		color: var(--accent-orange);

@@ -36,12 +36,16 @@
 	let bikeCondition: BikeCondition | '' = '';
 	let bikeSizePreset: BikeSizePreset | '' = '';
 	let bikeSizeManual = '';
+	let bikeReasonForSelling = '';
+	let bikeUsageSummary = '';
+	let bikeKnownIssues = '';
 	let bikeSizeManualEdited = false;
 	let titleManuallyEdited = false;
 	let descriptionManuallyEdited = false;
 	let bikeTitleAutoFilled = false;
 	let bikeDescriptionTemplateUsed = false;
 	let lastBikeTitleSeed = '';
+	let lastBikeDescriptionSeed = '';
 	let currency = 'EUR';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
@@ -83,10 +87,14 @@
 		bikeCondition = '';
 		bikeSizePreset = '';
 		bikeSizeManual = '';
+		bikeReasonForSelling = '';
+		bikeUsageSummary = '';
+		bikeKnownIssues = '';
 		bikeSizeManualEdited = false;
 		bikeTitleAutoFilled = false;
 		bikeDescriptionTemplateUsed = false;
 		lastBikeTitleSeed = '';
+		lastBikeDescriptionSeed = '';
 	}
 	$: bikeTitleSeed = `${bikeSubtype}|${bikeType}|${bikeSizePreset}|${bikeSizeManual.trim()}`;
 	$: suggestedBikeTitle = buildBikeTitle({
@@ -105,15 +113,24 @@
 		bikeTitleAutoFilled = true;
 		lastBikeTitleSeed = bikeTitleSeed;
 	}
-	$: bikeDescriptionTemplate = getBikeDescriptionTemplate();
+	$: bikeDescriptionSeed = [
+		bikeReasonForSelling.trim(),
+		bikeUsageSummary.trim(),
+		bikeKnownIssues.trim()
+	].join('|');
+	$: bikeDescriptionTemplate = getBikeDescriptionTemplate({
+		reasonForSelling: bikeReasonForSelling,
+		usageSummary: bikeUsageSummary,
+		knownIssues: bikeKnownIssues
+	});
 	$: if (
 		isBikes &&
-		!description.trim() &&
 		!descriptionManuallyEdited &&
-		!bikeDescriptionTemplateUsed
+		(bikeDescriptionSeed !== lastBikeDescriptionSeed || !description.trim())
 	) {
 		description = bikeDescriptionTemplate;
 		bikeDescriptionTemplateUsed = true;
+		lastBikeDescriptionSeed = bikeDescriptionSeed;
 	}
 	$: usedPresetOnly =
 		isBikes && !titleManuallyEdited && !descriptionManuallyEdited && !bikeSizeManualEdited;
@@ -157,6 +174,9 @@
 			condition: bikeCondition || undefined,
 			sizePreset: bikeSizePreset || undefined,
 			sizeManual: bikeSizeManual.trim() || undefined,
+			reasonForSelling: bikeReasonForSelling.trim() || undefined,
+			usageSummary: bikeUsageSummary.trim() || undefined,
+			knownIssues: bikeKnownIssues.trim() || undefined,
 			titleAutoFilled: bikeTitleAutoFilled,
 			descriptionTemplateUsed: bikeDescriptionTemplateUsed
 		};
@@ -354,12 +374,16 @@
 			bikeCondition = '';
 			bikeSizePreset = '';
 			bikeSizeManual = '';
+			bikeReasonForSelling = '';
+			bikeUsageSummary = '';
+			bikeKnownIssues = '';
 			bikeSizeManualEdited = false;
 			titleManuallyEdited = false;
 			descriptionManuallyEdited = false;
 			bikeTitleAutoFilled = false;
 			bikeDescriptionTemplateUsed = false;
 			lastBikeTitleSeed = '';
+			lastBikeDescriptionSeed = '';
 			// clear image
 			if (previewUrl) URL.revokeObjectURL(previewUrl);
 			previewUrl = null;
@@ -452,6 +476,9 @@
 				bind:bikeCondition
 				bind:bikeSizePreset
 				bind:bikeSizeManual
+				bind:bikeReasonForSelling
+				bind:bikeUsageSummary
+				bind:bikeKnownIssues
 				bind:bikeSizeManualEdited
 				bind:titleManuallyEdited
 				bind:descriptionManuallyEdited
@@ -483,6 +510,9 @@
 				bind:bikeCondition
 				bind:bikeSizePreset
 				bind:bikeSizeManual
+				bind:bikeReasonForSelling
+				bind:bikeUsageSummary
+				bind:bikeKnownIssues
 				bind:bikeSizeManualEdited
 				bind:titleManuallyEdited
 				bind:descriptionManuallyEdited
@@ -525,6 +555,9 @@
 				bind:bikeCondition
 				bind:bikeSizePreset
 				bind:bikeSizeManual
+				bind:bikeReasonForSelling
+				bind:bikeUsageSummary
+				bind:bikeKnownIssues
 				bind:bikeSizeManualEdited
 				bind:titleManuallyEdited
 				bind:descriptionManuallyEdited

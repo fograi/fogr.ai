@@ -200,7 +200,7 @@ describe('validateCategoryProfileData (bikes)', () => {
 				sizePreset: 'M'
 			}
 		});
-		expect(result.error).toBe('Bike subtype is required.');
+		expect(result.error).toBe('Bike type is required.');
 		expect(result.categoryProfileData).toBeNull();
 	});
 
@@ -216,7 +216,7 @@ describe('validateCategoryProfileData (bikes)', () => {
 				sizePreset: '6-8'
 			}
 		});
-		expect(result.error).toBe('Invalid bike subtype for selected bike type.');
+		expect(result.error).toBe('Invalid bike type for selected bike subtype.');
 		expect(result.categoryProfileData).toBeNull();
 	});
 
@@ -233,5 +233,26 @@ describe('validateCategoryProfileData (bikes)', () => {
 		});
 		expect(result.error).toBe('Kids bikes must include an age range.');
 		expect(result.categoryProfileData).toBeNull();
+	});
+
+	it('normalizes optional guided bike description fields', () => {
+		const result = validateCategoryProfileData({
+			category: 'Bikes',
+			categoryProfileDataRaw: {
+				version: 1,
+				profile: 'bikes',
+				subtype: 'adult',
+				bikeType: 'road',
+				condition: 'used_good',
+				sizePreset: 'M',
+				reasonForSelling: '  Upgrading bike  ',
+				usageSummary: 'Weekend rides',
+				knownIssues: '  No known issues  '
+			}
+		});
+		expect(result.error).toBeNull();
+		expect(result.categoryProfileData?.reasonForSelling).toBe('Upgrading bike');
+		expect(result.categoryProfileData?.usageSummary).toBe('Weekend rides');
+		expect(result.categoryProfileData?.knownIssues).toBe('No known issues');
 	});
 });

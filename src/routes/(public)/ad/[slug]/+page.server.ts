@@ -37,6 +37,7 @@ export const load: PageServerLoad = async ({ params, fetch, locals }) => {
 		img: ad.image_keys?.[0] ?? '',
 		description: ad.description,
 		category: ad.category,
+		categoryProfileData: ad.category_profile_data ?? null,
 		currency: ad.currency ?? undefined,
 		status: ad.status,
 		expiresAt: ad.expires_at ?? undefined,
@@ -53,6 +54,6 @@ export const load: PageServerLoad = async ({ params, fetch, locals }) => {
 			firmPrice: ad.firm_price ?? false,
 			minOffer: ad.min_offer ?? null,
 			autoDeclineMessage: ad.auto_decline_message ?? null
-		},
+		}
 	};
 };
