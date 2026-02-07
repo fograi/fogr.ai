@@ -291,6 +291,7 @@
 	}
 
 	.banner__icon {
+		color: var(--accent-green);
 		filter: saturate(1.2);
 	}
 	.banner__label {

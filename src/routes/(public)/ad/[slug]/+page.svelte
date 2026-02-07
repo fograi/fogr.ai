@@ -217,14 +217,14 @@
 
 		<section class="action-rail" aria-label="Ad actions">
 			<button type="button" class="btn primary" on:click={share}>
-				<span class="btn-icon" aria-hidden="true">
+				<span class="btn-icon accent-green" aria-hidden="true">
 					<ShareIcon size={16} strokeWidth={1.8} />
 				</span>
 				Share
 			</button>
 			{#if !data.isOwner}
 				<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
-					<span class="btn-icon" aria-hidden="true">
+					<span class="btn-icon accent-orange" aria-hidden="true">
 						<ReportIcon size={16} strokeWidth={1.8} />
 					</span>
 					Report
@@ -504,6 +504,12 @@
 	.action-rail .btn-icon {
 		display: inline-flex;
 		align-items: center;
+	}
+	.action-rail .btn-icon.accent-green {
+		color: var(--accent-green);
+	}
+	.action-rail .btn-icon.accent-orange {
+		color: var(--accent-orange);
 	}
 	.action-rail .btn.primary {
 		background: var(--fg);

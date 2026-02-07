@@ -84,7 +84,7 @@
 				value={q}
 				placeholder="Search"
 			/>
-			<button type="submit" aria-label="Search">
+			<button type="submit" class="search__submit" aria-label="Search">
 				<span class="icon" aria-hidden="true">
 					<SearchIcon size={18} strokeWidth={1.8} />
 				</span>
@@ -194,13 +194,25 @@
 	}
 	.search__form button {
 		height: 44px;
-		padding: 0 16px;
-		border-radius: 999px;
-		border: 0;
-		background: var(--fg);
-		color: var(--bg);
+		width: 44px;
+		padding: 0;
+		border-radius: 12px;
+		border: 1px solid var(--hairline);
+		background: var(--surface);
+		color: var(--accent-green);
 		font-weight: 700;
 		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.search__form button:hover {
+		border-color: color-mix(in srgb, var(--accent-green) 55%, transparent);
+		background: color-mix(in srgb, var(--accent-green) 10%, var(--surface));
+	}
+	.search__form button:focus-visible {
+		outline: 2px solid var(--accent-green);
+		outline-offset: 2px;
 	}
 	.search__form .clear {
 		text-decoration: none;
