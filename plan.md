@@ -258,3 +258,15 @@
 
 - Keep tasks small and test after each step.
 - Add or update unit/e2e tests alongside feature work.
+
+## Other todo to add tasks for
+
+- Add messages and other relevant stuff to "Export your data" feature on account page.
+- In the messages page, where the seller gets messages from multiple people for the same ad, group the messages, similar to maybe how the reports page groups reports for the same ad. Do some deep UX research to see what is best for the user.
+- On the message conversation view, I want to emphasise the anonymous nature of the chat, mostly to remind that you have no idea who you are talking to.
+- Add the profanity checks on the conversations between users
+- Allow users to block chat from users in chat, for this chat only, or for all future chats
+  - Consider if status like delivered on messages are useful or not? Maybe creates tension when un-replied?
+  - Consider that the block must be two way, so the person who blocks won't accidentally chat to the via their ad
+  - Need to ensure blocked lists or references are not send in gdpr, unless required.
+    - Will probably just use the uid which shoudl be some what safe, or probably expose partially masked such as 1111-****-1111
