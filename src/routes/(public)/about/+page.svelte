@@ -37,9 +37,9 @@
 			</article>
 
 			<article class="card">
-				<h3>Keep your number private</h3>
+				<h3>Keep your info private</h3>
 				<p>
-					Conversations start in-app.
+					Messages in-app are anonymous.
 					Share contact details only if you choose.
 				</p>
 			</article>
@@ -120,6 +120,11 @@
 		display: grid;
 		gap: 16px;
 		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	}
+	@media (min-width: 900px) {
+		.grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
 	}
 
 	.card {
