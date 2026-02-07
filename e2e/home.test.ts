@@ -13,8 +13,8 @@ test('home page renders the main nav', async ({ page }) => {
 
 test('home page filters auto-apply on select', async ({ page }) => {
 	await page.goto('/');
-	await page.selectOption('#search-category', 'Sports & Bikes');
-	await expect(page).toHaveURL(/category=Sports(?:\+|%20)%26(?:\+|%20)Bikes/);
+	await page.selectOption('#search-category', 'Bikes');
+	await expect(page).toHaveURL(/category=Bikes/);
 	await page.selectOption('#search-price-state', 'free');
 	await expect(page).toHaveURL(/price_state=free/);
 });

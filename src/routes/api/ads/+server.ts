@@ -17,7 +17,12 @@ import {
 	MAX_TOTAL_IMAGE_SIZE
 } from '$lib/constants';
 import { bannedWords } from '$lib/banned-words';
-import { validateAdImages, validateAdMeta, validateOfferRules } from '$lib/server/ads-validation';
+import {
+	validateAdImages,
+	validateAdMeta,
+	validateOfferRules,
+	validateCategoryProfileData
+} from '$lib/server/ads-validation';
 import { isSameOrigin } from '$lib/server/csrf';
 import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
 import { recordMetric } from '$lib/server/metrics';
@@ -226,14 +231,11 @@ export const POST: RequestHandler = async (event) => {
 			if (!publicBase) missing.push('PUBLIC_R2_BASE');
 			if (!rateLimitKv) missing.push('RATE_LIMIT');
 			if (!publicBucket || typeof publicBucket.put !== 'function') missing.push('ADS_BUCKET');
-			if (!pendingBucket || typeof pendingBucket.put !== 'function') missing.push('ADS_PENDING_BUCKET');
+			if (!pendingBucket || typeof pendingBucket.put !== 'function')
+				missing.push('ADS_PENDING_BUCKET');
 			if (missing.length > 0) {
 				log('error', 'ads_post_missing_bindings', { missing });
-				return errorResponse(
-					`Missing required bindings: ${missing.join(', ')}`,
-					500,
-					requestId
-				);
+				return errorResponse(`Missing required bindings: ${missing.join(', ')}`, 500, requestId);
 			}
 		}
 		if (rateLimitKv) {
@@ -270,7 +272,9 @@ export const POST: RequestHandler = async (event) => {
 
 		// R2 buckets from CF env
 		if (!publicBucket || typeof publicBucket.put !== 'function') {
-			console.warn('Public R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.');
+			console.warn(
+				'Public R2 bucket binding missing/invalid. Run with `wrangler dev` so bindings exist.'
+			);
 			return errorResponse('Storage temporarily unavailable', 503, requestId);
 		}
 		if (!publicBase) return errorResponse('Missing PUBLIC_R2_BASE', 500, requestId);
@@ -289,6 +293,8 @@ export const POST: RequestHandler = async (event) => {
 		const firmPrice = form.get('firm_price')?.toString() === '1';
 		const minOfferStr = form.get('min_offer')?.toString() ?? null;
 		const autoDeclineMessageRaw = form.get('auto_decline_message')?.toString() ?? null;
+		const categoryProfileDataRaw = form.get('category_profile_data')?.toString() ?? null;
+		const usedPresetOnly = form.get('used_preset_only')?.toString() === '1';
 		const autoDeclineMessage =
 			autoDeclineMessageRaw && autoDeclineMessageRaw.trim().length > 0
 				? autoDeclineMessageRaw.trim()
@@ -321,16 +327,14 @@ export const POST: RequestHandler = async (event) => {
 		// ------------ validations ------------
 		if (!ageConfirmed) return errorResponse('Must confirm you are 18 or older.', 400, requestId);
 		// Persist age confirmation (best-effort). Upsert avoids errors on repeat posts.
-		const { error: ageConfirmError } = await locals.supabase
-			.from('user_age_confirmations')
-			.upsert(
-				{
-					user_id: user.id,
-					age_confirmed_ip: ip || null,
-					age_confirmed_user_agent: userAgent || null
-				},
-				{ onConflict: 'user_id', ignoreDuplicates: true }
-			);
+		const { error: ageConfirmError } = await locals.supabase.from('user_age_confirmations').upsert(
+			{
+				user_id: user.id,
+				age_confirmed_ip: ip || null,
+				age_confirmed_user_agent: userAgent || null
+			},
+			{ onConflict: 'user_id', ignoreDuplicates: true }
+		);
 		if (ageConfirmError) {
 			log('warn', 'age_confirmation_upsert_failed', { error: ageConfirmError.message });
 		}
@@ -338,6 +342,20 @@ export const POST: RequestHandler = async (event) => {
 		if (metaError) return errorResponse(metaError, 400, requestId);
 		const imageError = validateAdImages({ category, imageCount: files.length });
 		if (imageError) return errorResponse(imageError, 400, requestId);
+		let categoryProfilePayload: unknown = null;
+		if (categoryProfileDataRaw) {
+			try {
+				categoryProfilePayload = JSON.parse(categoryProfileDataRaw);
+			} catch {
+				return errorResponse('Invalid category profile data.', 400, requestId);
+			}
+		}
+		const categoryProfileValidation = validateCategoryProfileData({
+			category,
+			categoryProfileDataRaw: categoryProfilePayload
+		});
+		if (categoryProfileValidation.error)
+			return errorResponse(categoryProfileValidation.error, 400, requestId);
 		if (!isLostAndFound) {
 			const offerError = validateOfferRules({
 				priceType,
@@ -356,10 +374,7 @@ export const POST: RequestHandler = async (event) => {
 				? null
 				: Number(priceStr ?? 0);
 		const minOffer =
-			!isLostAndFound &&
-			normalizedPriceType === 'fixed' &&
-			minOfferStr &&
-			minOfferStr.trim() !== ''
+			!isLostAndFound && normalizedPriceType === 'fixed' && minOfferStr && minOfferStr.trim() !== ''
 				? Number(minOfferStr)
 				: null;
 
@@ -376,7 +391,7 @@ export const POST: RequestHandler = async (event) => {
 		const nextDay = new Date(dayStart);
 		nextDay.setUTCDate(dayStart.getUTCDate() + 1);
 
-			const supabaseUrl = env?.PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
+		const supabaseUrl = env?.PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
 		const serviceKey = env?.SUPABASE_SERVICE_ROLE_KEY;
 		const limiterClient =
 			supabaseUrl && serviceKey
@@ -394,11 +409,19 @@ export const POST: RequestHandler = async (event) => {
 
 		if (limitError) {
 			log('error', 'ads_post_daily_limit_check_failed', { error: limitError.message });
-			return errorResponse('Unable to validate daily posting limit. Please try again later.', 503, requestId);
+			return errorResponse(
+				'Unable to validate daily posting limit. Please try again later.',
+				503,
+				requestId
+			);
 		}
 
 		if ((count ?? 0) >= ADS_PER_DAY) {
-			return errorResponse('Daily posting limit reached. You can post one ad per day.', 429, requestId);
+			return errorResponse(
+				'Daily posting limit reached. You can post one ad per day.',
+				429,
+				requestId
+			);
 		}
 
 		// category, currency, and price are validated above
@@ -465,7 +488,9 @@ export const POST: RequestHandler = async (event) => {
 				: true;
 		const minOfferValue = isLostAndFound ? null : normalizedPriceType === 'fixed' ? minOffer : null;
 		const autoDeclineValue =
-			!isLostAndFound && normalizedPriceType === 'fixed' && (firmPriceValue || minOfferValue !== null)
+			!isLostAndFound &&
+			normalizedPriceType === 'fixed' &&
+			(firmPriceValue || minOfferValue !== null)
 				? autoDeclineMessage
 				: null;
 
@@ -477,6 +502,7 @@ export const POST: RequestHandler = async (event) => {
 				title,
 				description,
 				category,
+				category_profile_data: categoryProfileValidation.categoryProfileData,
 				price,
 				currency,
 				image_keys: [],
@@ -566,10 +592,19 @@ export const POST: RequestHandler = async (event) => {
 				category,
 				priceState: normalizedPriceType,
 				imageCount: image_keys.length,
-				status
+				status,
+				categoryProfileUsed: !!categoryProfileValidation.categoryProfileData,
+				bikeSubtype: categoryProfileValidation.categoryProfileData?.subtype ?? null,
+				bikeConditionSet: !!categoryProfileValidation.categoryProfileData?.condition,
+				bikeSizeSet:
+					!!categoryProfileValidation.categoryProfileData?.sizePreset ||
+					!!categoryProfileValidation.categoryProfileData?.sizeManual,
+				usedPresetOnly: categoryProfileValidation.categoryProfileData ? usedPresetOnly : null
 			}
 		});
-		const responseMessage = moderationUnavailable ? 'Ad submitted and pending review.' : 'Ad submitted.';
+		const responseMessage = moderationUnavailable
+			? 'Ad submitted and pending review.'
+			: 'Ad submitted.';
 		return json(
 			{
 				success: true,
@@ -630,7 +665,9 @@ export const GET: RequestHandler = async (event) => {
 
 	let query = locals.supabase
 		.from('ads')
-		.select('id,title,description,price,currency,category,image_keys,created_at,firm_price,min_offer')
+		.select(
+			'id,title,description,price,currency,category,image_keys,created_at,firm_price,min_offer'
+		)
 		.eq('status', PUBLIC_AD_STATUS)
 		.gt('expires_at', nowIso);
 
@@ -643,9 +680,7 @@ export const GET: RequestHandler = async (event) => {
 	if (priceState === 'poa') query = query.is('price', null);
 	if (priceState === 'fixed') query = query.gt('price', 0);
 
-	const { data, error } = await query
-		.order('created_at', { ascending: false })
-		.range(from, to);
+	const { data, error } = await query.order('created_at', { ascending: false }).range(from, to);
 
 	if (error) {
 		return json(

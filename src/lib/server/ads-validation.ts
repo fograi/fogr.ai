@@ -5,6 +5,11 @@ import {
 	type Category,
 	type PriceType
 } from '$lib/constants';
+import {
+	isBikesCategory,
+	validateAndNormalizeBikesProfileData,
+	type BikesProfileData
+} from '$lib/category-profiles';
 
 type AdValidationInput = {
 	category: string;
@@ -103,4 +108,28 @@ export function validateOfferRules({
 		}
 	}
 	return null;
+}
+
+type CategoryProfileValidationInput = {
+	category: string;
+	categoryProfileDataRaw: unknown;
+};
+
+type CategoryProfileValidationResult = {
+	error: string | null;
+	categoryProfileData: BikesProfileData | null;
+};
+
+export function validateCategoryProfileData({
+	category,
+	categoryProfileDataRaw
+}: CategoryProfileValidationInput): CategoryProfileValidationResult {
+	if (!isBikesCategory(category)) {
+		return { error: null, categoryProfileData: null };
+	}
+	const result = validateAndNormalizeBikesProfileData(categoryProfileDataRaw);
+	if (result.error) {
+		return { error: result.error, categoryProfileData: null };
+	}
+	return { error: null, categoryProfileData: result.data };
 }

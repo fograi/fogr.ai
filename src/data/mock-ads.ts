@@ -76,7 +76,7 @@ export const mockClassifieds = [
 		id: 8,
 		title: 'Used Bicycle',
 		description: 'A used bicycle in decent condition.',
-		category: 'Sports & Bikes',
+		category: 'Bikes',
 		price: 50,
 		email: 'sports@example.com',
 		img: 'https://picsum.photos/150/300'
@@ -148,7 +148,7 @@ export const mockClassifieds = [
 		id: 16,
 		title: 'Running Shoes',
 		description: 'Pair of running shoes.',
-		category: 'Sports & Bikes',
+		category: 'Bikes',
 		price: 30,
 		email: 'sports@example.com',
 		img: 'https://picsum.photos/300/300'
@@ -193,7 +193,7 @@ export const mockClassifieds = [
 		id: 21,
 		title: 'Yoga Mat',
 		description: 'Non-slip yoga mat.',
-		category: 'Sports & Bikes',
+		category: 'Bikes',
 		price: 15,
 		email: 'sports@example.com',
 		img: 'https://picsum.photos/300/300'

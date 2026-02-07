@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { validateAdImages, validateAdMeta, validateOfferRules } from './ads-validation';
+import {
+	validateAdImages,
+	validateAdMeta,
+	validateCategoryProfileData,
+	validateOfferRules
+} from './ads-validation';
 
 describe('validateAdMeta (price rules)', () => {
 	it('accepts fixed price over 0', () => {
@@ -144,5 +149,56 @@ describe('validateOfferRules', () => {
 			minOfferStr: '150'
 		});
 		expect(result).toBe('Minimum offer must be less than the asking price.');
+	});
+});
+
+describe('validateCategoryProfileData (bikes)', () => {
+	it('allows null profile for non-bike category', () => {
+		const result = validateCategoryProfileData({
+			category: 'Electronics',
+			categoryProfileDataRaw: null
+		});
+		expect(result.error).toBeNull();
+		expect(result.categoryProfileData).toBeNull();
+	});
+
+	it('rejects missing bike profile', () => {
+		const result = validateCategoryProfileData({
+			category: 'Bikes',
+			categoryProfileDataRaw: null
+		});
+		expect(result.error).toBe('Bike details are required.');
+		expect(result.categoryProfileData).toBeNull();
+	});
+
+	it('accepts valid adult bike profile', () => {
+		const result = validateCategoryProfileData({
+			category: 'Bikes',
+			categoryProfileDataRaw: {
+				version: 1,
+				profile: 'bikes',
+				subtype: 'adult',
+				bikeType: 'road',
+				condition: 'used_good',
+				sizePreset: 'M'
+			}
+		});
+		expect(result.error).toBeNull();
+		expect(result.categoryProfileData?.subtype).toBe('adult');
+		expect(result.categoryProfileData?.sizePreset).toBe('M');
+	});
+
+	it('rejects kids profile without age-range size', () => {
+		const result = validateCategoryProfileData({
+			category: 'Bikes',
+			categoryProfileDataRaw: {
+				version: 1,
+				profile: 'bikes',
+				subtype: 'kids',
+				condition: 'used_good'
+			}
+		});
+		expect(result.error).toBe('Kids bikes must include an age range.');
+		expect(result.categoryProfileData).toBeNull();
 	});
 });

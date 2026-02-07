@@ -10,6 +10,7 @@ type EditAdRow = {
 	title: string;
 	description: string;
 	category: string;
+	category_profile_data: Record<string, unknown> | null;
 	price: number | null;
 	currency: string | null;
 	image_keys: string[] | null;
@@ -27,6 +28,7 @@ export const load: PageServerLoad = async ({ locals, platform, params, url }) =>
 		return {
 			ad: {
 				...E2E_MOCK_AD,
+				category_profile_data: E2E_MOCK_AD.category_profile_data ?? null,
 				status: E2E_MOCK_AD.status,
 				firm_price: E2E_MOCK_AD.firm_price ?? false,
 				min_offer: E2E_MOCK_AD.min_offer ?? null,
@@ -45,7 +47,7 @@ export const load: PageServerLoad = async ({ locals, platform, params, url }) =>
 	const { data: ad, error: adError } = await locals.supabase
 		.from('ads')
 		.select(
-			'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,created_at,updated_at,expires_at'
+			'id,user_id,title,description,category,category_profile_data,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,created_at,updated_at,expires_at'
 		)
 		.eq('id', params.id)
 		.maybeSingle();

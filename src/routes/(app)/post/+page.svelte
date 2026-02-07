@@ -1,11 +1,19 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { type Category, type PriceType, POA_CATEGORY_SET } from '$lib/constants';
 	import {
-		type Category,
-		type PriceType,
-		POA_CATEGORY_SET
-	} from '$lib/constants';
+		CATEGORY_PROFILE_VERSION,
+		BIKES_PROFILE_KEY,
+		buildBikeTitle,
+		getBikeDescriptionTemplate,
+		isBikesCategory,
+		validateAndNormalizeBikesProfileData,
+		type BikeCondition,
+		type BikeSizePreset,
+		type BikeSubtype,
+		type BikeType
+	} from '$lib/category-profiles';
 
 	import PostFields from '$lib/components/post/PostFields.svelte';
 	import ImageDrop from '$lib/components/post/ImageDrop.svelte';
@@ -23,6 +31,17 @@
 	let firmPrice = false;
 	let minOffer: number | '' = '';
 	let autoDeclineMessage = '';
+	let bikeSubtype: BikeSubtype | '' = '';
+	let bikeType: BikeType | '' = '';
+	let bikeCondition: BikeCondition | '' = '';
+	let bikeSizePreset: BikeSizePreset | '' = '';
+	let bikeSizeManual = '';
+	let bikeSizeManualEdited = false;
+	let titleManuallyEdited = false;
+	let descriptionManuallyEdited = false;
+	let bikeTitleAutoFilled = false;
+	let bikeDescriptionTemplateUsed = false;
+	let lastBikeTitleSeed = '';
 	let currency = 'EUR';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
@@ -40,6 +59,7 @@
 	let debounce: number | undefined;
 
 	// derived
+	$: isBikes = isBikesCategory(category);
 	$: isLostAndFound = category === 'Lost and Found';
 	$: if (category === 'Free / Giveaway' && priceType !== 'free') priceType = 'free';
 	$: if (isLostAndFound && priceType !== 'fixed') priceType = 'fixed';
@@ -57,6 +77,46 @@
 		minOffer = '';
 		autoDeclineMessage = '';
 	}
+	$: if (!isBikes) {
+		bikeSubtype = '';
+		bikeType = '';
+		bikeCondition = '';
+		bikeSizePreset = '';
+		bikeSizeManual = '';
+		bikeSizeManualEdited = false;
+		bikeTitleAutoFilled = false;
+		bikeDescriptionTemplateUsed = false;
+		lastBikeTitleSeed = '';
+	}
+	$: bikeTitleSeed = `${bikeSubtype}|${bikeType}|${bikeSizePreset}|${bikeSizeManual.trim()}`;
+	$: suggestedBikeTitle = buildBikeTitle({
+		subtype: bikeSubtype,
+		bikeType,
+		sizePreset: bikeSizePreset,
+		sizeManual: bikeSizeManual
+	});
+	$: if (
+		isBikes &&
+		suggestedBikeTitle &&
+		!titleManuallyEdited &&
+		bikeTitleSeed !== lastBikeTitleSeed
+	) {
+		title = suggestedBikeTitle;
+		bikeTitleAutoFilled = true;
+		lastBikeTitleSeed = bikeTitleSeed;
+	}
+	$: bikeDescriptionTemplate = getBikeDescriptionTemplate();
+	$: if (
+		isBikes &&
+		!description.trim() &&
+		!descriptionManuallyEdited &&
+		!bikeDescriptionTemplateUsed
+	) {
+		description = bikeDescriptionTemplate;
+		bikeDescriptionTemplateUsed = true;
+	}
+	$: usedPresetOnly =
+		isBikes && !titleManuallyEdited && !descriptionManuallyEdited && !bikeSizeManualEdited;
 
 	// live moderation check while typing
 	$: {
@@ -88,8 +148,26 @@
 	let ok = '';
 	let loading = false;
 
+	function buildBikeProfileCandidate() {
+		return {
+			version: CATEGORY_PROFILE_VERSION,
+			profile: BIKES_PROFILE_KEY,
+			subtype: bikeSubtype || undefined,
+			bikeType: bikeType || undefined,
+			condition: bikeCondition || undefined,
+			sizePreset: bikeSizePreset || undefined,
+			sizeManual: bikeSizeManual.trim() || undefined,
+			titleAutoFilled: bikeTitleAutoFilled,
+			descriptionTemplateUsed: bikeDescriptionTemplateUsed
+		};
+	}
+
 	function validateBasics() {
 		if (!category) return 'Choose a category.';
+		if (isBikes) {
+			const bikeProfileCheck = validateAndNormalizeBikesProfileData(buildBikeProfileCandidate());
+			if (bikeProfileCheck.error) return bikeProfileCheck.error;
+		}
 		if (!title.trim()) return 'Add a title.';
 		if (title.trim().length < MIN_TITLE_LENGTH)
 			return `Title must be at least ${MIN_TITLE_LENGTH} characters.`;
@@ -195,6 +273,14 @@
 			form.append('title', title.trim());
 			form.append('description', description.trim());
 			form.append('category', category as string);
+			if (isBikes) {
+				const bikeProfileCheck = validateAndNormalizeBikesProfileData(buildBikeProfileCandidate());
+				if (bikeProfileCheck.error || !bikeProfileCheck.data) {
+					throw new Error(bikeProfileCheck.error ?? 'Bike details are required.');
+				}
+				form.append('category_profile_data', JSON.stringify(bikeProfileCheck.data));
+				form.append('used_preset_only', usedPresetOnly ? '1' : '0');
+			}
 			form.append('price_type', priceType);
 			form.append('firm_price', priceType === 'fixed' && firmPrice ? '1' : '0');
 			if (priceType === 'fixed' && minOffer !== '') {
@@ -263,6 +349,17 @@
 			firmPrice = false;
 			minOffer = '';
 			autoDeclineMessage = '';
+			bikeSubtype = '';
+			bikeType = '';
+			bikeCondition = '';
+			bikeSizePreset = '';
+			bikeSizeManual = '';
+			bikeSizeManualEdited = false;
+			titleManuallyEdited = false;
+			descriptionManuallyEdited = false;
+			bikeTitleAutoFilled = false;
+			bikeDescriptionTemplateUsed = false;
+			lastBikeTitleSeed = '';
 			// clear image
 			if (previewUrl) URL.revokeObjectURL(previewUrl);
 			previewUrl = null;
@@ -350,6 +447,14 @@
 				bind:firmPrice
 				bind:minOffer
 				bind:autoDeclineMessage
+				bind:bikeSubtype
+				bind:bikeType
+				bind:bikeCondition
+				bind:bikeSizePreset
+				bind:bikeSizeManual
+				bind:bikeSizeManualEdited
+				bind:titleManuallyEdited
+				bind:descriptionManuallyEdited
 				{loading}
 				{showErrors}
 			/>
@@ -363,23 +468,29 @@
 
 	{#if step === 2}
 		<section class="panel">
-				<PostFields
-					step={2}
-					bind:category
-					bind:title
-					bind:description
-					bind:price
-					bind:priceType
-					bind:firmPrice
-					bind:minOffer
-					bind:autoDeclineMessage
-					{loading}
-					{showErrors}
-				/>
+			<PostFields
+				step={2}
+				bind:category
+				bind:title
+				bind:description
+				bind:price
+				bind:priceType
+				bind:firmPrice
+				bind:minOffer
+				bind:autoDeclineMessage
+				bind:bikeSubtype
+				bind:bikeType
+				bind:bikeCondition
+				bind:bikeSizePreset
+				bind:bikeSizeManual
+				bind:bikeSizeManualEdited
+				bind:titleManuallyEdited
+				bind:descriptionManuallyEdited
+				{loading}
+				{showErrors}
+			/>
 			<div class="actions">
-				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>
-					Back
-				</button>
+				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}> Back </button>
 				<button type="button" class="btn primary" on:click={goNext} disabled={loading}>
 					Continue
 				</button>
@@ -409,13 +520,19 @@
 				bind:firmPrice
 				bind:minOffer
 				bind:autoDeclineMessage
+				bind:bikeSubtype
+				bind:bikeType
+				bind:bikeCondition
+				bind:bikeSizePreset
+				bind:bikeSizeManual
+				bind:bikeSizeManualEdited
+				bind:titleManuallyEdited
+				bind:descriptionManuallyEdited
 				{loading}
 				{showErrors}
 			/>
 			<div class="actions">
-				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>
-					Back
-				</button>
+				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}> Back </button>
 				<button type="button" class="btn primary" on:click={openPreview} disabled={loading}>
 					Preview
 				</button>
@@ -467,11 +584,7 @@
 				</div>
 				<div class="preview-confirm">
 					<label class="checkbox">
-						<input
-							type="checkbox"
-							bind:checked={ageConfirmed}
-							disabled={loading}
-						/>
+						<input type="checkbox" bind:checked={ageConfirmed} disabled={loading} />
 						<span>I am 18 or older.</span>
 					</label>
 				</div>
@@ -687,5 +800,4 @@
 		justify-content: flex-end;
 		gap: 10px;
 	}
-
 </style>

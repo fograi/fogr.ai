@@ -29,6 +29,7 @@ export type ApiAdRow = {
 	title: string;
 	description: string;
 	category: string;
+	category_profile_data?: Record<string, unknown> | null;
 	price: number | null;
 	firm_price?: boolean | null;
 	min_offer?: number | null;

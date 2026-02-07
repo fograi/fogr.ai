@@ -50,8 +50,7 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 
 	if (isE2eMock(platform)) {
 		const scam = detectScamPatterns(messageBody);
-		const autoDeclined =
-			kind === 'offer' && typeof offerAmount === 'number' && offerAmount < 10;
+		const autoDeclined = kind === 'offer' && typeof offerAmount === 'number' && offerAmount < 10;
 		return json(
 			{
 				success: true,
@@ -69,14 +68,12 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 	} = await locals.supabase.auth.getUser();
 	if (!user) return errorResponse('Auth required.', 401);
 
-	let conversation = null as
-		| {
-				id: string;
-				ad_id: string;
-				buyer_id: string;
-				seller_id: string;
-		  }
-		| null;
+	let conversation = null as {
+		id: string;
+		ad_id: string;
+		buyer_id: string;
+		seller_id: string;
+	} | null;
 	if (conversationId) {
 		const { data: convo, error: convoError } = await locals.supabase
 			.from('conversations')
@@ -95,7 +92,7 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 	const { data: ad, error: adError } = await locals.supabase
 		.from('ads')
 		.select(
-			'id, user_id, status, expires_at, firm_price, min_offer, auto_decline_message, price, currency'
+			'id, user_id, status, expires_at, category, category_profile_data, firm_price, min_offer, auto_decline_message, price, currency'
 		)
 		.eq('id', lookupAdId)
 		.maybeSingle();
@@ -155,7 +152,11 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 
 	const scam = detectScamPatterns(messageBody);
 	const deliveryMethod =
-		kind === 'offer' && deliveryMethodRaw === 'shipping' ? 'shipping' : kind === 'offer' ? 'pickup' : null;
+		kind === 'offer' && deliveryMethodRaw === 'shipping'
+			? 'shipping'
+			: kind === 'offer'
+				? 'pickup'
+				: null;
 	const timing = kind === 'pickup' ? timingRaw : null;
 
 	const { error: msgErr } = await locals.supabase.from('messages').insert({
@@ -206,6 +207,8 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 			adId: ad.id,
 			conversationId: activeConversationId,
 			properties: {
+				category: ad.category ?? null,
+				categoryProfileUsed: !!ad.category_profile_data,
 				reason:
 					paidPrice && ad.firm_price
 						? 'firm_price'
@@ -267,7 +270,9 @@ export const GET: RequestHandler = async ({ locals, url, platform }) => {
 
 	const { data: messages, error: msgError } = await locals.supabase
 		.from('messages')
-		.select('id, sender_id, kind, body, offer_amount, delivery_method, timing, auto_declined, created_at')
+		.select(
+			'id, sender_id, kind, body, offer_amount, delivery_method, timing, auto_declined, created_at'
+		)
 		.eq('conversation_id', convo.id)
 		.order('created_at', { ascending: true });
 

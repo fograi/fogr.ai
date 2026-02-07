@@ -15,7 +15,12 @@ import {
 	MAX_DESC_LENGTH
 } from '$lib/constants';
 import { bannedWords } from '$lib/banned-words';
-import { validateAdImages, validateAdMeta, validateOfferRules } from '$lib/server/ads-validation';
+import {
+	validateAdImages,
+	validateAdMeta,
+	validateOfferRules,
+	validateCategoryProfileData
+} from '$lib/server/ads-validation';
 const { default: filter } = await import('leo-profanity');
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = await import('obscenity');
 filter.add(bannedWords);
@@ -54,9 +59,11 @@ type EditBackoffState = {
 };
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
-	const bufferCtor = (globalThis as {
-		Buffer?: { from: (data: ArrayBuffer) => { toString: (encoding: string) => string } };
-	}).Buffer;
+	const bufferCtor = (
+		globalThis as {
+			Buffer?: { from: (data: ArrayBuffer) => { toString: (encoding: string) => string } };
+		}
+	).Buffer;
 	if (typeof btoa !== 'function' && bufferCtor?.from) {
 		return bufferCtor.from(buf).toString('base64');
 	}
@@ -236,7 +243,9 @@ export const GET: RequestHandler = async ({ params, locals, url, platform }) => 
 	if (authedUser && data.user_id === authedUser.id) {
 		const { data: mod } = await locals.supabase
 			.from('ad_moderation_actions')
-			.select('action_type, reason_category, reason_details, legal_basis, automated, created_at, report_id')
+			.select(
+				'action_type, reason_category, reason_details, legal_basis, automated, created_at, report_id'
+			)
 			.eq('ad_id', id)
 			.order('created_at', { ascending: false })
 			.limit(1)
@@ -295,7 +304,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		const { data: ad, error: adError } = await locals.supabase
 			.from('ads')
 			.select(
-			'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,expires_at'
+				'id,user_id,title,description,category,category_profile_data,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,expires_at'
 			)
 			.eq('id', adId)
 			.maybeSingle();
@@ -303,8 +312,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		if (adError) return errorResponse('Could not load ad.', 500);
 		if (!ad) return errorResponse('Ad not found.', 404);
 		if (ad.user_id !== user.id) return errorResponse('Not allowed.', 403);
-		if (!EDITABLE_STATUSES.has(ad.status))
-			return errorResponse('This ad cannot be edited.', 400);
+		if (!EDITABLE_STATUSES.has(ad.status)) return errorResponse('This ad cannot be edited.', 400);
 		debugAllowed = debugRequested && ad.user_id === user.id;
 
 		const envLimits = platform?.env as { RATE_LIMIT?: KVNamespace } | undefined;
@@ -358,19 +366,34 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		const firmPrice = readString('firm_price') === '1' || readString('firm_price') === 'true';
 		const minOfferStr = readString('min_offer');
 		const autoDeclineMessageRaw = readString('auto_decline_message');
-	const autoDeclineMessage =
-		autoDeclineMessageRaw && autoDeclineMessageRaw.trim().length > 0
-			? autoDeclineMessageRaw.trim()
-			: null;
-	const ageConfirmed =
-		readString('age_confirmed') === '1' || readString('age_confirmed') === 'true';
-	const currencyRaw = readString('currency') || ad.currency || 'EUR';
-	const currency = currencyRaw.trim().toUpperCase();
-	const removeImage = readString('remove_image') === '1' || readString('remove_image') === 'true';
+		const autoDeclineMessage =
+			autoDeclineMessageRaw && autoDeclineMessageRaw.trim().length > 0
+				? autoDeclineMessageRaw.trim()
+				: null;
+		const ageConfirmed =
+			readString('age_confirmed') === '1' || readString('age_confirmed') === 'true';
+		const currencyRaw = readString('currency') || ad.currency || 'EUR';
+		const currency = currencyRaw.trim().toUpperCase();
+		const removeImage = readString('remove_image') === '1' || readString('remove_image') === 'true';
+		const categoryProfileRawValue = form
+			? form.get('category_profile_data')
+			: (body?.category_profile_data ?? null);
+		let categoryProfilePayload: unknown = null;
+		if (typeof categoryProfileRawValue === 'string') {
+			if (categoryProfileRawValue.trim() !== '') {
+				try {
+					categoryProfilePayload = JSON.parse(categoryProfileRawValue);
+				} catch {
+					return errorResponse('Invalid category profile data.', 400);
+				}
+			}
+		} else if (categoryProfileRawValue && typeof categoryProfileRawValue === 'object') {
+			categoryProfilePayload = categoryProfileRawValue;
+		}
 
 		const imageFile = form ? form.get('image') : null;
-	const files: File[] = [];
-	if (imageFile instanceof File && imageFile.size > 0) files.push(imageFile);
+		const files: File[] = [];
+		if (imageFile instanceof File && imageFile.size > 0) files.push(imageFile);
 		if (files.length > MAX_IMAGE_COUNT) {
 			return errorResponse(`Too many images (max ${MAX_IMAGE_COUNT}).`, 413);
 		}
@@ -387,14 +410,15 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		const priceMetaError = validateAdMeta({ category, currency, priceStr, priceType });
 		if (priceMetaError) return errorResponse(priceMetaError, 400);
 
-	const imageCount =
-		files.length > 0
-			? files.length
-			: removeImage
-				? 0
-				: ad.image_keys?.length ?? 0;
-	const imageError = validateAdImages({ category, imageCount });
-	if (imageError) return errorResponse(imageError, 400);
+		const imageCount =
+			files.length > 0 ? files.length : removeImage ? 0 : (ad.image_keys?.length ?? 0);
+		const imageError = validateAdImages({ category, imageCount });
+		if (imageError) return errorResponse(imageError, 400);
+		const categoryProfileValidation = validateCategoryProfileData({
+			category,
+			categoryProfileDataRaw: categoryProfilePayload
+		});
+		if (categoryProfileValidation.error) return errorResponse(categoryProfileValidation.error, 400);
 
 		if (!isLostAndFound) {
 			const offerError = validateOfferRules({
@@ -406,45 +430,42 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 			if (offerError) return errorResponse(offerError, 400);
 		}
 
-	if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.', 400);
-	if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413);
-	if (description.length < MIN_DESC_LENGTH) return errorResponse('Description too short.', 400);
-	if (description.length > MAX_DESC_LENGTH) return errorResponse('Description too long.', 413);
+		if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.', 400);
+		if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413);
+		if (description.length < MIN_DESC_LENGTH) return errorResponse('Description too short.', 400);
+		if (description.length > MAX_DESC_LENGTH) return errorResponse('Description too long.', 413);
 
-	if (files.length > 0) {
-		const badType = files.find((f) => !ALLOWED_IMAGE_TYPES.includes(f.type));
-		if (badType) return errorResponse('Invalid image type(s).', 415);
-		const tooLarge = files.find((f) => f.size > MAX_IMAGE_SIZE);
-		if (tooLarge) return errorResponse('Image(s) too large.', 413);
-	}
+		if (files.length > 0) {
+			const badType = files.find((f) => !ALLOWED_IMAGE_TYPES.includes(f.type));
+			if (badType) return errorResponse('Invalid image type(s).', 415);
+			const tooLarge = files.find((f) => f.size > MAX_IMAGE_SIZE);
+			if (tooLarge) return errorResponse('Image(s) too large.', 413);
+		}
 
-	const normalizedPriceType = priceType?.toLowerCase();
-	const price = isLostAndFound
-		? priceStr && priceStr.trim() !== ''
-			? Number(priceStr)
-			: null
-		: normalizedPriceType === 'poa'
-			? null
-			: Number(priceStr ?? 0);
-	const minOffer =
-		!isLostAndFound &&
-		normalizedPriceType === 'fixed' &&
-		minOfferStr &&
-		minOfferStr.trim() !== ''
-			? Number(minOfferStr)
-			: null;
+		const normalizedPriceType = priceType?.toLowerCase();
+		const price = isLostAndFound
+			? priceStr && priceStr.trim() !== ''
+				? Number(priceStr)
+				: null
+			: normalizedPriceType === 'poa'
+				? null
+				: Number(priceStr ?? 0);
+		const minOffer =
+			!isLostAndFound && normalizedPriceType === 'fixed' && minOfferStr && minOfferStr.trim() !== ''
+				? Number(minOfferStr)
+				: null;
 
-	const titleTrimmed = title.trim();
-	const descTrimmed = description.trim();
-	const categoryTrimmed = category.trim();
-	const textChanged = titleTrimmed !== ad.title || descTrimmed !== ad.description;
-	const categoryChanged = categoryTrimmed !== ad.category;
-	const imageChanged = files.length > 0 || removeImage;
-	const needsModeration = textChanged || categoryChanged || imageChanged;
+		const titleTrimmed = title.trim();
+		const descTrimmed = description.trim();
+		const categoryTrimmed = category.trim();
+		const textChanged = titleTrimmed !== ad.title || descTrimmed !== ad.description;
+		const categoryChanged = categoryTrimmed !== ad.category;
+		const imageChanged = files.length > 0 || removeImage;
+		const needsModeration = textChanged || categoryChanged || imageChanged;
 
-	let moderationResult: ModerationDecision = 'allow';
-	let moderationUnavailable = false;
-	let moderationFlagged = false;
+		let moderationResult: ModerationDecision = 'allow';
+		let moderationUnavailable = false;
+		let moderationFlagged = false;
 
 		stage = 'moderation';
 		if (needsModeration) {
@@ -479,21 +500,21 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		}
 
 		let nextStatus = ad.status;
-	if (needsModeration && (moderationFlagged || moderationUnavailable)) {
-		if (ad.status !== 'archived') {
-			nextStatus = 'pending';
+		if (needsModeration && (moderationFlagged || moderationUnavailable)) {
+			if (ad.status !== 'archived') {
+				nextStatus = 'pending';
+			}
 		}
-	}
 
 		stage = 'storage';
 		const env = platform?.env as {
-		ADS_BUCKET?: R2Bucket;
-		ADS_PENDING_BUCKET?: R2Bucket;
-	};
-	const publicBucket = env?.ADS_BUCKET;
-	const pendingBucket = env?.ADS_PENDING_BUCKET;
+			ADS_BUCKET?: R2Bucket;
+			ADS_PENDING_BUCKET?: R2Bucket;
+		};
+		const publicBucket = env?.ADS_BUCKET;
+		const pendingBucket = env?.ADS_PENDING_BUCKET;
 
-	let nextImageKeys = ad.image_keys ?? [];
+		let nextImageKeys = ad.image_keys ?? [];
 
 		if (files.length > 0) {
 			const targetBucket = nextStatus === 'pending' ? pendingBucket : publicBucket;
@@ -523,14 +544,14 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		}
 
 		if ((files.length > 0 || removeImage) && (publicBucket || pendingBucket)) {
-		const keysToDelete = ad.image_keys ?? [];
-		if (keysToDelete.length > 0) {
-			await Promise.allSettled([
-				...(publicBucket ? keysToDelete.map((key) => publicBucket.delete(key)) : []),
-				...(pendingBucket ? keysToDelete.map((key) => pendingBucket.delete(key)) : [])
-			]);
+			const keysToDelete = ad.image_keys ?? [];
+			if (keysToDelete.length > 0) {
+				await Promise.allSettled([
+					...(publicBucket ? keysToDelete.map((key) => publicBucket.delete(key)) : []),
+					...(pendingBucket ? keysToDelete.map((key) => pendingBucket.delete(key)) : [])
+				]);
+			}
 		}
-	}
 
 		const firmPriceValue = isLostAndFound
 			? false
@@ -546,6 +567,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 				title: titleTrimmed,
 				description: descTrimmed,
 				category: categoryTrimmed,
+				category_profile_data: categoryProfileValidation.categoryProfileData,
 				price,
 				currency,
 				firm_price: firmPriceValue,
@@ -576,11 +598,9 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 				const nextCount = prevCount + 1;
 				const waitMinutes = Math.pow(2, nextCount - 1);
 				const nextAllowedAt = Date.now() + waitMinutes * 60 * 1000;
-				await rateLimitKv.put(
-					backoffKey,
-					JSON.stringify({ count: nextCount, nextAllowedAt }),
-					{ expirationTtl: EDIT_BACKOFF_TTL_SECONDS }
-				);
+				await rateLimitKv.put(backoffKey, JSON.stringify({ count: nextCount, nextAllowedAt }), {
+					expirationTtl: EDIT_BACKOFF_TTL_SECONDS
+				});
 			} catch (err) {
 				console.warn('Edit backoff KV update failed', err);
 			}

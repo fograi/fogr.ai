@@ -2,11 +2,19 @@
 	import { onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
+	import { type Category, type PriceType, POA_CATEGORY_SET } from '$lib/constants';
 	import {
-		type Category,
-		type PriceType,
-		POA_CATEGORY_SET
-	} from '$lib/constants';
+		CATEGORY_PROFILE_VERSION,
+		BIKES_PROFILE_KEY,
+		buildBikeTitle,
+		getBikeDescriptionTemplate,
+		isBikesCategory,
+		validateAndNormalizeBikesProfileData,
+		type BikeCondition,
+		type BikeSizePreset,
+		type BikeSubtype,
+		type BikeType
+	} from '$lib/category-profiles';
 	import PostFields from '$lib/components/post/PostFields.svelte';
 	import ImageDrop from '$lib/components/post/ImageDrop.svelte';
 	import { createModerationClient } from '$lib/clients/moderationClient';
@@ -17,6 +25,7 @@
 		title: string;
 		description: string;
 		category: Category;
+		category_profile_data: Record<string, unknown> | null;
 		price: number | null;
 		currency: string | null;
 		image_keys: string[] | null;
@@ -42,6 +51,9 @@
 	const existingImageUrl = existingImageKey
 		? `${publicR2Base}/${existingImageKey.replace(/^\/+/, '')}`
 		: null;
+	const initialBikeProfile = isBikesCategory(ad.category)
+		? validateAndNormalizeBikesProfileData(ad.category_profile_data).data
+		: null;
 
 	let title = ad.title ?? '';
 	let description = ad.description ?? '';
@@ -58,6 +70,17 @@
 	let firmPrice = ad.firm_price ?? false;
 	let minOffer: number | '' = ad.min_offer ?? '';
 	let autoDeclineMessage = ad.auto_decline_message ?? '';
+	let bikeSubtype: BikeSubtype | '' = initialBikeProfile?.subtype ?? '';
+	let bikeType: BikeType | '' = initialBikeProfile?.bikeType ?? '';
+	let bikeCondition: BikeCondition | '' = initialBikeProfile?.condition ?? '';
+	let bikeSizePreset: BikeSizePreset | '' = initialBikeProfile?.sizePreset ?? '';
+	let bikeSizeManual = initialBikeProfile?.sizeManual ?? '';
+	let bikeSizeManualEdited = !!initialBikeProfile?.sizeManual;
+	let titleManuallyEdited = !!title;
+	let descriptionManuallyEdited = !!description;
+	let bikeTitleAutoFilled = initialBikeProfile?.titleAutoFilled ?? false;
+	let bikeDescriptionTemplateUsed = initialBikeProfile?.descriptionTemplateUsed ?? false;
+	let lastBikeTitleSeed = '';
 	let currency = ad.currency ?? 'EUR';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
@@ -72,6 +95,7 @@
 	const mod = createModerationClient();
 	let debounce: number | undefined;
 
+	$: isBikes = isBikesCategory(category);
 	$: isLostAndFound = category === 'Lost and Found';
 	$: if (category === 'Free / Giveaway' && priceType !== 'free') priceType = 'free';
 	$: if (isLostAndFound && priceType !== 'fixed') priceType = 'fixed';
@@ -89,6 +113,46 @@
 		minOffer = '';
 		autoDeclineMessage = '';
 	}
+	$: if (!isBikes) {
+		bikeSubtype = '';
+		bikeType = '';
+		bikeCondition = '';
+		bikeSizePreset = '';
+		bikeSizeManual = '';
+		bikeSizeManualEdited = false;
+		bikeTitleAutoFilled = false;
+		bikeDescriptionTemplateUsed = false;
+		lastBikeTitleSeed = '';
+	}
+	$: bikeTitleSeed = `${bikeSubtype}|${bikeType}|${bikeSizePreset}|${bikeSizeManual.trim()}`;
+	$: suggestedBikeTitle = buildBikeTitle({
+		subtype: bikeSubtype,
+		bikeType,
+		sizePreset: bikeSizePreset,
+		sizeManual: bikeSizeManual
+	});
+	$: if (
+		isBikes &&
+		suggestedBikeTitle &&
+		!titleManuallyEdited &&
+		bikeTitleSeed !== lastBikeTitleSeed
+	) {
+		title = suggestedBikeTitle;
+		bikeTitleAutoFilled = true;
+		lastBikeTitleSeed = bikeTitleSeed;
+	}
+	$: bikeDescriptionTemplate = getBikeDescriptionTemplate();
+	$: if (
+		isBikes &&
+		!description.trim() &&
+		!descriptionManuallyEdited &&
+		!bikeDescriptionTemplateUsed
+	) {
+		description = bikeDescriptionTemplate;
+		bikeDescriptionTemplateUsed = true;
+	}
+	$: usedPresetOnly =
+		isBikes && !titleManuallyEdited && !descriptionManuallyEdited && !bikeSizeManualEdited;
 
 	$: {
 		if (browser) {
@@ -117,8 +181,26 @@
 	let ok = '';
 	let loading = false;
 
+	function buildBikeProfileCandidate() {
+		return {
+			version: CATEGORY_PROFILE_VERSION,
+			profile: BIKES_PROFILE_KEY,
+			subtype: bikeSubtype || undefined,
+			bikeType: bikeType || undefined,
+			condition: bikeCondition || undefined,
+			sizePreset: bikeSizePreset || undefined,
+			sizeManual: bikeSizeManual.trim() || undefined,
+			titleAutoFilled: bikeTitleAutoFilled,
+			descriptionTemplateUsed: bikeDescriptionTemplateUsed
+		};
+	}
+
 	function validateBasics() {
 		if (!category) return 'Choose a category.';
+		if (isBikes) {
+			const bikeProfileCheck = validateAndNormalizeBikesProfileData(buildBikeProfileCandidate());
+			if (bikeProfileCheck.error) return bikeProfileCheck.error;
+		}
 		if (!title.trim()) return 'Add a title.';
 		if (title.trim().length < MIN_TITLE_LENGTH)
 			return `Title must be at least ${MIN_TITLE_LENGTH} characters.`;
@@ -220,10 +302,15 @@
 			}
 
 			const removingExisting = !!existingImageKey && !previewUrl && !file;
+			const bikeProfileCheck = isBikes
+				? validateAndNormalizeBikesProfileData(buildBikeProfileCandidate())
+				: { data: null, error: null };
+			if (bikeProfileCheck.error) throw new Error(bikeProfileCheck.error);
 			const requestPayload = {
 				title: title.trim(),
 				description: description.trim(),
 				category: category as string,
+				category_profile_data: bikeProfileCheck.data,
 				price_type: priceType,
 				firm_price: priceType === 'fixed' && firmPrice ? '1' : '0',
 				min_offer: priceType === 'fixed' && minOffer !== '' ? String(minOffer) : undefined,
@@ -240,14 +327,20 @@
 				currency,
 				locale,
 				age_confirmed: ageConfirmed ? '1' : '0',
-				remove_image: removingExisting ? '1' : undefined
+				remove_image: removingExisting ? '1' : undefined,
+				used_preset_only: isBikes ? (usedPresetOnly ? '1' : '0') : undefined
 			};
 
 			let res: Response;
 			if (file) {
 				const form = new FormData();
 				Object.entries(requestPayload).forEach(([key, value]) => {
-					if (value !== undefined && value !== null) form.append(key, String(value));
+					if (value === undefined || value === null) return;
+					if (key === 'category_profile_data' && typeof value === 'object') {
+						form.append(key, JSON.stringify(value));
+						return;
+					}
+					form.append(key, String(value));
 				});
 				form.append('image', file);
 				res = await fetch(`/api/ads/${ad.id}`, { method: 'PATCH', body: form });
@@ -354,11 +447,11 @@
 
 		<ol class="steps" aria-label="Edit steps">
 			<li class:active={step === 1} class:done={step > 1}>
-			<button type="button" on:click={() => jumpTo(1)} aria-current={step === 1}>
-				<span class="num">1</span>
-				<span class="label">Details</span>
-			</button>
-		</li>
+				<button type="button" on:click={() => jumpTo(1)} aria-current={step === 1}>
+					<span class="num">1</span>
+					<span class="label">Details</span>
+				</button>
+			</li>
 			<li class:active={step === 2} class:done={step > 2}>
 				<button type="button" on:click={() => jumpTo(2)} aria-current={step === 2}>
 					<span class="num">2</span>
@@ -392,6 +485,14 @@
 					bind:firmPrice
 					bind:minOffer
 					bind:autoDeclineMessage
+					bind:bikeSubtype
+					bind:bikeType
+					bind:bikeCondition
+					bind:bikeSizePreset
+					bind:bikeSizeManual
+					bind:bikeSizeManualEdited
+					bind:titleManuallyEdited
+					bind:descriptionManuallyEdited
 					{loading}
 					{showErrors}
 				/>
@@ -415,6 +516,14 @@
 					bind:firmPrice
 					bind:minOffer
 					bind:autoDeclineMessage
+					bind:bikeSubtype
+					bind:bikeType
+					bind:bikeCondition
+					bind:bikeSizePreset
+					bind:bikeSizeManual
+					bind:bikeSizeManualEdited
+					bind:titleManuallyEdited
+					bind:descriptionManuallyEdited
 					{loading}
 					{showErrors}
 				/>
@@ -451,6 +560,14 @@
 					bind:firmPrice
 					bind:minOffer
 					bind:autoDeclineMessage
+					bind:bikeSubtype
+					bind:bikeType
+					bind:bikeCondition
+					bind:bikeSizePreset
+					bind:bikeSizeManual
+					bind:bikeSizeManualEdited
+					bind:titleManuallyEdited
+					bind:descriptionManuallyEdited
 					{loading}
 					{showErrors}
 				/>
@@ -510,11 +627,7 @@
 				</div>
 				<div class="preview-confirm">
 					<label class="checkbox">
-						<input
-							type="checkbox"
-							bind:checked={ageConfirmed}
-							disabled={loading}
-						/>
+						<input type="checkbox" bind:checked={ageConfirmed} disabled={loading} />
 						<span>I am 18 or older.</span>
 					</label>
 				</div>
