@@ -251,6 +251,21 @@
 - [x] Add e2e coverage for bike type/subtype branching, required kids size, and valid adult/electric Step 1 progression.
 - [x] Re-verify taxonomy accuracy and expand subtype lists (adult folding/touring/commuter/cargo/BMX, broader kids, road/gravel on electric).
 
+#### Part L - Surface presets in listings + smarter description assist
+
+- [ ] Add optional guided pills for each description prompt in Step 1:
+  - [ ] `Reason for selling`
+  - [ ] `How it has been used`
+  - [ ] `Known issues or maintenance needed`
+- [ ] Keep same 3-step flow (no extra step, no hard block); user can still type manually.
+- [ ] Decide interaction pattern (inline expand vs small popover) and keep it lightweight.
+- [ ] Store selected guided values in `category_profile_data` (optional fields) for reliable display later.
+- [ ] Render structured bike summary on ad detail page (e.g. type, subtype, condition, size, guided answers).
+- [ ] Render compact structured bike badges on listing cards (without clutter).
+- [ ] Keep non-bike cards/details unchanged.
+- [ ] Add unit tests for normalization of new optional guided fields.
+- [ ] Add e2e for guided pills -> payload -> listing/detail render path.
+
 ### Acceptance Criteria (definition of done)
 
 - 3-step flow remains exactly `Details -> Price -> Photo`.
