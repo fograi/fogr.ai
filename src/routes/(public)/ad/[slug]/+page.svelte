@@ -212,7 +212,7 @@
 				This ad has expired.
 			</div>
 		{/if}
-		<AdCardWide {...data.ad} showActions={false} />
+		<AdCardWide {...data.ad} showActions={false} showExpires={data.isOwner ?? false} />
 
 		<section class="action-rail" aria-label="Ad actions">
 			<button type="button" class="btn primary" on:click={share}>Share</button>

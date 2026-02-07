@@ -16,6 +16,7 @@
 	export let status: string | undefined = undefined;
 	export let expiresAt: string | undefined = undefined;
 	export let showActions = true;
+	export let showExpires = false;
 
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
@@ -130,7 +131,7 @@
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if description}<p class="desc">{description}</p>{/if}
-				{#if expiresLabel}
+				{#if expiresLabel && showExpires}
 					<p class="meta-line">
 						{status === 'expired' ? 'Expired on' : 'Expires on'} {expiresLabel}
 					</p>
@@ -159,7 +160,7 @@
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if description}<p class="desc">{description}</p>{/if}
-				{#if expiresLabel}
+				{#if expiresLabel && showExpires}
 					<p class="meta-line">
 						{status === 'expired' ? 'Expired on' : 'Expires on'} {expiresLabel}
 					</p>
