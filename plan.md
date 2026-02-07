@@ -217,18 +217,18 @@
   - [x] `bikeSizeSet`
   - [x] `usedPresetOnly` (deterministic using locked rule above)
 - [x] Ensure `offer_auto_declined` includes enough context to segment bikes vs non-bikes.
-- [ ] Add or document query path for:
-  - [ ] `% listings completed using presets only`
-  - [ ] `% listings with condition + size set`
-  - [ ] `% offers auto-declined by minimum price`
-  - [ ] `time to first serious message`
-  - [ ] `report rate per listing`
+- [x] Add or document query path for:
+  - [x] `% listings completed using presets only`
+  - [x] `% listings with condition + size set`
+  - [x] `% offers auto-declined by minimum price`
+  - [x] `time to first serious message`
+  - [x] `report rate per listing`
 
 #### Part I - Tests and verification
 
 - [x] Add/extend unit tests in `src/lib/server/ads-validation.spec.ts` for bikes profile validation rules.
 - [x] Update e2e tests for category label changes and bike flow happy path.
-- [ ] Add at least one e2e for bikes min-offer preset + auto-decline behavior.
+- [x] Add at least one e2e for bikes min-offer preset + auto-decline behavior.
 - [ ] Run `npm run test:unit -- --run`.
 - [ ] Run targeted e2e specs for post/edit/filtering flow.
 

@@ -130,6 +130,53 @@ test('electric bike with subtype, condition, and size can continue to price step
 	await expect(page.getByLabel('Price type')).toBeVisible();
 });
 
+test('bike min-offer preset submits expected offer rules payload', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Adult bike' }).click();
+	await page.getByRole('button', { name: 'Road' }).click();
+	await page.getByRole('button', { name: 'Used - good' }).click();
+	await page.getByRole('button', { name: 'M', exact: true }).click();
+	await page.fill('#title', 'Road bike - size M');
+	await page.fill(
+		'#description',
+		'Reason for selling: upgrading. How it has been used: weekly rides. Known issues: none.'
+	);
+	await page.getByRole('button', { name: 'Continue' }).click();
+
+	await page.fill('#price', '100');
+	await page.getByRole('button', { name: '70%' }).click();
+	await expect(page.locator('#min-offer')).toHaveValue('70');
+	await page.fill('#auto-decline', 'Thanks, minimum offer is 70 EUR.');
+
+	let createPayload = '';
+	await page.route('**/api/ads', async (route) => {
+		if (route.request().method() !== 'POST') return route.continue();
+		createPayload = route.request().postData() ?? '';
+		return route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				success: true,
+				id: 'e2e-ad-1',
+				message: 'Ad submitted successfully!'
+			})
+		});
+	});
+
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await page.getByRole('button', { name: 'Preview' }).click();
+	await page.getByLabel('I am 18 or older.').check();
+	await page.getByRole('button', { name: 'Post ad' }).click();
+	await expect(page).toHaveURL(/\/ad\/e2e-ad-1/);
+
+	expect(createPayload).toContain('name="category"');
+	expect(createPayload).toContain('Bikes');
+	expect(createPayload).toMatch(/name="min_offer"[\s\S]*\b70\b/);
+	expect(createPayload).toMatch(/name="auto_decline_message"[\s\S]*Thanks, minimum offer is 70 EUR\./);
+});
+
 test('navbar shows Post ad and Logout when signed in (mocked)', async ({ page }) => {
 	await page.goto('/post');
 	await expect(page.getByRole('link', { name: 'Post ad' })).toBeVisible();
