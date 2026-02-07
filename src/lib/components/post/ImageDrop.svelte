@@ -126,14 +126,80 @@
 		canvas.width = targetW;
 		canvas.height = targetH;
 		const processor = getPica();
-		await processor.resize(bitmap, canvas);
+
+		const toBlob = (sourceCanvas: HTMLCanvasElement, type: string, quality: number) =>
+			new Promise<Blob>((resolve, reject) => {
+				sourceCanvas.toBlob(
+					(blob) => (blob ? resolve(blob) : reject(new Error('Canvas export failed'))),
+					type,
+					quality
+				);
+			});
+
+		let useFallback = false;
+		let picaFailure: string | null = null;
+		try {
+			await processor.resize(bitmap as CanvasImageSource, canvas);
+		} catch (error) {
+			useFallback = true;
+			picaFailure = error instanceof Error ? error.message : 'Pica resize failed';
+		}
+
+		if (useFallback) {
+			const ctx = canvas.getContext('2d');
+			if (!ctx) {
+				if ('close' in bitmap) bitmap.close();
+				throw new Error(
+					picaFailure
+						? `Canvas is not available on this device (${picaFailure})`
+						: 'Canvas is not available on this device'
+				);
+			}
+			ctx.imageSmoothingEnabled = true;
+			ctx.imageSmoothingQuality = 'high';
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.drawImage(bitmap as CanvasImageSource, 0, 0, canvas.width, canvas.height);
+		}
+
 		if ('close' in bitmap) bitmap.close();
 
 		let quality = WEBP_QUALITY;
-		let blob = await processor.toBlob(canvas, 'image/webp', quality);
+		let blob: Blob;
+		try {
+			blob = useFallback
+				? await toBlob(canvas, 'image/webp', quality)
+				: await processor.toBlob(canvas, 'image/webp', quality);
+		} catch (error) {
+			if (!useFallback) {
+				try {
+					blob = await toBlob(canvas, 'image/webp', quality);
+					useFallback = true;
+				} catch (fallbackError) {
+					const fallbackDetail =
+						fallbackError instanceof Error && fallbackError.message
+							? fallbackError.message
+							: 'Image export failed';
+					if (picaFailure) {
+						throw new Error(`Pica failed (${picaFailure}). ${fallbackDetail}.`);
+					}
+					throw fallbackError instanceof Error
+						? fallbackError
+						: new Error(fallbackDetail);
+				}
+			} else {
+				const fallbackDetail =
+					error instanceof Error && error.message ? error.message : 'Image export failed';
+				if (picaFailure) {
+					throw new Error(`Pica failed (${picaFailure}). ${fallbackDetail}.`);
+				}
+				throw error instanceof Error ? error : new Error(fallbackDetail);
+			}
+		}
 		while (blob.size > MAX_IMAGE_SIZE && quality > WEBP_MIN_QUALITY) {
 			quality = Math.max(WEBP_MIN_QUALITY, Number((quality - 0.05).toFixed(2)));
-			blob = await processor.toBlob(canvas, 'image/webp', quality);
+			blob = useFallback
+				? await toBlob(canvas, 'image/webp', quality)
+				: await processor.toBlob(canvas, 'image/webp', quality);
 		}
 
 		return new File([blob], normalizeName(f.name), {
