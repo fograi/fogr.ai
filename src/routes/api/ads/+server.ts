@@ -33,7 +33,7 @@ const obscenity = new RegExpMatcher({
 
 const RATE_LIMIT_10M = 5;
 const RATE_LIMIT_DAY = 30;
-const ADS_PER_DAY = 1;
+const ADS_PER_DAY = 12;
 const WINDOW_10M_SECONDS = 10 * 60;
 const WINDOW_DAY_SECONDS = 24 * 60 * 60;
 const PUBLIC_AD_STATUS = 'active';
