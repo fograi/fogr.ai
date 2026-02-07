@@ -2,6 +2,7 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { catBase, catIcon } from '$lib/constants';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
+	import { formatPriceLabel } from '$lib/utils/price';
 
 	// Props
 	export let title: string;
@@ -19,18 +20,7 @@
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
 	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
-	$: displayedPrice =
-		price === null
-			? 'POA'
-			: price === 0 || category === 'Free / Giveaway'
-				? 'Free'
-				: typeof price === 'number'
-					? new Intl.NumberFormat(locale, {
-							style: 'currency',
-							currency,
-							maximumFractionDigits: 0
-						}).format(price)
-					: '';
+	$: displayedPrice = formatPriceLabel({ price, category, currency, locale });
 
 	$: expiresLabel = expiresAt
 		? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(expiresAt))
@@ -89,6 +79,11 @@
 		}
 	}
 
+	function handleKeydown(event: KeyboardEvent) {
+		if (!lightboxOpen) return;
+		if (event.key === 'Escape') closeLightbox();
+	}
+
 	async function share() {
 		try {
 			if (navigator.share) await navigator.share({ title, text: title, url: location.href });
@@ -98,6 +93,8 @@
 		}
 	}
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <article class="listing-wide">
 	<div class="content" class:no-media={!showImg}>
@@ -194,11 +191,6 @@
 </article>
 
 {#if lightboxOpen}
-	<svelte:window
-		on:keydown={(event) => {
-			if (event.key === 'Escape') closeLightbox();
-		}}
-	/>
 	<div
 		class="lightbox"
 		role="dialog"

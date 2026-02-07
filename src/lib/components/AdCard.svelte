@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
 	import { resolve } from '$app/paths';
-	import { hasPaidPrice } from '$lib/utils/price';
+	import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 
 	export let id: number | string;
 	export let title: string;
@@ -15,18 +15,7 @@
 	export let firmPrice = false;
 	export let minOffer: number | null = null;
 
-	$: priceLabel =
-		price === null
-			? 'POA'
-			: price === 0
-				? 'Free'
-				: typeof price === 'number'
-					? new Intl.NumberFormat(locale, {
-							style: 'currency',
-							currency,
-							maximumFractionDigits: 0
-						}).format(price)
-					: null;
+	$: priceLabel = formatPriceLabel({ price, category, currency, locale });
 
 	$: isPaidPrice = hasPaidPrice(price);
 	$: offerBadge =

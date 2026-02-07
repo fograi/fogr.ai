@@ -35,13 +35,21 @@
 			title.trim().length < MIN_TITLE_LENGTH ||
 			title.length > MAX_TITLE_LENGTH);
 	$: poaAllowed = category ? POA_CATEGORY_SET.has(category) : false;
+	$: isLostAndFound = category === 'Lost and Found';
+	$: rewardInvalid =
+		showErrors &&
+		isLostAndFound &&
+		price !== '' &&
+		(Number.isNaN(Number(price)) || Number(price) <= 0);
 	$: priceInvalid =
 		showErrors &&
+		!isLostAndFound &&
 		((priceType === 'fixed' &&
 			(price === '' || Number.isNaN(Number(price)) || Number(price) <= 0)) ||
 			(priceType === 'free' && Number(price) !== 0));
 	$: minOfferInvalid =
 		showErrors &&
+		!isLostAndFound &&
 		priceType === 'fixed' &&
 		!firmPrice &&
 		minOffer !== '' &&
@@ -120,6 +128,25 @@
 				</div>
 				<small class="muted">Need a price? Go back and choose another category.</small>
 			</div>
+		{:else if category === 'Lost and Found'}
+			<div class="row">
+				<div class="field">
+					<label for="reward">Reward (optional)</label>
+					<input
+						id="reward"
+						type="number"
+						min="1"
+						step="1"
+						inputmode="numeric"
+						pattern="[0-9]*"
+						bind:value={price}
+						disabled={loading}
+						placeholder="e.g., 50"
+						aria-invalid={showErrors ? rewardInvalid : undefined}
+					/>
+					<small class="muted">Optional. Leave blank if no reward is offered.</small>
+				</div>
+			</div>
 		{:else}
 			<div class="row">
 				<div class="field">
@@ -161,7 +188,7 @@
 			</div>
 		{/if}
 
-		{#if priceType === 'fixed'}
+		{#if priceType === 'fixed' && category !== 'Lost and Found'}
 			<div class="field">
 				<label class="checkbox">
 					<input type="checkbox" bind:checked={firmPrice} disabled={loading} />

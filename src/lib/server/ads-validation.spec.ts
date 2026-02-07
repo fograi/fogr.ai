@@ -71,6 +71,36 @@ describe('validateAdMeta (price rules)', () => {
 		});
 		expect(result).toBe('Do not enter a price for POA listings.');
 	});
+
+	it('accepts Lost and Found with no reward', () => {
+		const result = validateAdMeta({
+			category: 'Lost and Found',
+			currency: 'EUR',
+			priceStr: '',
+			priceType: 'fixed'
+		});
+		expect(result).toBeNull();
+	});
+
+	it('accepts Lost and Found with reward', () => {
+		const result = validateAdMeta({
+			category: 'Lost and Found',
+			currency: 'EUR',
+			priceStr: '50',
+			priceType: 'fixed'
+		});
+		expect(result).toBeNull();
+	});
+
+	it('rejects Lost and Found reward at 0', () => {
+		const result = validateAdMeta({
+			category: 'Lost and Found',
+			currency: 'EUR',
+			priceStr: '0',
+			priceType: 'fixed'
+		});
+		expect(result).toBe('Reward must be greater than 0.');
+	});
 });
 
 describe('validateAdImages (min photos)', () => {

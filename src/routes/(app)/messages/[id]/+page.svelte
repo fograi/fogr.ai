@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatPriceLabel } from '$lib/utils/price';
 
 	type MessageView = {
 		id: string;
@@ -74,18 +75,14 @@
 			new Date(iso)
 		);
 
-	const formatPrice = () => {
-		const price = data.conversation.adPrice;
-		const category = data.conversation.adCategory ?? '';
-		const currency = data.conversation.adCurrency ?? 'EUR';
-		if (price === null) return 'POA';
-		if (price === 0 || category === 'Free / Giveaway') return 'Free';
-		return new Intl.NumberFormat('en-IE', {
-			style: 'currency',
-			currency,
-			maximumFractionDigits: 0
-		}).format(price);
-	};
+	const formatPrice = () =>
+		formatPriceLabel({
+			price: data.conversation.adPrice,
+			category: data.conversation.adCategory,
+			currency: data.conversation.adCurrency ?? 'EUR',
+			locale: 'en-IE',
+			showRewardWhenMissing: true
+		});
 
 	async function send() {
 		err = '';

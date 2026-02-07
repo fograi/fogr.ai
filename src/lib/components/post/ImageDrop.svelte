@@ -7,6 +7,7 @@
 		type PriceType
 	} from '$lib/constants';
 	import pica from 'pica';
+	import { formatPriceLabel } from '$lib/utils/price';
 
 	// two-way bind from parent
 	export let file: File | null = null;
@@ -161,17 +162,12 @@
 	}
 
 	$: formatted =
-		priceType === 'poa'
-			? 'POA'
-			: priceType === 'free' || Number(price) === 0
-				? 'Free'
-				: price !== ''
-					? new Intl.NumberFormat(locale, {
-							style: 'currency',
-							currency,
-							maximumFractionDigits: 0
-						}).format(Number(price))
-					: '';
+		formatPriceLabel({
+			price: price === '' ? null : Number(price),
+			category,
+			currency,
+			locale
+		});
 </script>
 
 <div

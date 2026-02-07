@@ -350,6 +350,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		};
 
 		const category = readString('category') || '';
+		const isLostAndFound = category.trim() === 'Lost and Found';
 		const title = readString('title') || '';
 		const description = readString('description') || '';
 		const priceStr = readString('price');
@@ -395,13 +396,15 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 	const imageError = validateAdImages({ category, imageCount });
 	if (imageError) return errorResponse(imageError, 400);
 
-	const offerError = validateOfferRules({
-		priceType,
-		priceStr,
-		firmPrice,
-		minOfferStr
-	});
-	if (offerError) return errorResponse(offerError, 400);
+		if (!isLostAndFound) {
+			const offerError = validateOfferRules({
+				priceType,
+				priceStr,
+				firmPrice,
+				minOfferStr
+			});
+			if (offerError) return errorResponse(offerError, 400);
+		}
 
 	if (title.length < MIN_TITLE_LENGTH) return errorResponse('Title too short.', 400);
 	if (title.length > MAX_TITLE_LENGTH) return errorResponse('Title too long.', 413);
@@ -416,9 +419,18 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 	}
 
 	const normalizedPriceType = priceType?.toLowerCase();
-	const price = normalizedPriceType === 'poa' ? null : Number(priceStr ?? 0);
+	const price = isLostAndFound
+		? priceStr && priceStr.trim() !== ''
+			? Number(priceStr)
+			: null
+		: normalizedPriceType === 'poa'
+			? null
+			: Number(priceStr ?? 0);
 	const minOffer =
-		normalizedPriceType === 'fixed' && minOfferStr && minOfferStr.trim() !== ''
+		!isLostAndFound &&
+		normalizedPriceType === 'fixed' &&
+		minOfferStr &&
+		minOfferStr.trim() !== ''
 			? Number(minOfferStr)
 			: null;
 
@@ -520,8 +532,12 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		}
 	}
 
-		const firmPriceValue = normalizedPriceType === 'fixed' ? firmPrice : true;
-		const minOfferValue = normalizedPriceType === 'fixed' ? minOffer : null;
+		const firmPriceValue = isLostAndFound
+			? false
+			: normalizedPriceType === 'fixed'
+				? firmPrice
+				: true;
+		const minOfferValue = isLostAndFound ? null : normalizedPriceType === 'fixed' ? minOffer : null;
 
 		stage = 'update';
 		const { error: updateError } = await locals.supabase
@@ -535,7 +551,9 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 				firm_price: firmPriceValue,
 				min_offer: minOfferValue,
 				auto_decline_message:
-					normalizedPriceType === 'fixed' && (firmPriceValue || minOfferValue !== null)
+					!isLostAndFound &&
+					normalizedPriceType === 'fixed' &&
+					(firmPriceValue || minOfferValue !== null)
 						? autoDeclineMessage
 						: null,
 				image_keys: nextImageKeys,

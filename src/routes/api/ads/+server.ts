@@ -283,6 +283,7 @@ export const POST: RequestHandler = async (event) => {
 		const category = form.get('category')?.toString() || '';
 		const title = form.get('title')?.toString() || '';
 		const description = form.get('description')?.toString() || '';
+		const isLostAndFound = category.trim() === 'Lost and Found';
 		const priceStr = form.get('price')?.toString() ?? null;
 		const priceType = form.get('price_type')?.toString() ?? null;
 		const firmPrice = form.get('firm_price')?.toString() === '1';
@@ -337,18 +338,28 @@ export const POST: RequestHandler = async (event) => {
 		if (metaError) return errorResponse(metaError, 400, requestId);
 		const imageError = validateAdImages({ category, imageCount: files.length });
 		if (imageError) return errorResponse(imageError, 400, requestId);
-		const offerError = validateOfferRules({
-			priceType,
-			priceStr,
-			firmPrice,
-			minOfferStr
-		});
-		if (offerError) return errorResponse(offerError, 400, requestId);
+		if (!isLostAndFound) {
+			const offerError = validateOfferRules({
+				priceType,
+				priceStr,
+				firmPrice,
+				minOfferStr
+			});
+			if (offerError) return errorResponse(offerError, 400, requestId);
+		}
 		const normalizedPriceType = priceType?.toLowerCase();
-		const price =
-			normalizedPriceType === 'poa' ? null : Number(priceStr ?? 0);
+		const price = isLostAndFound
+			? priceStr && priceStr.trim() !== ''
+				? Number(priceStr)
+				: null
+			: normalizedPriceType === 'poa'
+				? null
+				: Number(priceStr ?? 0);
 		const minOffer =
-			normalizedPriceType === 'fixed' && minOfferStr && minOfferStr.trim() !== ''
+			!isLostAndFound &&
+			normalizedPriceType === 'fixed' &&
+			minOfferStr &&
+			minOfferStr.trim() !== ''
 				? Number(minOfferStr)
 				: null;
 
@@ -447,6 +458,17 @@ export const POST: RequestHandler = async (event) => {
 
 		const status = moderationUnavailable ? 'pending' : PUBLIC_AD_STATUS;
 
+		const firmPriceValue = isLostAndFound
+			? false
+			: normalizedPriceType === 'fixed'
+				? firmPrice
+				: true;
+		const minOfferValue = isLostAndFound ? null : normalizedPriceType === 'fixed' ? minOffer : null;
+		const autoDeclineValue =
+			!isLostAndFound && normalizedPriceType === 'fixed' && (firmPriceValue || minOfferValue !== null)
+				? autoDeclineMessage
+				: null;
+
 		// === NEW === 1) Insert row first to get id
 		const { data: inserted, error: insErr } = await locals.supabase
 			.from('ads')
@@ -460,9 +482,9 @@ export const POST: RequestHandler = async (event) => {
 				image_keys: [],
 				email,
 				status,
-				firm_price: normalizedPriceType === 'fixed' ? firmPrice : true,
-				min_offer: normalizedPriceType === 'fixed' ? minOffer : null,
-				auto_decline_message: autoDeclineMessage
+				firm_price: firmPriceValue,
+				min_offer: minOfferValue,
+				auto_decline_message: autoDeclineValue
 			})
 			.select('id')
 			.single();

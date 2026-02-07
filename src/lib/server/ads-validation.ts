@@ -34,7 +34,15 @@ export function validateAdMeta({
 	const priceType = normalizePriceType(priceTypeRaw);
 	const cat = category as Category;
 	const isFreeCategory = cat === 'Free / Giveaway';
+	const isLostAndFound = cat === 'Lost and Found';
 	const allowsPoa = POA_CATEGORY_SET.has(cat);
+
+	if (isLostAndFound) {
+		if (!priceStr || priceStr.trim() === '') return null;
+		const reward = Number(priceStr);
+		if (!Number.isFinite(reward) || reward <= 0) return 'Reward must be greater than 0.';
+		return null;
+	}
 
 	if (priceType === 'poa') {
 		if (!allowsPoa) return 'Price on application is not available for this category.';

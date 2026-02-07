@@ -39,13 +39,20 @@
 	let debounce: number | undefined;
 
 	// derived
+	$: isLostAndFound = category === 'Lost and Found';
 	$: if (category === 'Free / Giveaway' && priceType !== 'free') priceType = 'free';
+	$: if (isLostAndFound && priceType !== 'fixed') priceType = 'fixed';
 	$: if (priceType === 'poa' && category && !POA_CATEGORY_SET.has(category)) priceType = 'fixed';
 	$: if (priceType === 'free' && price !== 0) price = 0;
 	$: if (priceType === 'poa') price = '';
 	$: if (priceType === 'fixed' && price === 0) price = '';
 	$: if (priceType !== 'fixed') {
 		firmPrice = true;
+		minOffer = '';
+		autoDeclineMessage = '';
+	}
+	$: if (isLostAndFound) {
+		firmPrice = false;
 		minOffer = '';
 		autoDeclineMessage = '';
 	}
@@ -96,6 +103,12 @@
 	}
 
 	function validateDetails() {
+		if (category === 'Lost and Found') {
+			if (price === '') return '';
+			const reward = Number(price);
+			if (Number.isNaN(reward) || reward <= 0) return 'Reward must be greater than 0.';
+			return '';
+		}
 		if (priceType === 'poa' && category && !POA_CATEGORY_SET.has(category)) {
 			return 'Price on application is not available for this category.';
 		}

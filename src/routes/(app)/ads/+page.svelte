@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
+	import { formatPriceLabel } from '$lib/utils/price';
 
 	type AdRow = {
 		id: string;
@@ -45,15 +46,14 @@
 	);
 	$: filteredAds = filter === 'all' ? ads : ads.filter((ad) => ad.status === filter);
 
-	const formatPrice = (ad: AdRow) => {
-		if (ad.price === null) return 'POA';
-		if (ad.price === 0 || ad.category === 'Free / Giveaway') return 'Free';
-		return new Intl.NumberFormat('en-IE', {
-			style: 'currency',
+	const formatPrice = (ad: AdRow) =>
+		formatPriceLabel({
+			price: ad.price,
+			category: ad.category,
 			currency: ad.currency ?? 'EUR',
-			maximumFractionDigits: 0
-		}).format(ad.price);
-	};
+			locale: 'en-IE',
+			showRewardWhenMissing: true
+		});
 
 	const formatDate = (iso?: string | null) =>
 		iso
