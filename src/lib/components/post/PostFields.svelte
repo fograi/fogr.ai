@@ -134,27 +134,30 @@
 					</select>
 				</div>
 				<div class="field">
-					<label for="price">
-						Price
-						{#if priceType === 'free'}
-							<span class="muted">(shown as Free)</span>
-						{:else if priceType === 'poa'}
-							<span class="muted">(shown as POA)</span>
+					{#if priceType === 'fixed'}
+						<label for="price">Price</label>
+					{:else}
+						<span class="price-label">Price</span>
+					{/if}
+					<div class="price-slot">
+						{#if priceType === 'fixed'}
+							<input
+								id="price"
+								type="number"
+								min="0"
+								step="1"
+								inputmode="numeric"
+								pattern="[0-9]*"
+								bind:value={price}
+								required
+								disabled={loading}
+								placeholder="e.g., 50"
+								aria-invalid={showErrors ? priceInvalid : undefined}
+							/>
+						{:else}
+							<span class="price-badge">{priceType === 'free' ? 'Free' : 'POA'}</span>
 						{/if}
-					</label>
-					<input
-						id="price"
-						type="number"
-						min="0"
-						step="1"
-						inputmode="numeric"
-						pattern="[0-9]*"
-						bind:value={price}
-						required={priceType === 'fixed'}
-						disabled={priceType !== 'fixed' || loading}
-						placeholder={priceType === 'fixed' ? 'e.g., 50' : '—'}
-						aria-invalid={showErrors ? priceInvalid : undefined}
-					/>
+					</div>
 				</div>
 			</div>
 		{/if}
@@ -301,6 +304,9 @@
 	label {
 		font-weight: 700;
 	}
+	.price-label {
+		font-weight: 700;
+	}
 	input,
 	select,
 	textarea {
@@ -314,5 +320,24 @@
 	}
 	.muted {
 		color: color-mix(in srgb, var(--fg) 55%, transparent);
+	}
+	.price-slot {
+		min-height: 44px;
+		display: flex;
+		align-items: center;
+		width: 100%;
+	}
+	.price-slot input {
+		width: 100%;
+	}
+	.price-badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 6px 10px;
+		border-radius: 4px;
+		font-weight: 900;
+		background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+		color: var(--fg);
 	}
 </style>
