@@ -41,6 +41,23 @@ test('post page allows submitting a listing with mocked API', async ({ page }) =
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
 });
 
+test('bike subtype resets when bike type changes to a different branch', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Kids bike' }).click();
+	await page.getByRole('button', { name: 'Balance' }).click();
+	await page.getByRole('button', { name: 'Used - good' }).click();
+	await page.getByRole('button', { name: '6-8', exact: true }).click();
+
+	// Switch to a different bike type; previously chosen kids-only subtype must not carry over.
+	await page.getByRole('button', { name: 'Adult bike' }).click();
+
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await expect(page.getByText('Bike subtype is required.')).toBeVisible();
+	await expect(page.getByText('Choose a bike subtype.')).toBeVisible();
+});
+
 test('navbar shows Post ad and Logout when signed in (mocked)', async ({ page }) => {
 	await page.goto('/post');
 	await expect(page.getByRole('link', { name: 'Post ad' })).toBeVisible();
