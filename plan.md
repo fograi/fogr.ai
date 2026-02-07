@@ -98,13 +98,24 @@
 - Keep core flow and component structure.
 - Move category handling toward configuration-first design.
 - Introduce a reusable category profile config (Bikes is first profile).
-- Persist bike structured fields in generic profile data (not one-off hardcoded columns for each bike attribute).
+- Persist bike structured fields in generic profile data JSON (not one-off hardcoded columns for each bike attribute).
+- Use a single profile payload field in `ads` (`category_profile_data` JSONB) with a stable schema.
+- Avoid redundant storage where possible (no separate profile-type column unless proven necessary later).
 - Because data is test-only, we can change category labeling directly to `Bikes` where needed instead of building legacy compatibility layers.
 
 ### Category Profile Design (target shape)
 
-- Profile key: `bikes`.
 - Trigger condition: listing category is `Bikes`.
+- Stored profile shape (v1) in `category_profile_data`:
+  - `version: 1`
+  - `profile: "bikes"`
+  - `subtype: "adult" | "kids" | "electric"`
+  - `bikeType: "road" | "mountain" | "hybrid" | "gravel" | "electric" | "kids" | "other"`
+  - `condition: "new" | "like_new" | "used_good" | "used_fair" | "needs_work"`
+  - `sizePreset?: "XS" | "S" | "M" | "L" | "XL" | "3-5" | "6-8" | "9-12"`
+  - `sizeManual?: string`
+  - `titleAutoFilled?: boolean`
+  - `descriptionTemplateUsed?: boolean`
 - Required bike fields:
   - subtype: `adult | kids | electric`
   - condition: `new | like_new | used_good | used_fair | needs_work`
@@ -113,23 +124,35 @@
   - size:
     - adult: `XS | S | M | L | XL` or manual text
     - kids: age range presets (example `3-5`, `6-8`, `9-12`)
+- Required size rules (locked):
+  - adult/electric: require `sizePreset` OR `sizeManual`
+  - kids: require kids age-range `sizePreset`
 - Derived assistance:
   - title prefill from presets (editable)
   - description prompt template prefill (editable)
+- Metrics rule (locked) for `usedPresetOnly`:
+  - true only when no manual edits are made to title/description/sizeManual after initial preset/template fill.
 
 ### Delivery Plan (parts + checkboxes)
 
 #### Part A - Category foundation + config
 
 - [ ] Add `Bikes` category to `src/lib/constants.ts` and update category color map.
-- [ ] Remove/replace legacy `Sports & Bikes` references in UI/test fixtures since we are test-data only.
+- [ ] Remove/replace legacy `Sports & Bikes` references in:
+  - [ ] `src/lib/constants.ts`
+  - [ ] `src/lib/icons.ts`
+  - [ ] mock data/fixtures
+  - [ ] e2e expectations (`e2e/home.test.ts` and any related tests)
+  - [ ] any search/filter category labels
 - [ ] Add/update category icon mapping in `src/lib/icons.ts` for `Bikes`.
 - [ ] Introduce a new config module for category profiles (example path: `src/lib/category-profiles.ts`) containing bike presets and rules.
 - [ ] Wire constants/helpers so bike checks use config, not scattered string comparisons.
 
 #### Part B - Data model + typing
 
-- [ ] Create new Supabase migration adding generic profile storage fields to `ads` (example: `category_profile` + `category_profile_data` JSONB).
+- [ ] Create new Supabase migration adding a generic profile storage field to `ads`:
+  - [ ] `category_profile_data JSONB NULL`
+- [ ] Add optional GIN index on `category_profile_data` if query patterns require profile filtering at scale.
 - [ ] Update `src/lib/supabase.types.ts` for new fields.
 - [ ] Keep fields optional so non-bike listings remain valid.
 
@@ -188,7 +211,7 @@
   - [ ] `bikeSubtype`
   - [ ] `bikeConditionSet`
   - [ ] `bikeSizeSet`
-  - [ ] `usedPresetOnly` (best-effort boolean)
+  - [ ] `usedPresetOnly` (deterministic using locked rule above)
 - [ ] Ensure `offer_auto_declined` includes enough context to segment bikes vs non-bikes.
 - [ ] Add or document query path for:
   - [ ] `% listings completed using presets only`
