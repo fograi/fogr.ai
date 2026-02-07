@@ -248,6 +248,7 @@
 - [x] Drive second-level options from selected bike type via config map.
 - [x] Update bike profile validation to enforce valid type/subtype combinations.
 - [x] Add unit coverage for missing subtype and invalid type/subtype combinations.
+- [x] Add e2e coverage for bike type/subtype branching, required kids size, and valid adult/electric Step 1 progression.
 
 ### Acceptance Criteria (definition of done)
 

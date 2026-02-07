@@ -58,6 +58,78 @@ test('bike subtype resets when bike type changes to a different branch', async (
 	await expect(page.getByText('Choose a bike subtype.')).toBeVisible();
 });
 
+test('bike subtype options are scoped to selected bike type', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Kids bike' }).click();
+	await expect(page.getByRole('button', { name: 'Balance' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Road' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Commuter' })).toHaveCount(0);
+
+	await page.getByRole('button', { name: 'Adult bike' }).click();
+	await expect(page.getByRole('button', { name: 'Road' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Balance' })).toHaveCount(0);
+
+	await page.getByRole('button', { name: 'Electric bike' }).click();
+	await expect(page.getByRole('button', { name: 'Commuter' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Road' })).toHaveCount(0);
+});
+
+test('kids bike requires age-range size before continuing', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Kids bike' }).click();
+	await page.getByRole('button', { name: 'Balance' }).click();
+	await page.getByRole('button', { name: 'Used - good' }).click();
+	await page.fill('#title', 'Kids balance bike');
+	await page.fill(
+		'#description',
+		'Reason for selling: outgrown. How it has been used: light school runs. Known issues: none.'
+	);
+
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await expect(page.getByText('Kids bikes must include an age range.')).toBeVisible();
+	await expect(page.getByText('Add a size.')).toBeVisible();
+});
+
+test('adult bike with subtype, condition, and size can continue to price step', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Adult bike' }).click();
+	await page.getByRole('button', { name: 'Road' }).click();
+	await page.getByRole('button', { name: 'Used - good' }).click();
+	await page.getByRole('button', { name: 'M', exact: true }).click();
+	await page.fill('#title', 'Road bike - size M');
+	await page.fill(
+		'#description',
+		'Reason for selling: upgrading. How it has been used: weekend rides. Known issues: light cosmetic marks.'
+	);
+
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await expect(page.getByLabel('Price type')).toBeVisible();
+});
+
+test('electric bike with subtype, condition, and size can continue to price step', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Electric bike' }).click();
+	await page.getByRole('button', { name: 'Commuter' }).click();
+	await page.getByRole('button', { name: 'Like new' }).click();
+	await page.getByRole('button', { name: 'L', exact: true }).click();
+	await page.fill('#title', 'Electric commuter bike - size L');
+	await page.fill(
+		'#description',
+		'Reason for selling: moving away. How it has been used: city commuting. Known issues: battery replaced last year.'
+	);
+
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await expect(page.getByLabel('Price type')).toBeVisible();
+});
+
 test('navbar shows Post ad and Logout when signed in (mocked)', async ({ page }) => {
 	await page.goto('/post');
 	await expect(page.getByRole('link', { name: 'Post ad' })).toBeVisible();
