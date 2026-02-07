@@ -39,7 +39,9 @@ export const load: PageServerLoad = async ({ params, fetch, locals }) => {
 		category: ad.category,
 		currency: ad.currency ?? undefined,
 		status: ad.status,
-		expiresAt: ad.expires_at ?? undefined
+		expiresAt: ad.expires_at ?? undefined,
+		firmPrice: ad.firm_price ?? false,
+		minOffer: ad.min_offer ?? null
 	};
 
 	return {

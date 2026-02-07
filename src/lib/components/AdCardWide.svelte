@@ -2,7 +2,7 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { catBase } from '$lib/constants';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
-	import { formatPriceLabel } from '$lib/utils/price';
+import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 	import { CATEGORY_ICON_MAP, DefaultCategoryIcon, ShareIcon } from '$lib/icons';
 
 	// Props
@@ -18,11 +18,22 @@
 	export let expiresAt: string | undefined = undefined;
 	export let showActions = true;
 	export let showExpires = false;
+	export let firmPrice = false;
+	export let minOffer: number | null = null;
 
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
 	$: bannerIcon = CATEGORY_ICON_MAP[category?.trim?.() ?? ''] ?? DefaultCategoryIcon;
 	$: displayedPrice = formatPriceLabel({ price, category, currency, locale });
+	$: isPaidPrice = hasPaidPrice(price);
+	$: offerBadge =
+		isPaidPrice
+			? firmPrice
+				? 'Firm price'
+				: typeof minOffer === 'number' && minOffer > 0
+					? 'Offers'
+					: ''
+			: '';
 
 	$: expiresLabel = expiresAt
 		? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(expiresAt))
@@ -130,6 +141,11 @@
 			<!-- Text meta beside/under the image -->
 			<div class="meta">
 				<h3 class="title--standalone">{title}</h3>
+				{#if offerBadge}
+					<div class="badges">
+						<span class={`badge ${firmPrice ? 'firm' : 'offers'}`}>{offerBadge}</span>
+					</div>
+				{/if}
 				{#if !showActions && displayedPrice}
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
@@ -166,6 +182,11 @@
 				</div>
 
 				<h3 class="title--standalone">{title}</h3>
+				{#if offerBadge}
+					<div class="badges">
+						<span class={`badge ${firmPrice ? 'firm' : 'offers'}`}>{offerBadge}</span>
+					</div>
+				{/if}
 				{#if !showActions && displayedPrice}
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
@@ -337,6 +358,26 @@
 		display: grid;
 		gap: 8px; /* reduce gap between title/desc/buttons */
 		align-content: start; /* prevent centering in tall column */
+	}
+	.badges {
+		display: flex;
+		justify-content: center;
+	}
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 10px;
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 800;
+		letter-spacing: 0.01em;
+		text-transform: uppercase;
+		border: 1px solid var(--hairline);
+		background: color-mix(in srgb, var(--fg) 8%, var(--bg));
+	}
+	.badge.firm {
+		background: color-mix(in srgb, var(--fg) 16%, var(--bg));
 	}
 	.desc {
 		margin: 0;
