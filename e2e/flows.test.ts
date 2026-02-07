@@ -290,8 +290,8 @@ test('ad detail page renders with mocked data', async ({ page }) => {
 	await expect(page.getByText('Road')).toBeVisible();
 	await expect(page.getByText('Used - good')).toBeVisible();
 	await expect(page.getByText('Size M')).toBeVisible();
-	await expect(page.getByText('Reason for selling')).toBeVisible();
-	await expect(page.getByText('Upgrading bike')).toBeVisible();
+	await expect(page.getByText('Reason for selling', { exact: true })).toBeVisible();
+	await expect(page.getByText('Upgrading bike', { exact: true })).toBeVisible();
 });
 
 test('report form submits and shows reference', async ({ page }) => {
