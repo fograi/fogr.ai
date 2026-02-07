@@ -246,6 +246,37 @@ test('bike description assist pills populate profile payload', async ({ page }) 
 	expect(createPayload).toContain('No known issues');
 });
 
+test('bike description assist keeps sub-pill and custom input in sync across prompts', async ({
+	page
+}) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: /Reason for selling/i }).click();
+	const reasonInput = page.locator('#bike-assist-reasonForSelling');
+	await expect(reasonInput).toBeVisible();
+
+	await page.getByRole('button', { name: 'Upgrading bike' }).click();
+	await expect(reasonInput).toHaveValue('Upgrading bike');
+
+	await reasonInput.fill('Upgrading bike and moving away');
+	await expect(reasonInput).toHaveValue('Upgrading bike and moving away');
+	await expect(page.locator('#description')).toHaveValue(
+		/Reason for selling: Upgrading bike and moving away/
+	);
+
+	await page.getByRole('button', { name: /How it has been used/i }).click();
+	const usageInput = page.locator('#bike-assist-usageSummary');
+	await expect(usageInput).toBeVisible();
+	await expect(usageInput).toHaveValue('');
+
+	await page.getByRole('button', { name: 'Weekend rides' }).click();
+	await expect(usageInput).toHaveValue('Weekend rides');
+
+	await page.getByRole('button', { name: /Reason for selling/i }).click();
+	await expect(reasonInput).toHaveValue('Upgrading bike and moving away');
+});
+
 test('navbar shows Post ad and Logout when signed in (mocked)', async ({ page }) => {
 	await page.goto('/post');
 	await expect(page.getByRole('link', { name: 'Post ad' })).toBeVisible();

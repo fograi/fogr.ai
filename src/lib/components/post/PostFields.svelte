@@ -126,9 +126,17 @@
 	$: activeDescriptionAssistPrompt =
 		BIKE_DESCRIPTION_ASSIST_PROMPTS.find((prompt) => prompt.key === descriptionAssistOpenKey) ??
 		null;
-	$: assistCustomValue = activeDescriptionAssistPrompt
-		? getBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key)
-		: '';
+	$: {
+		if (!activeDescriptionAssistPrompt) {
+			assistCustomValue = '';
+		} else if (activeDescriptionAssistPrompt.key === 'reasonForSelling') {
+			assistCustomValue = bikeReasonForSelling;
+		} else if (activeDescriptionAssistPrompt.key === 'usageSummary') {
+			assistCustomValue = bikeUsageSummary;
+		} else {
+			assistCustomValue = bikeKnownIssues;
+		}
+	}
 
 	function pickBikeSubtype(nextSubtype: BikeSubtype) {
 		bikeSubtype = nextSubtype;
