@@ -121,11 +121,14 @@
 		(!description.trim() ||
 			description.trim().length < MIN_DESC_LENGTH ||
 			description.length > MAX_DESC_LENGTH);
+	let descriptionAssistOpenKey: BikeDescriptionAssistKey | '' = '';
+	let assistCustomValue = '';
 	$: activeDescriptionAssistPrompt =
 		BIKE_DESCRIPTION_ASSIST_PROMPTS.find((prompt) => prompt.key === descriptionAssistOpenKey) ??
 		null;
-
-	let descriptionAssistOpenKey: BikeDescriptionAssistKey | '' = '';
+	$: assistCustomValue = activeDescriptionAssistPrompt
+		? getBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key)
+		: '';
 
 	function pickBikeSubtype(nextSubtype: BikeSubtype) {
 		bikeSubtype = nextSubtype;
@@ -168,7 +171,7 @@
 	}
 
 	function setBikeDescriptionAssistValue(key: BikeDescriptionAssistKey, value: string) {
-		const normalized = value.trim().slice(0, BIKE_GUIDED_FIELD_MAX_LENGTH);
+		const normalized = value.slice(0, BIKE_GUIDED_FIELD_MAX_LENGTH);
 		if (key === 'reasonForSelling') bikeReasonForSelling = normalized;
 		else if (key === 'usageSummary') bikeUsageSummary = normalized;
 		else bikeKnownIssues = normalized;
@@ -371,7 +374,7 @@
 							<input
 								id={`bike-assist-${activeDescriptionAssistPrompt.key}`}
 								type="text"
-								value={getBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key)}
+								bind:value={assistCustomValue}
 								maxlength={BIKE_GUIDED_FIELD_MAX_LENGTH}
 								disabled={loading}
 								placeholder="Or write your own short detail"
