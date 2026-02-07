@@ -357,7 +357,6 @@
 							role="region"
 							aria-label={activeDescriptionAssistPrompt.label}
 						>
-							<p class="assist-title">{activeDescriptionAssistPrompt.label}</p>
 							<div
 								class="pill-row"
 								role="group"
@@ -675,10 +674,6 @@
 		display: grid;
 		gap: 8px;
 		background: color-mix(in srgb, var(--fg) 5%, var(--surface));
-	}
-	.assist-title {
-		margin: 0;
-		font-weight: 700;
 	}
 	.assist-actions {
 		display: flex;

@@ -209,9 +209,9 @@ test('bike description assist pills populate profile payload', async ({ page }) 
 	await page.getByRole('button', { name: 'Done' }).click();
 
 	const generatedDescription = await page.locator('#description').inputValue();
-	expect(generatedDescription).toContain('Reason for selling: Upgrading bike');
-	expect(generatedDescription).toContain('How it has been used: Weekend rides');
-	expect(generatedDescription).toContain('Known issues or maintenance needed: No known issues');
+	expect(generatedDescription).toContain("Selling because I'm upgrading to another bike.");
+	expect(generatedDescription).toContain('Used mainly for weekend rides.');
+	expect(generatedDescription).toContain('No known issues to note.');
 
 	await page.getByRole('button', { name: 'Continue' }).click();
 	await page.fill('#price', '120');
@@ -262,7 +262,7 @@ test('bike description assist keeps sub-pill and custom input in sync across pro
 	await reasonInput.fill('Upgrading bike and moving away');
 	await expect(reasonInput).toHaveValue('Upgrading bike and moving away');
 	await expect(page.locator('#description')).toHaveValue(
-		/Reason for selling: Upgrading bike and moving away/
+		/Selling because upgrading bike and moving away\./
 	);
 
 	await page.getByRole('button', { name: /How it has been used/i }).click();

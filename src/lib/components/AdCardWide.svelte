@@ -2,7 +2,11 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { catBase } from '$lib/constants';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
-	import { getBikeProfileSummary, isBikesCategory } from '$lib/category-profiles';
+	import {
+		buildBikeNarrativeSummary,
+		getBikeProfileSummary,
+		isBikesCategory
+	} from '$lib/category-profiles';
 	import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 	import { CATEGORY_ICON_MAP, DefaultCategoryIcon, ShareIcon } from '$lib/icons';
 
@@ -47,6 +51,15 @@
 				bikeSummary.sizeLabel
 			].filter((value): value is string => !!value)
 		: [];
+	$: bikeNarrative = bikeSummary
+		? bikeSummary.narrativeSummary ||
+			buildBikeNarrativeSummary({
+				reasonForSelling: bikeSummary.reasonForSelling,
+				usageSummary: bikeSummary.usageSummary,
+				knownIssues: bikeSummary.knownIssues
+			})
+		: '';
+	$: displayDescription = bikeNarrative || description;
 
 	$: expiresLabel = expiresAt
 		? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(expiresAt))
@@ -162,7 +175,7 @@
 				{#if !showActions && displayedPrice}
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
-				{#if description}<p class="desc">{description}</p>{/if}
+				{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
 				{#if bikeChips.length > 0}
 					<div class="bike-chips" aria-label="Bike highlights">
 						{#each bikeChips as chip (chip)}
@@ -233,7 +246,7 @@
 				{#if !showActions && displayedPrice}
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
-				{#if description}<p class="desc">{description}</p>{/if}
+				{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
 				{#if bikeChips.length > 0}
 					<div class="bike-chips" aria-label="Bike highlights">
 						{#each bikeChips as chip (chip)}

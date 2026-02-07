@@ -155,6 +155,7 @@ export type BikeProfileSummary = {
 	reasonForSelling?: string;
 	usageSummary?: string;
 	knownIssues?: string;
+	narrativeSummary: string;
 };
 
 const bikeSubtypeSet = new Set<string>(BIKE_SUBTYPES);
@@ -196,6 +197,30 @@ const BIKE_CONDITION_DISPLAY_LABEL: Record<BikeCondition, string> = {
 	needs_work: 'Needs work'
 };
 
+const BIKE_REASON_NARRATIVE_MAP: Record<string, string> = {
+	'upgrading bike': "I'm upgrading to another bike",
+	'not using it enough': "it isn't getting enough use",
+	'child outgrew it': 'it has been outgrown',
+	'moving away': "I'm moving away",
+	'too small or too big now': 'the size no longer suits me'
+};
+
+const BIKE_USAGE_NARRATIVE_MAP: Record<string, string> = {
+	'weekend rides': 'weekend rides',
+	'daily commuting': 'daily commuting',
+	'school runs': 'school runs',
+	'light trail riding': 'light trail riding',
+	'occasional use only': 'occasional use'
+};
+
+const BIKE_ISSUES_NARRATIVE_MAP: Record<string, string> = {
+	'no known issues': 'No known issues to note.',
+	'minor cosmetic scratches': 'There are minor cosmetic scratches.',
+	'needs brake tune-up': 'It needs a brake tune-up.',
+	'needs new tyres soon': 'It will likely need new tyres soon.',
+	'recently serviced': 'It was recently serviced.'
+};
+
 const isObject = (value: unknown): value is Record<string, unknown> =>
 	typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -211,6 +236,41 @@ const asOptionalGuidedValue = (value: unknown) => {
 	if (!trimmed) return undefined;
 	return trimmed.slice(0, BIKE_GUIDED_FIELD_MAX_LENGTH);
 };
+
+const withPeriod = (value: string) => {
+	const trimmed = value.trim();
+	if (!trimmed) return '';
+	return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+};
+
+const lowerStart = (value: string) => {
+	const trimmed = value.trim();
+	if (!trimmed) return '';
+	return `${trimmed.charAt(0).toLowerCase()}${trimmed.slice(1)}`;
+};
+
+function buildReasonSentence(value?: string) {
+	if (!value) return '';
+	const mapped = BIKE_REASON_NARRATIVE_MAP[value.toLowerCase()];
+	if (mapped) return withPeriod(`Selling because ${mapped}`);
+	const normalized = lowerStart(value);
+	return withPeriod(`Selling because ${normalized}`);
+}
+
+function buildUsageSentence(value?: string) {
+	if (!value) return '';
+	const mapped = BIKE_USAGE_NARRATIVE_MAP[value.toLowerCase()];
+	if (mapped) return withPeriod(`Used mainly for ${mapped}`);
+	const normalized = lowerStart(value);
+	return withPeriod(`Used mainly for ${normalized}`);
+}
+
+function buildIssuesSentence(value?: string) {
+	if (!value) return '';
+	const mapped = BIKE_ISSUES_NARRATIVE_MAP[value.toLowerCase()];
+	if (mapped) return mapped;
+	return withPeriod(value);
+}
 
 const BIKE_TYPE_TITLE_LABEL: Record<BikeType, string> = {
 	road: 'Road',
@@ -261,11 +321,30 @@ export function getBikeDescriptionTemplate(values?: {
 	const reason = asOptionalGuidedValue(values?.reasonForSelling) ?? '';
 	const usage = asOptionalGuidedValue(values?.usageSummary) ?? '';
 	const issues = asOptionalGuidedValue(values?.knownIssues) ?? '';
+	const narrative = buildBikeNarrativeSummary({
+		reasonForSelling: reason,
+		usageSummary: usage,
+		knownIssues: issues
+	});
+	if (narrative) return narrative;
 	return [
-		`Reason for selling: ${reason}`.trimEnd(),
-		`How it has been used: ${usage}`.trimEnd(),
-		`Known issues or maintenance needed: ${issues}`.trimEnd()
+		'Reason for selling:',
+		'How it has been used:',
+		'Known issues or maintenance needed:'
 	].join('\n');
+}
+
+export function buildBikeNarrativeSummary(values: {
+	reasonForSelling?: string;
+	usageSummary?: string;
+	knownIssues?: string;
+}) {
+	const reason = asOptionalGuidedValue(values.reasonForSelling);
+	const usage = asOptionalGuidedValue(values.usageSummary);
+	const issues = asOptionalGuidedValue(values.knownIssues);
+	return [buildReasonSentence(reason), buildUsageSentence(usage), buildIssuesSentence(issues)]
+		.filter((sentence) => sentence.length > 0)
+		.join(' ');
 }
 
 export function buildBikeTitle({
@@ -400,6 +479,11 @@ export function getBikeProfileSummary(profileData: unknown): BikeProfileSummary 
 		sizeLabel,
 		reasonForSelling: data.reasonForSelling,
 		usageSummary: data.usageSummary,
-		knownIssues: data.knownIssues
+		knownIssues: data.knownIssues,
+		narrativeSummary: buildBikeNarrativeSummary({
+			reasonForSelling: data.reasonForSelling,
+			usageSummary: data.usageSummary,
+			knownIssues: data.knownIssues
+		})
 	};
 }

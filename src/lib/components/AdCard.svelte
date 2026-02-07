@@ -2,7 +2,11 @@
 	import { onMount } from 'svelte';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
 	import { resolve } from '$app/paths';
-	import { getBikeProfileSummary, isBikesCategory } from '$lib/category-profiles';
+	import {
+		buildBikeNarrativeSummary,
+		getBikeProfileSummary,
+		isBikesCategory
+	} from '$lib/category-profiles';
 	import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 
 	export let id: number | string;
@@ -39,9 +43,15 @@
 				bikeSummary.sizeLabel
 			].filter((value): value is string => !!value)
 		: [];
-	$: bikeSummaryLine = bikeSummary
-		? bikeSummary.reasonForSelling || bikeSummary.usageSummary || bikeSummary.knownIssues || ''
+	$: bikeNarrative = bikeSummary
+		? bikeSummary.narrativeSummary ||
+			buildBikeNarrativeSummary({
+				reasonForSelling: bikeSummary.reasonForSelling,
+				usageSummary: bikeSummary.usageSummary,
+				knownIssues: bikeSummary.knownIssues
+			})
 		: '';
+	$: displayDescription = bikeNarrative || description;
 
 	let isPortrait = false;
 	let hasImageError = false;
@@ -123,8 +133,7 @@
 			{/if}
 
 			<h3 class="title title--text">{title}</h3>
-			{#if description}<p class="desc">{description}</p>{/if}
-			{#if bikeSummaryLine}<p class="bike-summary">{bikeSummaryLine}</p>{/if}
+			{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
 
 			<!-- Price pinned to bottom-right -->
 			{#if priceLabel}
@@ -313,16 +322,6 @@
 		-webkit-line-clamp: 3;
 		overflow: hidden;
 		word-break: break-word;
-	}
-	.bike-summary {
-		margin: 4px 0 0;
-		font-size: 0.86rem;
-		font-weight: 600;
-		color: color-mix(in srgb, var(--fg) 62%, transparent);
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-		overflow: hidden;
 	}
 	/* Price badge: bottom-right, monochrome */
 	.price {
