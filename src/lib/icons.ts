@@ -1,21 +1,19 @@
-import {
-	Baby,
-	Bike,
-	Folder,
-	Gift,
-	GraduationCap,
-	Home,
-	Image as ImageIcon,
-	Link2,
-	Monitor,
-	Flag,
-	Search,
-	Share2,
-	Shirt,
-	SlidersHorizontal,
-	ShieldCheck,
-	Wrench
-} from 'lucide-svelte';
+import Baby from 'lucide-svelte/icons/baby';
+import Bike from 'lucide-svelte/icons/bike';
+import Folder from 'lucide-svelte/icons/folder';
+import Gift from 'lucide-svelte/icons/gift';
+import GraduationCap from 'lucide-svelte/icons/graduation-cap';
+import Home from 'lucide-svelte/icons/home';
+import ImageIcon from 'lucide-svelte/icons/image';
+import Link2 from 'lucide-svelte/icons/link-2';
+import Monitor from 'lucide-svelte/icons/monitor';
+import Flag from 'lucide-svelte/icons/flag';
+import Search from 'lucide-svelte/icons/search';
+import Share2 from 'lucide-svelte/icons/share-2';
+import Shirt from 'lucide-svelte/icons/shirt';
+import SlidersHorizontal from 'lucide-svelte/icons/sliders-horizontal';
+import ShieldCheck from 'lucide-svelte/icons/shield-check';
+import Wrench from 'lucide-svelte/icons/wrench';
 
 export const CATEGORY_ICON_MAP: Record<string, typeof Folder> = {
 	'Home & Garden': Home,
