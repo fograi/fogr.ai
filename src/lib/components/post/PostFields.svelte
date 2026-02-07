@@ -319,6 +319,90 @@
 						<small class="error-text">Add a size.</small>
 					{/if}
 				</div>
+
+				<div class="field bike-description-assist">
+					<p class="group-label">Description assist (optional)</p>
+					<div class="pill-row" role="group" aria-label="Bike description assist">
+						{#each BIKE_DESCRIPTION_ASSIST_PROMPTS as prompt (prompt.key)}
+							<button
+								type="button"
+								class="pill assist-pill"
+								class:active={descriptionAssistOpenKey === prompt.key}
+								class:configured={!!getBikeDescriptionAssistValue(prompt.key)}
+								on:click={() => toggleDescriptionAssist(prompt.key)}
+								disabled={loading}
+								aria-expanded={descriptionAssistOpenKey === prompt.key}
+							>
+								<span>{prompt.label}</span>
+								{#if getBikeDescriptionAssistValue(prompt.key)}
+									<small class="assist-pill-state">Set</small>
+								{/if}
+							</button>
+						{/each}
+					</div>
+					{#if activeDescriptionAssistPrompt}
+						<div
+							class="assist-popover"
+							role="region"
+							aria-label={activeDescriptionAssistPrompt.label}
+						>
+							<p class="assist-title">{activeDescriptionAssistPrompt.label}</p>
+							<div
+								class="pill-row"
+								role="group"
+								aria-label={`${activeDescriptionAssistPrompt.label} options`}
+							>
+								{#each activeDescriptionAssistPrompt.options as option (option)}
+									<button
+										type="button"
+										class="pill"
+										class:active={getBikeDescriptionAssistValue(
+											activeDescriptionAssistPrompt.key
+										) === option}
+										on:click={() =>
+											setBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key, option)}
+										disabled={loading}
+									>
+										{option}
+									</button>
+								{/each}
+							</div>
+							<label for={`bike-assist-${activeDescriptionAssistPrompt.key}`}>Custom</label>
+							<input
+								id={`bike-assist-${activeDescriptionAssistPrompt.key}`}
+								type="text"
+								value={getBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key)}
+								maxlength={BIKE_GUIDED_FIELD_MAX_LENGTH}
+								disabled={loading}
+								placeholder="Or write your own short detail"
+								on:input={(event) =>
+									setBikeDescriptionAssistValue(
+										activeDescriptionAssistPrompt.key,
+										(event.currentTarget as HTMLInputElement).value
+									)}
+							/>
+							<div class="assist-actions">
+								<button
+									type="button"
+									class="pill"
+									on:click={() =>
+										clearBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key)}
+									disabled={loading}
+								>
+									Clear
+								</button>
+								<button
+									type="button"
+									class="pill"
+									on:click={() => (descriptionAssistOpenKey = '')}
+									disabled={loading}
+								>
+									Done
+								</button>
+							</div>
+						</div>
+					{/if}
+				</div>
 			</div>
 		{/if}
 
@@ -361,90 +445,6 @@
 			></textarea>
 			<small class="muted">Min {MIN_DESC_LENGTH}, max {MAX_DESC_LENGTH}</small>
 		</div>
-
-		{#if isBikes}
-			<div class="field bike-description-assist">
-				<p class="group-label">Description assist (optional)</p>
-				<div class="pill-row" role="group" aria-label="Bike description assist">
-					{#each BIKE_DESCRIPTION_ASSIST_PROMPTS as prompt (prompt.key)}
-						<button
-							type="button"
-							class="pill assist-pill"
-							class:active={descriptionAssistOpenKey === prompt.key}
-							class:configured={!!getBikeDescriptionAssistValue(prompt.key)}
-							on:click={() => toggleDescriptionAssist(prompt.key)}
-							disabled={loading}
-							aria-expanded={descriptionAssistOpenKey === prompt.key}
-						>
-							<span>{prompt.label}</span>
-							{#if getBikeDescriptionAssistValue(prompt.key)}
-								<small class="assist-pill-state">Set</small>
-							{/if}
-						</button>
-					{/each}
-				</div>
-				{#if activeDescriptionAssistPrompt}
-					<div
-						class="assist-popover"
-						role="region"
-						aria-label={activeDescriptionAssistPrompt.label}
-					>
-						<p class="assist-title">{activeDescriptionAssistPrompt.label}</p>
-						<div
-							class="pill-row"
-							role="group"
-							aria-label={`${activeDescriptionAssistPrompt.label} options`}
-						>
-							{#each activeDescriptionAssistPrompt.options as option (option)}
-								<button
-									type="button"
-									class="pill"
-									class:active={getBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key) ===
-										option}
-									on:click={() =>
-										setBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key, option)}
-									disabled={loading}
-								>
-									{option}
-								</button>
-							{/each}
-						</div>
-						<label for={`bike-assist-${activeDescriptionAssistPrompt.key}`}>Custom</label>
-						<input
-							id={`bike-assist-${activeDescriptionAssistPrompt.key}`}
-							type="text"
-							value={getBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key)}
-							maxlength={BIKE_GUIDED_FIELD_MAX_LENGTH}
-							disabled={loading}
-							placeholder="Or write your own short detail"
-							on:input={(event) =>
-								setBikeDescriptionAssistValue(
-									activeDescriptionAssistPrompt.key,
-									(event.currentTarget as HTMLInputElement).value
-								)}
-						/>
-						<div class="assist-actions">
-							<button
-								type="button"
-								class="pill"
-								on:click={() => clearBikeDescriptionAssistValue(activeDescriptionAssistPrompt.key)}
-								disabled={loading}
-							>
-								Clear
-							</button>
-							<button
-								type="button"
-								class="pill"
-								on:click={() => (descriptionAssistOpenKey = '')}
-								disabled={loading}
-							>
-								Done
-							</button>
-						</div>
-					</div>
-				{/if}
-			</div>
-		{/if}
 	{/if}
 
 	{#if step === 2}
