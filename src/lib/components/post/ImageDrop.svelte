@@ -55,15 +55,22 @@
 		return name.replace(/\.(png|jpg|jpeg|webp)$/i, '') + '.webp';
 	}
 
-	async function decodeImage(f: File): Promise<ImageBitmap | HTMLImageElement> {
-		if (typeof createImageBitmap === 'function') {
-			try {
-				return await createImageBitmap(f, { imageOrientation: 'from-image' });
-			} catch {
-				return await createImageBitmap(f);
-			}
-		}
-		return await new Promise<HTMLImageElement>((resolve, reject) => {
+	const HEIC_TYPES = new Set([
+		'image/heic',
+		'image/heif',
+		'image/heic-sequence',
+		'image/heif-sequence'
+	]);
+
+	function isHeic(file: File) {
+		return (
+			HEIC_TYPES.has(file.type) ||
+			/\.(heic|heif)$/i.test(file.name)
+		);
+	}
+
+	function decodeWithImageElement(f: File): Promise<HTMLImageElement> {
+		return new Promise<HTMLImageElement>((resolve, reject) => {
 			const img = new Image();
 			const url = URL.createObjectURL(f);
 			img.onload = () => {
@@ -76,6 +83,21 @@
 			};
 			img.src = url;
 		});
+	}
+
+	async function decodeImage(f: File): Promise<ImageBitmap | HTMLImageElement> {
+		if (typeof createImageBitmap === 'function') {
+			try {
+				return await createImageBitmap(f, { imageOrientation: 'from-image' });
+			} catch {
+				try {
+					return await createImageBitmap(f);
+				} catch {
+					return await decodeWithImageElement(f);
+				}
+			}
+		}
+		return await decodeWithImageElement(f);
 	}
 
 	async function optimizeImage(f: File): Promise<File> {
@@ -99,7 +121,7 @@
 		canvas.width = targetW;
 		canvas.height = targetH;
 		const processor = getPica();
-		await processor.resize(bitmap as CanvasImageSource, canvas);
+		await processor.resize(bitmap, canvas);
 		if ('close' in bitmap) bitmap.close();
 
 		let quality = WEBP_QUALITY;
@@ -117,10 +139,16 @@
 
 	async function handleFile(f: File) {
 		warn = '';
-		if (!ALLOWED_IMAGE_TYPES.includes(f.type)) {
+		const heic = isHeic(f);
+		const allowedByType = ALLOWED_IMAGE_TYPES.includes(f.type);
+		const allowedByName = /\.(png|jpe?g|webp)$/i.test(f.name);
+		if (!allowedByType && !allowedByName && !heic) {
 			clearFile({ keepError: true });
 			err = 'Unsupported image type. Use a JPG, PNG, or WebP.';
 			return;
+		}
+		if (heic) {
+			warn = 'HEIC image detected — converting for compatibility.';
 		}
 		if (f.size > MAX_IMAGE_SIZE) {
 			warn = 'Large image — we will compress it. If it still fails, use a smaller file.';
@@ -139,7 +167,9 @@
 			setPreview(optimized);
 		} catch {
 			clearFile({ keepError: true });
-			err = 'Unsupported image type. Use a JPG, PNG, or WebP.';
+			err = heic
+				? 'HEIC images are not supported on this device. Please choose a JPG or PNG.'
+				: 'Unsupported image type. Use a JPG, PNG, or WebP.';
 		} finally {
 			compressing = false;
 		}
