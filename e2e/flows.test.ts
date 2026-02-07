@@ -169,10 +169,20 @@ test('bike min-offer preset submits expected offer rules payload', async ({ page
 	);
 	await page.getByRole('button', { name: 'Continue' }).click();
 
-	await page.fill('#price', '100');
-	await page.getByRole('button', { name: '70%' }).click();
-	await expect(page.locator('#min-offer')).toHaveValue('70');
-	await page.fill('#auto-decline', 'Thanks, minimum offer is 70 EUR.');
+	await page.fill('#price', '95');
+	await expect(page.getByRole('button', { name: '€85' })).toBeVisible();
+
+	await page.getByRole('button', { name: '80%' }).click();
+	await expect(page.locator('#min-offer-unit')).toHaveValue('percent');
+	await expect(page.locator('#min-offer')).toHaveValue('80');
+
+	await page.selectOption('#min-offer-unit', 'eur');
+	await expect(page.locator('#min-offer')).toHaveValue('76');
+
+	await page.getByRole('button', { name: '€85' }).click();
+	await expect(page.locator('#min-offer-unit')).toHaveValue('eur');
+	await expect(page.locator('#min-offer')).toHaveValue('85');
+	await page.fill('#auto-decline', 'Thanks, minimum offer is 85 EUR.');
 
 	let createPayload = '';
 	await page.route('**/api/ads', async (route) => {
@@ -197,10 +207,57 @@ test('bike min-offer preset submits expected offer rules payload', async ({ page
 
 	expect(createPayload).toContain('name="category"');
 	expect(createPayload).toContain('Bikes');
-	expect(createPayload).toMatch(/name="min_offer"[\s\S]*\b70\b/);
+	expect(createPayload).toMatch(/name="min_offer"[\s\S]*\b85\b/);
 	expect(createPayload).toMatch(
-		/name="auto_decline_message"[\s\S]*Thanks, minimum offer is 70 EUR\./
+		/name="auto_decline_message"[\s\S]*Thanks, minimum offer is 85 EUR\./
 	);
+});
+
+test('bike min-offer percent input submits EUR value', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Adult bike' }).click();
+	await page.getByRole('button', { name: 'Road' }).click();
+	await page.getByRole('button', { name: 'Used - good' }).click();
+	await page.getByRole('button', { name: 'M', exact: true }).click();
+	await page.fill('#title', 'Road bike - size M');
+	await page.fill(
+		'#description',
+		'Reason for selling: upgrading. How it has been used: weekend rides. Known issues: none.'
+	);
+	await page.getByRole('button', { name: 'Continue' }).click();
+
+	await page.fill('#price', '99');
+	await page.selectOption('#min-offer-unit', 'percent');
+	await page.fill('#min-offer', '75');
+	await expect(page.locator('#min-offer')).toHaveValue('75');
+
+	await page.selectOption('#min-offer-unit', 'eur');
+	await expect(page.locator('#min-offer')).toHaveValue('74');
+
+	let createPayload = '';
+	await page.route('**/api/ads', async (route) => {
+		if (route.request().method() !== 'POST') return route.continue();
+		createPayload = route.request().postData() ?? '';
+		return route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				success: true,
+				id: 'e2e-ad-2',
+				message: 'Ad submitted successfully!'
+			})
+		});
+	});
+
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await page.getByRole('button', { name: 'Preview' }).click();
+	await page.getByLabel('I am 18 or older.').check();
+	await page.getByRole('button', { name: 'Post ad' }).click();
+	await expect(page).toHaveURL(/\/ad\/e2e-ad-2/);
+
+	expect(createPayload).toMatch(/name="min_offer"[\s\S]*\b74\b/);
 });
 
 test('bike description assist pills populate profile payload', async ({ page }) => {

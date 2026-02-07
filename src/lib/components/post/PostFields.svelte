@@ -56,6 +56,10 @@
 
 	// validation messages from parent (optional)
 	export let loading = false;
+	type BikeMinOfferUnit = 'eur' | 'percent';
+	let bikeMinOfferUnit: BikeMinOfferUnit = 'eur';
+	let bikeMinOfferDisplay = '';
+	let bikeMinOfferDisplaySignature = '';
 
 	$: titleLen = title.length;
 	$: descLen = description.length;
@@ -93,6 +97,9 @@
 		!firmPrice &&
 		Number.isFinite(numericPrice) &&
 		numericPrice > 0;
+	$: bikeMinusTenPercentMinOffer = canUseBikeMinOfferPresets
+		? Math.max(1, Math.floor(numericPrice * 0.9))
+		: null;
 	$: titlePlaceholder = isBikes
 		? 'e.g., Road bike - size M'
 		: 'e.g., IKEA MALM desk - great condition';
@@ -119,6 +126,19 @@
 		(Number.isNaN(Number(minOffer)) ||
 			Number(minOffer) <= 0 ||
 			(price !== '' && Number(minOffer) >= Number(price)));
+	$: {
+		if (!isBikes || priceType !== 'fixed' || firmPrice) {
+			bikeMinOfferUnit = 'eur';
+			bikeMinOfferDisplay = '';
+			bikeMinOfferDisplaySignature = '';
+		} else {
+			const nextSignature = getBikeMinOfferDisplaySignature();
+			if (nextSignature !== bikeMinOfferDisplaySignature) {
+				bikeMinOfferDisplay = getBikeMinOfferDisplayValue();
+				bikeMinOfferDisplaySignature = nextSignature;
+			}
+		}
+	}
 	$: descriptionInvalid =
 		showErrors &&
 		(!description.trim() ||
@@ -174,7 +194,74 @@
 
 	function applyBikeMinOfferPreset(ratio: number) {
 		if (!Number.isFinite(numericPrice) || numericPrice <= 0) return;
+		bikeMinOfferUnit = 'percent';
 		minOffer = Math.max(1, Math.floor(numericPrice * ratio));
+		bikeMinOfferDisplay = String(Math.round(ratio * 100));
+		bikeMinOfferDisplaySignature = getBikeMinOfferDisplaySignature();
+	}
+
+	function applyBikeMinOfferAbsolute(value: number) {
+		if (!Number.isFinite(value) || value <= 0) return;
+		bikeMinOfferUnit = 'eur';
+		minOffer = Math.floor(value);
+		bikeMinOfferDisplay = String(minOffer);
+		bikeMinOfferDisplaySignature = getBikeMinOfferDisplaySignature();
+	}
+
+	function getBikeMinOfferDisplaySignature() {
+		const pricePart = Number.isFinite(numericPrice) ? String(numericPrice) : '';
+		const minOfferPart = minOffer === '' ? '' : String(Number(minOffer));
+		return `${bikeMinOfferUnit}:${pricePart}:${minOfferPart}`;
+	}
+
+	function getBikeMinOfferDisplayValue() {
+		if (minOffer === '') return '';
+		const minOfferValue = Number(minOffer);
+		if (!Number.isFinite(minOfferValue) || minOfferValue <= 0) return '';
+		if (bikeMinOfferUnit === 'eur') return String(Math.floor(minOfferValue));
+		if (!Number.isFinite(numericPrice) || numericPrice <= 0) return '';
+		const percent = Math.ceil((minOfferValue / numericPrice) * 100);
+		return String(Math.min(99, Math.max(1, percent)));
+	}
+
+	function setBikeMinOfferUnit(nextUnit: BikeMinOfferUnit) {
+		bikeMinOfferUnit = nextUnit;
+		bikeMinOfferDisplay = getBikeMinOfferDisplayValue();
+		bikeMinOfferDisplaySignature = getBikeMinOfferDisplaySignature();
+	}
+
+	function handleBikeMinOfferUnitChange(event: Event) {
+		setBikeMinOfferUnit((event.currentTarget as HTMLSelectElement).value as BikeMinOfferUnit);
+	}
+
+	function handleBikeMinOfferInput(event: Event) {
+		const raw = (event.currentTarget as HTMLInputElement).value;
+		bikeMinOfferDisplay = raw;
+		if (!raw.trim()) {
+			minOffer = '';
+			bikeMinOfferDisplaySignature = getBikeMinOfferDisplaySignature();
+			return;
+		}
+
+		const numericValue = Number(raw);
+		if (!Number.isFinite(numericValue) || numericValue <= 0) {
+			minOffer = '';
+			bikeMinOfferDisplaySignature = getBikeMinOfferDisplaySignature();
+			return;
+		}
+
+		if (bikeMinOfferUnit === 'eur') {
+			minOffer = Math.floor(numericValue);
+			bikeMinOfferDisplay = String(minOffer);
+		} else if (Number.isFinite(numericPrice) && numericPrice > 0) {
+			const percentageValue = Math.max(1, Math.min(99, Math.floor(numericValue)));
+			minOffer = Math.max(1, Math.floor((numericPrice * percentageValue) / 100));
+			bikeMinOfferDisplay = String(percentageValue);
+		} else {
+			minOffer = '';
+		}
+
+		bikeMinOfferDisplaySignature = getBikeMinOfferDisplaySignature();
 	}
 
 	function getBikeDescriptionAssistValue(key: BikeDescriptionAssistKey): string {
@@ -588,28 +675,58 @@
 									{Math.round(ratio * 100)}%
 								</button>
 							{/each}
-							<button
-								type="button"
-								class="pill"
-								on:click={() => (minOffer = '')}
-								disabled={loading}
-							>
-								Custom
-							</button>
+							{#if bikeMinusTenPercentMinOffer !== null}
+								<button
+									type="button"
+									class="pill"
+									on:click={() => applyBikeMinOfferAbsolute(bikeMinusTenPercentMinOffer)}
+									disabled={loading}
+								>
+									€{bikeMinusTenPercentMinOffer}
+								</button>
+							{/if}
 						</div>
 					{/if}
-					<input
-						id="min-offer"
-						type="number"
-						min="1"
-						step="1"
-						inputmode="numeric"
-						pattern="[0-9]*"
-						bind:value={minOffer}
-						disabled={loading}
-						placeholder="e.g., 40"
-						aria-invalid={showErrors ? minOfferInvalid : undefined}
-					/>
+					{#if isBikes}
+						<div class="min-offer-row">
+							<input
+								id="min-offer"
+								type="number"
+								min="1"
+								max={bikeMinOfferUnit === 'percent' ? 99 : undefined}
+								step="1"
+								inputmode="numeric"
+								pattern="[0-9]*"
+								value={bikeMinOfferDisplay}
+								on:input={handleBikeMinOfferInput}
+								disabled={loading}
+								placeholder={bikeMinOfferUnit === 'percent' ? '80' : '40'}
+								aria-invalid={showErrors ? minOfferInvalid : undefined}
+							/>
+							<select
+								id="min-offer-unit"
+								bind:value={bikeMinOfferUnit}
+								on:change={handleBikeMinOfferUnitChange}
+								disabled={loading}
+							>
+								<option value="eur">EUR</option>
+								<option value="percent">%</option>
+							</select>
+						</div>
+					{:else}
+						<input
+							id="min-offer"
+							type="number"
+							min="1"
+							step="1"
+							inputmode="numeric"
+							pattern="[0-9]*"
+							bind:value={minOffer}
+							disabled={loading}
+							placeholder="e.g., 40"
+							aria-invalid={showErrors ? minOfferInvalid : undefined}
+						/>
+					{/if}
 					<small class="muted">Auto-decline lower offers.</small>
 				</div>
 			{/if}
@@ -686,6 +803,21 @@
 		min-width: 10ch;
 	}
 	.size-manual-row select {
+		width: 5.5rem;
+		min-width: 5.5rem;
+	}
+	.min-offer-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		width: fit-content;
+		max-width: 100%;
+	}
+	.min-offer-row input {
+		width: 10ch;
+		min-width: 10ch;
+	}
+	.min-offer-row select {
 		width: 5.5rem;
 		min-width: 5.5rem;
 	}
