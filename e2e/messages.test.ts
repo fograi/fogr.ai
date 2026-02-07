@@ -8,11 +8,11 @@ test('ad page auto-declines low offer', async ({ page }) => {
 	await expect(page.getByText(/Offer auto-declined/i)).toBeVisible();
 });
 
-test('ad page can reveal contact email after messaging', async ({ page }) => {
+test('ad page keeps contact details private', async ({ page }) => {
 	await page.goto('/ad/e2e-ad-1');
 	await page.getByRole('button', { name: 'Send message' }).click();
-	await page.getByRole('button', { name: 'Reveal email' }).click();
-	await expect(page.getByRole('link', { name: 'e2e@example.com' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Reveal email' })).toHaveCount(0);
+	await expect(page.getByRole('link', { name: 'e2e@example.com' })).toHaveCount(0);
 });
 
 test('messages inbox renders a thread', async ({ page }) => {

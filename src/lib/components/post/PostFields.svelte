@@ -19,7 +19,6 @@
 	export let firmPrice = false;
 	export let minOffer: number | '' = '';
 	export let autoDeclineMessage = '';
-	export let directContactEnabled = false;
 	export let ageConfirmed = false;
 	export let step = 1;
 	export let showErrors = false;
@@ -215,14 +214,6 @@
 				<span>I am 18 or older.</span>
 			</label>
 		</div>
-
-		<div class="row">
-			<label class="checkbox">
-				<input type="checkbox" bind:checked={directContactEnabled} disabled={loading} />
-				<span>Allow direct contact after first message.</span>
-			</label>
-		</div>
-		<small class="muted">We will only reveal your email after a buyer messages you.</small>
 	{/if}
 </section>
 

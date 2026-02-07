@@ -13,9 +13,6 @@
 			minOffer?: number | null;
 			autoDeclineMessage?: string | null;
 		};
-		contactRules?: {
-			directContactEnabled?: boolean;
-		};
 	};
 
 	const reportReasons = [
@@ -252,7 +249,6 @@
 				price={data.ad.price ?? null}
 				currency={data.ad.currency ?? 'EUR'}
 				firmPrice={data.offerRules?.firmPrice ?? false}
-				directContactEnabled={data.contactRules?.directContactEnabled ?? false}
 				on:flag={() => openPanel('report')}
 			/>
 		{/if}

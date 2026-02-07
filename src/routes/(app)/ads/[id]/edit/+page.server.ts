@@ -17,7 +17,6 @@ type EditAdRow = {
 	firm_price: boolean;
 	min_offer: number | null;
 	auto_decline_message: string | null;
-	direct_contact_enabled: boolean;
 	created_at: string;
 	updated_at: string | null;
 	expires_at: string;
@@ -32,7 +31,6 @@ export const load: PageServerLoad = async ({ locals, platform, params, url }) =>
 				firm_price: E2E_MOCK_AD.firm_price ?? false,
 				min_offer: E2E_MOCK_AD.min_offer ?? null,
 				auto_decline_message: E2E_MOCK_AD.auto_decline_message ?? null,
-				direct_contact_enabled: E2E_MOCK_AD.direct_contact_enabled ?? false,
 				expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString()
 			},
 			ageConfirmed: true,
@@ -47,7 +45,7 @@ export const load: PageServerLoad = async ({ locals, platform, params, url }) =>
 	const { data: ad, error: adError } = await locals.supabase
 		.from('ads')
 		.select(
-			'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,direct_contact_enabled,created_at,updated_at,expires_at'
+			'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,created_at,updated_at,expires_at'
 		)
 		.eq('id', params.id)
 		.maybeSingle();

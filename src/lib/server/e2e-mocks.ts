@@ -12,7 +12,6 @@ export const E2E_MOCK_AD: ApiAdRow = {
 	firm_price: false,
 	min_offer: 10,
 	auto_decline_message: 'Thanks — minimum offer is €10.',
-	direct_contact_enabled: true,
 	status: 'active',
 	created_at: new Date().toISOString(),
 	updated_at: null

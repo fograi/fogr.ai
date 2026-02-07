@@ -23,7 +23,6 @@
 		firm_price: boolean;
 		min_offer: number | null;
 		auto_decline_message: string | null;
-		direct_contact_enabled: boolean;
 		created_at: string;
 		updated_at: string | null;
 		expires_at: string;
@@ -52,7 +51,6 @@
 	let firmPrice = ad.firm_price ?? false;
 	let minOffer: number | '' = ad.min_offer ?? '';
 	let autoDeclineMessage = ad.auto_decline_message ?? '';
-	let directContactEnabled = ad.direct_contact_enabled ?? false;
 	let currency = ad.currency ?? 'EUR';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
@@ -213,7 +211,6 @@
 					priceType === 'fixed' && (firmPrice || minOffer !== '')
 						? autoDeclineMessage.trim()
 						: undefined,
-				direct_contact_enabled: directContactEnabled ? '1' : '0',
 				price:
 					priceType === 'free'
 						? '0'
@@ -380,7 +377,6 @@
 					bind:firmPrice
 					bind:minOffer
 					bind:autoDeclineMessage
-					bind:directContactEnabled
 					bind:ageConfirmed
 					{loading}
 					{showErrors}
@@ -405,7 +401,6 @@
 					bind:firmPrice
 					bind:minOffer
 					bind:autoDeclineMessage
-					bind:directContactEnabled
 					bind:ageConfirmed
 					{loading}
 					{showErrors}
@@ -442,13 +437,12 @@
 					bind:price
 					bind:priceType
 					bind:firmPrice
-					bind:minOffer
-					bind:autoDeclineMessage
-					bind:directContactEnabled
-					bind:ageConfirmed
-					{loading}
-					{showErrors}
-				/>
+				bind:minOffer
+				bind:autoDeclineMessage
+				bind:ageConfirmed
+				{loading}
+				{showErrors}
+			/>
 				<div class="actions">
 					<button type="button" class="btn ghost" on:click={goBack} disabled={loading}>
 						Back

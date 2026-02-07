@@ -174,7 +174,7 @@ export const GET: RequestHandler = async ({ params, locals, url, platform }) => 
 	const query = locals.supabase
 		.from('ads')
 		.select(
-			'id, user_id, title, description, category, price, currency, image_keys, status, created_at, updated_at, expires_at, firm_price, min_offer, auto_decline_message, direct_contact_enabled'
+			'id, user_id, title, description, category, price, currency, image_keys, status, created_at, updated_at, expires_at, firm_price, min_offer, auto_decline_message'
 		)
 		.eq('id', id);
 	if (!authedUser) {
@@ -295,7 +295,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		const { data: ad, error: adError } = await locals.supabase
 			.from('ads')
 			.select(
-			'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,direct_contact_enabled,expires_at'
+			'id,user_id,title,description,category,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,expires_at'
 			)
 			.eq('id', adId)
 			.maybeSingle();
@@ -361,8 +361,6 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		autoDeclineMessageRaw && autoDeclineMessageRaw.trim().length > 0
 			? autoDeclineMessageRaw.trim()
 			: null;
-	const directContactEnabled =
-		readString('direct_contact_enabled') === '1' || readString('direct_contact_enabled') === 'true';
 	const ageConfirmed =
 		readString('age_confirmed') === '1' || readString('age_confirmed') === 'true';
 	const currencyRaw = readString('currency') || ad.currency || 'EUR';
@@ -540,7 +538,6 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 					normalizedPriceType === 'fixed' && (firmPriceValue || minOfferValue !== null)
 						? autoDeclineMessage
 						: null,
-				direct_contact_enabled: directContactEnabled,
 				image_keys: nextImageKeys,
 				status: nextStatus,
 				updated_at: new Date().toISOString()

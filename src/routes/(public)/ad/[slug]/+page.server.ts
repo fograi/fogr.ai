@@ -52,8 +52,5 @@ export const load: PageServerLoad = async ({ params, fetch, locals }) => {
 			minOffer: ad.min_offer ?? null,
 			autoDeclineMessage: ad.auto_decline_message ?? null
 		},
-		contactRules: {
-			directContactEnabled: ad.direct_contact_enabled ?? false
-		}
 	};
 };

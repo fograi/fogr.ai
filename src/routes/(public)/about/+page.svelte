@@ -40,7 +40,7 @@
 				<h3>Keep your number private</h3>
 				<p>
 					Conversations start in-app.
-					Direct contact is optional and only shared when you choose.
+					Share contact details only if you choose.
 				</p>
 			</article>
 

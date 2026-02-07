@@ -22,7 +22,6 @@
 	let firmPrice = false;
 	let minOffer: number | '' = '';
 	let autoDeclineMessage = '';
-	let directContactEnabled = false;
 	let currency = 'EUR';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
@@ -190,7 +189,6 @@
 			if (priceType === 'fixed' && (firmPrice || minOffer !== '')) {
 				form.append('auto_decline_message', autoDeclineMessage.trim());
 			}
-			form.append('direct_contact_enabled', directContactEnabled ? '1' : '0');
 			if (priceType === 'free') {
 				form.append('price', '0');
 			} else if (priceType === 'fixed' && price !== '') {
@@ -251,7 +249,6 @@
 			firmPrice = false;
 			minOffer = '';
 			autoDeclineMessage = '';
-			directContactEnabled = false;
 			// clear image
 			if (previewUrl) URL.revokeObjectURL(previewUrl);
 			previewUrl = null;
@@ -344,7 +341,6 @@
 					bind:firmPrice
 					bind:minOffer
 					bind:autoDeclineMessage
-					bind:directContactEnabled
 					bind:ageConfirmed
 					{loading}
 					{showErrors}
@@ -369,7 +365,6 @@
 					bind:firmPrice
 					bind:minOffer
 					bind:autoDeclineMessage
-					bind:directContactEnabled
 					bind:ageConfirmed
 					{loading}
 					{showErrors}
@@ -408,7 +403,6 @@
 				bind:firmPrice
 				bind:minOffer
 				bind:autoDeclineMessage
-				bind:directContactEnabled
 				bind:ageConfirmed
 				{loading}
 				{showErrors}

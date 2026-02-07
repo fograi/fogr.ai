@@ -33,7 +33,6 @@ export type ApiAdRow = {
 	firm_price?: boolean | null;
 	min_offer?: number | null;
 	auto_decline_message?: string | null;
-	direct_contact_enabled?: boolean | null;
 	currency: string | null;
 	image_keys: string[] | null;
 	status: string;

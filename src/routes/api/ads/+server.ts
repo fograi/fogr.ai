@@ -292,7 +292,6 @@ export const POST: RequestHandler = async (event) => {
 			autoDeclineMessageRaw && autoDeclineMessageRaw.trim().length > 0
 				? autoDeclineMessageRaw.trim()
 				: null;
-		const directContactEnabled = form.get('direct_contact_enabled')?.toString() === '1';
 		const ageConfirmed = form.get('age_confirmed')?.toString() === '1';
 		// === NEW === optional passthroughs for DB
 		const currencyRaw = form.get('currency')?.toString() || 'EUR';
@@ -463,8 +462,7 @@ export const POST: RequestHandler = async (event) => {
 				status,
 				firm_price: normalizedPriceType === 'fixed' ? firmPrice : true,
 				min_offer: normalizedPriceType === 'fixed' ? minOffer : null,
-				auto_decline_message: autoDeclineMessage,
-				direct_contact_enabled: directContactEnabled
+				auto_decline_message: autoDeclineMessage
 			})
 			.select('id')
 			.single();
