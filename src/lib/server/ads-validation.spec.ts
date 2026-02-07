@@ -211,7 +211,7 @@ describe('validateCategoryProfileData (bikes)', () => {
 				version: 1,
 				profile: 'bikes',
 				subtype: 'kids',
-				bikeType: 'road',
+				bikeType: 'touring',
 				condition: 'used_good',
 				sizePreset: '6-8'
 			}

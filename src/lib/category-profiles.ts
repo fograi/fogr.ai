@@ -12,11 +12,13 @@ export const BIKE_TYPES = [
 	'mountain',
 	'hybrid',
 	'gravel',
-	'balance',
-	'bmx',
 	'commuter',
+	'touring',
 	'cargo',
 	'folding',
+	'balance',
+	'bmx',
+	'training',
 	'other'
 ] as const;
 export type BikeType = (typeof BIKE_TYPES)[number];
@@ -48,18 +50,28 @@ export const BIKE_TYPE_OPTIONS_BY_SUBTYPE: Readonly<
 		{ value: 'mountain', label: 'Mountain' },
 		{ value: 'hybrid', label: 'Hybrid' },
 		{ value: 'gravel', label: 'Gravel' },
+		{ value: 'commuter', label: 'Commuter' },
+		{ value: 'touring', label: 'Touring' },
+		{ value: 'cargo', label: 'Cargo' },
+		{ value: 'folding', label: 'Folding' },
+		{ value: 'bmx', label: 'BMX' },
 		{ value: 'other', label: 'Other' }
 	],
 	kids: [
 		{ value: 'balance', label: 'Balance' },
+		{ value: 'training', label: 'Training wheels' },
 		{ value: 'mountain', label: 'Mountain' },
+		{ value: 'road', label: 'Road' },
 		{ value: 'bmx', label: 'BMX' },
+		{ value: 'hybrid', label: 'Hybrid' },
 		{ value: 'other', label: 'Other' }
 	],
 	electric: [
 		{ value: 'commuter', label: 'Commuter' },
 		{ value: 'mountain', label: 'Mountain' },
+		{ value: 'road', label: 'Road' },
 		{ value: 'hybrid', label: 'Hybrid' },
+		{ value: 'gravel', label: 'Gravel' },
 		{ value: 'cargo', label: 'Cargo' },
 		{ value: 'folding', label: 'Folding' },
 		{ value: 'other', label: 'Other' }
@@ -118,11 +130,13 @@ const BIKE_TYPE_TITLE_LABEL: Record<BikeType, string> = {
 	mountain: 'Mountain',
 	hybrid: 'Hybrid',
 	gravel: 'Gravel',
-	balance: 'Balance',
-	bmx: 'BMX',
 	commuter: 'Commuter',
+	touring: 'Touring',
 	cargo: 'Cargo',
 	folding: 'Folding',
+	balance: 'Balance',
+	bmx: 'BMX',
+	training: 'Training',
 	other: 'Bike'
 };
 

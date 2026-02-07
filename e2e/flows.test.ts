@@ -64,16 +64,20 @@ test('bike subtype options are scoped to selected bike type', async ({ page }) =
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Kids bike' }).click();
 	await expect(page.getByRole('button', { name: 'Balance' })).toBeVisible();
-	await expect(page.getByRole('button', { name: 'Road' })).toHaveCount(0);
 	await expect(page.getByRole('button', { name: 'Commuter' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Training wheels' })).toBeVisible();
 
 	await page.getByRole('button', { name: 'Adult bike' }).click();
-	await expect(page.getByRole('button', { name: 'Road' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Touring' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Folding' })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Balance' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Training wheels' })).toHaveCount(0);
 
 	await page.getByRole('button', { name: 'Electric bike' }).click();
 	await expect(page.getByRole('button', { name: 'Commuter' })).toBeVisible();
-	await expect(page.getByRole('button', { name: 'Road' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Folding' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Training wheels' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Touring' })).toHaveCount(0);
 });
 
 test('kids bike requires age-range size before continuing', async ({ page }) => {

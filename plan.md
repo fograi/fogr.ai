@@ -111,9 +111,9 @@
   - `profile: "bikes"`
   - `subtype: "adult" | "kids" | "electric"` (UI label: bike type)
   - `bikeType`: bike subtype options depend on selected bike type:
-    - `adult`: `"road" | "mountain" | "hybrid" | "gravel" | "other"`
-    - `kids`: `"balance" | "mountain" | "bmx" | "other"`
-    - `electric`: `"commuter" | "mountain" | "hybrid" | "cargo" | "folding" | "other"`
+    - `adult`: `"road" | "mountain" | "hybrid" | "gravel" | "commuter" | "touring" | "cargo" | "folding" | "bmx" | "other"`
+    - `kids`: `"balance" | "training" | "mountain" | "road" | "bmx" | "hybrid" | "other"`
+    - `electric`: `"commuter" | "mountain" | "road" | "hybrid" | "gravel" | "cargo" | "folding" | "other"`
   - `condition: "new" | "like_new" | "used_good" | "used_fair" | "needs_work"`
   - `sizePreset?: "XS" | "S" | "M" | "L" | "XL" | "3-5" | "6-8" | "9-12"`
   - `sizeManual?: string`
@@ -249,6 +249,7 @@
 - [x] Update bike profile validation to enforce valid type/subtype combinations.
 - [x] Add unit coverage for missing subtype and invalid type/subtype combinations.
 - [x] Add e2e coverage for bike type/subtype branching, required kids size, and valid adult/electric Step 1 progression.
+- [x] Re-verify taxonomy accuracy and expand subtype lists (adult folding/touring/commuter/cargo/BMX, broader kids, road/gravel on electric).
 
 ### Acceptance Criteria (definition of done)
 
