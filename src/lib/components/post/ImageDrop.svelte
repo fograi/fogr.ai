@@ -61,12 +61,17 @@
 		'image/heic-sequence',
 		'image/heif-sequence'
 	]);
+	const AVIF_TYPES = new Set(['image/avif', 'image/avis']);
 
 	function isHeic(file: File) {
 		return (
 			HEIC_TYPES.has(file.type) ||
 			/\.(heic|heif)$/i.test(file.name)
 		);
+	}
+
+	function isAvif(file: File) {
+		return AVIF_TYPES.has(file.type) || /\.avif$/i.test(file.name);
 	}
 
 	function decodeWithImageElement(f: File): Promise<HTMLImageElement> {
@@ -140,15 +145,16 @@
 	async function handleFile(f: File) {
 		warn = '';
 		const heic = isHeic(f);
-		const allowedByType = ALLOWED_IMAGE_TYPES.includes(f.type);
-		const allowedByName = /\.(png|jpe?g|webp)$/i.test(f.name);
-		if (!allowedByType && !allowedByName && !heic) {
+		const avif = isAvif(f);
+		const isImageType = f.type ? f.type.startsWith('image/') : false;
+		const looksLikeImage = isImageType || /\.(png|jpe?g|webp|avif|heic|heif)$/i.test(f.name);
+		if (!looksLikeImage) {
 			clearFile({ keepError: true });
 			err = 'Unsupported image type. Use a JPG, PNG, or WebP.';
 			return;
 		}
-		if (heic) {
-			warn = 'HEIC image detected — converting for compatibility.';
+		if (heic || avif) {
+			warn = 'High-efficiency image detected — converting for compatibility.';
 		}
 		if (f.size > MAX_IMAGE_SIZE) {
 			warn = 'Large image — we will compress it. If it still fails, use a smaller file.';
@@ -167,9 +173,15 @@
 			setPreview(optimized);
 		} catch {
 			clearFile({ keepError: true });
-			err = heic
-				? 'HEIC images are not supported on this device. Please choose a JPG or PNG.'
-				: 'Unsupported image type. Use a JPG, PNG, or WebP.';
+			if (heic || avif) {
+				err =
+					'This image format is not supported on this device. Please choose a JPG or PNG.';
+			} else {
+				err =
+					f.type && !ALLOWED_IMAGE_TYPES.includes(f.type)
+						? `Unsupported image type (${f.type}). Use a JPG, PNG, or WebP.`
+						: 'We could not process that image. Please try a different file.';
+			}
 		} finally {
 			compressing = false;
 		}
