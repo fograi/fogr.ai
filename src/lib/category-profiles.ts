@@ -318,20 +318,12 @@ export function getBikeDescriptionTemplate(values?: {
 	usageSummary?: string;
 	knownIssues?: string;
 }) {
-	const reason = asOptionalGuidedValue(values?.reasonForSelling) ?? '';
-	const usage = asOptionalGuidedValue(values?.usageSummary) ?? '';
-	const issues = asOptionalGuidedValue(values?.knownIssues) ?? '';
 	const narrative = buildBikeNarrativeSummary({
-		reasonForSelling: reason,
-		usageSummary: usage,
-		knownIssues: issues
+		reasonForSelling: values?.reasonForSelling,
+		usageSummary: values?.usageSummary,
+		knownIssues: values?.knownIssues
 	});
-	if (narrative) return narrative;
-	return [
-		'Reason for selling:',
-		'How it has been used:',
-		'Known issues or maintenance needed:'
-	].join('\n');
+	return narrative;
 }
 
 export function buildBikeNarrativeSummary(values: {
@@ -410,7 +402,7 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 		return { data: null, error: 'Invalid bike profile.' };
 	}
 	if (!bikeSubtypeSet.has(subtypeValue)) {
-		return { data: null, error: 'Bike subtype is required.' };
+		return { data: null, error: 'Bike type is required.' };
 	}
 	if (!bikeConditionSet.has(conditionValue)) {
 		return { data: null, error: 'Bike condition is required.' };
@@ -418,10 +410,10 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 
 	const subtype = subtypeValue as BikeSubtype;
 	if (!bikeTypeValue) {
-		return { data: null, error: 'Bike type is required.' };
+		return { data: null, error: 'Bike subtype is required.' };
 	}
 	if (!bikeTypeSetBySubtype[subtype].has(bikeTypeValue)) {
-		return { data: null, error: 'Invalid bike type for selected bike subtype.' };
+		return { data: null, error: 'Invalid bike subtype for selected bike type.' };
 	}
 	const hasManualSize = sizeManualValue.length > 0;
 	const hasSizePreset = sizePresetValue.length > 0;

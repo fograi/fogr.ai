@@ -54,8 +54,8 @@ test('bike subtype resets when bike type changes to a different branch', async (
 	await page.getByRole('button', { name: 'Adult bike' }).click();
 
 	await page.getByRole('button', { name: 'Continue' }).click();
-	await expect(page.getByText('Bike type is required.')).toBeVisible();
-	await expect(page.getByText('Choose a bike type.')).toBeVisible();
+	await expect(page.getByText('Bike subtype is required.')).toBeVisible();
+	await expect(page.getByText('Choose a bike subtype.')).toBeVisible();
 });
 
 test('bike subtype options are scoped to selected bike type', async ({ page }) => {
@@ -244,6 +244,24 @@ test('bike description assist pills populate profile payload', async ({ page }) 
 	expect(createPayload).toContain('Weekend rides');
 	expect(createPayload).toContain('knownIssues');
 	expect(createPayload).toContain('No known issues');
+});
+
+test('bike description stays empty until description assist is used', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Adult bike' }).click();
+	await page.getByRole('button', { name: 'Road' }).click();
+	await page.getByRole('button', { name: 'Used - good' }).click();
+	await page.getByRole('button', { name: 'M', exact: true }).click();
+
+	await expect(page.locator('#description')).toHaveValue('');
+
+	await page.getByRole('button', { name: /Reason for selling/i }).click();
+	await page.getByRole('button', { name: 'Upgrading bike' }).click();
+	await expect(page.locator('#description')).toHaveValue(
+		/Selling because I'm upgrading to another bike\./
+	);
 });
 
 test('bike description assist keeps sub-pill and custom input in sync across prompts', async ({

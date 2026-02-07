@@ -118,18 +118,15 @@
 		bikeUsageSummary.trim(),
 		bikeKnownIssues.trim()
 	].join('|');
+	$: hasBikeDescriptionAssist = bikeDescriptionSeed.length > 0;
 	$: bikeDescriptionTemplate = getBikeDescriptionTemplate({
 		reasonForSelling: bikeReasonForSelling,
 		usageSummary: bikeUsageSummary,
 		knownIssues: bikeKnownIssues
 	});
-	$: if (
-		isBikes &&
-		!descriptionManuallyEdited &&
-		(bikeDescriptionSeed !== lastBikeDescriptionSeed || !description.trim())
-	) {
-		description = bikeDescriptionTemplate;
-		bikeDescriptionTemplateUsed = true;
+	$: if (isBikes && !descriptionManuallyEdited && bikeDescriptionSeed !== lastBikeDescriptionSeed) {
+		description = hasBikeDescriptionAssist ? bikeDescriptionTemplate : '';
+		bikeDescriptionTemplateUsed = hasBikeDescriptionAssist;
 		lastBikeDescriptionSeed = bikeDescriptionSeed;
 	}
 	$: usedPresetOnly =

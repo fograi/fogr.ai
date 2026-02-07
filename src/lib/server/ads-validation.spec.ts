@@ -200,7 +200,7 @@ describe('validateCategoryProfileData (bikes)', () => {
 				sizePreset: 'M'
 			}
 		});
-		expect(result.error).toBe('Bike type is required.');
+		expect(result.error).toBe('Bike subtype is required.');
 		expect(result.categoryProfileData).toBeNull();
 	});
 
@@ -216,7 +216,7 @@ describe('validateCategoryProfileData (bikes)', () => {
 				sizePreset: '6-8'
 			}
 		});
-		expect(result.error).toBe('Invalid bike type for selected bike subtype.');
+		expect(result.error).toBe('Invalid bike subtype for selected bike type.');
 		expect(result.categoryProfileData).toBeNull();
 	});
 

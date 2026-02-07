@@ -214,8 +214,8 @@
 		{#if isBikes}
 			<div class="bike-panel">
 				<div class="field">
-					<p class="group-label">Bike subtype</p>
-					<div class="pill-row" role="radiogroup" aria-label="Bike subtype">
+					<p class="group-label">Bike type</p>
+					<div class="pill-row" role="radiogroup" aria-label="Bike type">
 						{#each BIKE_SUBTYPE_OPTIONS as option (option.value)}
 							<button
 								type="button"
@@ -230,14 +230,14 @@
 						{/each}
 					</div>
 					{#if bikeSubtypeInvalid}
-						<small class="error-text">Choose a bike subtype.</small>
+						<small class="error-text">Choose a bike type.</small>
 					{/if}
 				</div>
 
 				<div class="field">
-					<p class="group-label">Bike type</p>
+					<p class="group-label">Bike subtype</p>
 					{#if bikeSubtype}
-						<div class="pill-row" role="radiogroup" aria-label="Bike type">
+						<div class="pill-row" role="radiogroup" aria-label="Bike subtype">
 							{#each bikeTypeOptions as option (option.value)}
 								<button
 									type="button"
@@ -252,10 +252,10 @@
 							{/each}
 						</div>
 					{:else}
-						<small class="muted">Choose bike subtype first.</small>
+						<small class="muted">Choose bike type first.</small>
 					{/if}
 					{#if bikeTypeInvalid}
-						<small class="error-text">Choose a bike type.</small>
+						<small class="error-text">Choose a bike subtype.</small>
 					{/if}
 				</div>
 
@@ -324,7 +324,7 @@
 							}}
 						/>
 					{:else}
-						<small class="muted">Choose bike subtype first.</small>
+						<small class="muted">Choose bike type first.</small>
 					{/if}
 					{#if bikeSizeInvalid}
 						<small class="error-text">Add a size.</small>
