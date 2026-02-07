@@ -6,6 +6,7 @@
 		catIcon,
 		type PriceType
 	} from '$lib/constants';
+	import pica from 'pica';
 
 	// two-way bind from parent
 	export let file: File | null = null;
@@ -24,10 +25,16 @@
 	let warn = '';
 	let compressing = false;
 
-	const MAX_DIMENSION = 1600;
-	const JPEG_QUALITY = 0.85;
-	const JPEG_MIN_QUALITY = 0.7;
-	const JPEG_REENCODE_THRESHOLD = 1 * 1024 * 1024; // 1MB
+	const MAX_DIMENSION = 2048;
+	const WEBP_QUALITY = 0.85;
+	const WEBP_MIN_QUALITY = 0.7;
+	const WEBP_REENCODE_THRESHOLD = 1 * 1024 * 1024; // 1MB
+
+	let picaInstance: ReturnType<typeof pica> | null = null;
+	const getPica = () => {
+		if (!picaInstance) picaInstance = pica();
+		return picaInstance;
+	};
 
 	$: bannerBase = category ? catBase[category] : '#6B7280';
 	$: bannerIcon = category ? catIcon[category] : '🗂️';
@@ -46,28 +53,17 @@
 		if (!keepError) err = '';
 	}
 
-	function toCanvasBlob(
-		canvas: HTMLCanvasElement,
-		type: string,
-		quality?: number
-	): Promise<Blob> {
-		return new Promise((resolve, reject) => {
-			canvas.toBlob(
-				(blob) => (blob ? resolve(blob) : reject(new Error('Image encoding failed'))),
-				type,
-				quality
-			);
-		});
-	}
-
-	function normalizeName(name: string, type: string) {
-		const ext = type === 'image/png' ? '.png' : '.jpg';
-		return name.replace(/\.(png|jpg|jpeg)$/i, '') + ext;
+	function normalizeName(name: string) {
+		return name.replace(/\.(png|jpg|jpeg|webp)$/i, '') + '.webp';
 	}
 
 	async function decodeImage(f: File): Promise<ImageBitmap | HTMLImageElement> {
 		if (typeof createImageBitmap === 'function') {
-			return await createImageBitmap(f);
+			try {
+				return await createImageBitmap(f, { imageOrientation: 'from-image' });
+			} catch {
+				return await createImageBitmap(f);
+			}
 		}
 		return await new Promise<HTMLImageElement>((resolve, reject) => {
 			const img = new Image();
@@ -93,9 +89,8 @@
 		const targetW = Math.max(1, Math.round(width * scale));
 		const targetH = Math.max(1, Math.round(height * scale));
 
-		const isPng = f.type === 'image/png';
 		const shouldResize = scale < 1;
-		const shouldReencode = !isPng && (f.size > JPEG_REENCODE_THRESHOLD || shouldResize);
+		const shouldReencode = f.type !== 'image/webp' || f.size > WEBP_REENCODE_THRESHOLD || shouldResize;
 
 		if (!shouldResize && !shouldReencode) {
 			if ('close' in bitmap) bitmap.close();
@@ -105,31 +100,19 @@
 		const canvas = document.createElement('canvas');
 		canvas.width = targetW;
 		canvas.height = targetH;
-		const ctx = canvas.getContext('2d');
-		if (!ctx) {
-			if ('close' in bitmap) bitmap.close();
-			throw new Error('Canvas not supported');
-		}
-		ctx.drawImage(bitmap as CanvasImageSource, 0, 0, targetW, targetH);
+		const processor = getPica();
+		await processor.resize(bitmap as CanvasImageSource, canvas);
 		if ('close' in bitmap) bitmap.close();
 
-		if (isPng) {
-			const blob = await toCanvasBlob(canvas, 'image/png');
-			return new File([blob], normalizeName(f.name, 'image/png'), {
-				type: 'image/png',
-				lastModified: f.lastModified
-			});
+		let quality = WEBP_QUALITY;
+		let blob = await processor.toBlob(canvas, 'image/webp', quality);
+		while (blob.size > MAX_IMAGE_SIZE && quality > WEBP_MIN_QUALITY) {
+			quality = Math.max(WEBP_MIN_QUALITY, Number((quality - 0.05).toFixed(2)));
+			blob = await processor.toBlob(canvas, 'image/webp', quality);
 		}
 
-		let quality = JPEG_QUALITY;
-		let blob = await toCanvasBlob(canvas, 'image/jpeg', quality);
-		while (blob.size > MAX_IMAGE_SIZE && quality > JPEG_MIN_QUALITY) {
-			quality = Math.max(JPEG_MIN_QUALITY, Number((quality - 0.05).toFixed(2)));
-			blob = await toCanvasBlob(canvas, 'image/jpeg', quality);
-		}
-
-		return new File([blob], normalizeName(f.name, 'image/jpeg'), {
-			type: 'image/jpeg',
+		return new File([blob], normalizeName(f.name), {
+			type: 'image/webp',
 			lastModified: f.lastModified
 		});
 	}
@@ -138,7 +121,7 @@
 		warn = '';
 		if (!ALLOWED_IMAGE_TYPES.includes(f.type)) {
 			clearFile({ keepError: true });
-			err = 'Unsupported image type. Use a JPG or PNG.';
+			err = 'Unsupported image type. Use a JPG, PNG, or WebP.';
 			return;
 		}
 		if (f.size > MAX_IMAGE_SIZE) {
@@ -158,7 +141,7 @@
 			setPreview(optimized);
 		} catch {
 			clearFile({ keepError: true });
-			err = 'Unsupported image type. Use a JPG or PNG.';
+			err = 'Unsupported image type. Use a JPG, PNG, or WebP.';
 		} finally {
 			compressing = false;
 		}
