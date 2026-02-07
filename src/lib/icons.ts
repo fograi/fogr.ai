@@ -14,6 +14,11 @@ import Shirt from 'lucide-svelte/icons/shirt';
 import SlidersHorizontal from 'lucide-svelte/icons/sliders-horizontal';
 import ShieldCheck from 'lucide-svelte/icons/shield-check';
 import Wrench from 'lucide-svelte/icons/wrench';
+import MessageCircle from 'lucide-svelte/icons/message-circle';
+import UserRound from 'lucide-svelte/icons/user-round';
+import List from 'lucide-svelte/icons/list';
+import LogIn from 'lucide-svelte/icons/log-in';
+import LogOut from 'lucide-svelte/icons/log-out';
 
 export const CATEGORY_ICON_MAP: Record<string, typeof Folder> = {
 	'Home & Garden': Home,
@@ -35,3 +40,8 @@ export const ReportIcon = Flag;
 export const FilterIcon = SlidersHorizontal;
 export const ModerationIcon = ShieldCheck;
 export const LinkIcon = Link2;
+export const MessagesIcon = MessageCircle;
+export const AccountIcon = UserRound;
+export const AdsIcon = List;
+export const LoginIcon = LogIn;
+export const LogoutIcon = LogOut;

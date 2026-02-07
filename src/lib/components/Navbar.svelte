@@ -9,6 +9,14 @@
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import { user$ } from '$lib/stores/user';
 	import logoSvg from '$lib/assets/fógraí.svg?raw';
+	import {
+		AccountIcon,
+		AdsIcon,
+		LinkIcon,
+		LoginIcon,
+		LogoutIcon,
+		MessagesIcon
+	} from '$lib/icons';
 
 	export let title = 'fogr.ai';
 	// minimal nav: primary CTA + compact menu
@@ -21,6 +29,13 @@
 		| '/(app)/ads';
 	const baseLinks: Array<{ href: NavHref; label: string }> = [];
 	let authedLinks: Array<{ href: NavHref; label: string }> = baseLinks;
+	const navIcons: Partial<Record<NavHref, typeof MessagesIcon>> = {
+		'/(app)/messages': MessagesIcon,
+		'/(app)/account': AccountIcon,
+		'/(app)/ads': AdsIcon,
+		'/(app)/post': LinkIcon,
+		'/(public)/about': LinkIcon
+	};
 
 	// UI state (unchanged)
 	let open = false;
@@ -148,13 +163,21 @@
 
 		<nav id="site-menu" bind:this={menu} class:open aria-hidden={!open}>
 			{#each authedLinks as link (link.href)}
-				<a href={resolve(link.href)} on:click={() => closeMenu(false)}>{link.label}</a>
+				<a href={resolve(link.href)} on:click={() => closeMenu(false)}>
+					<span>{link.label}</span>
+					<span class="nav-icon" aria-hidden="true">
+						<svelte:component this={navIcons[link.href] ?? LinkIcon} size={16} strokeWidth={1.8} />
+					</span>
+				</a>
 			{/each}
 
 			{#if user}
 				<!-- Show Logout as a button that looks like a link -->
 				<button class="as-link" type="button" on:click={() => (closeMenu(false), logout())}>
-					Logout
+					<span>Logout</span>
+					<span class="nav-icon logout" aria-hidden="true">
+						<LogoutIcon size={16} strokeWidth={1.8} />
+					</span>
 				</button>
 			{:else}
 				<!-- Login link with redirect back to current page -->
@@ -163,7 +186,10 @@
 					rel="external"
 					on:click={() => closeMenu(false)}
 				>
-					Login
+					<span>Login</span>
+					<span class="nav-icon" aria-hidden="true">
+						<LoginIcon size={16} strokeWidth={1.8} />
+					</span>
 				</a>
 			{/if}
 		</nav>
@@ -242,7 +268,10 @@
 		color: inherit;
 		padding: 0.5rem 0.75rem;
 		border-radius: 0.4rem;
-		display: block;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		justify-content: flex-end;
 	}
 	nav a:hover {
 		background: var(--hover);
@@ -283,6 +312,11 @@
 		border-radius: 0.4rem;
 		cursor: pointer;
 		text-align: left;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		justify-content: flex-end;
+		width: 100%;
 	}
 	nav .as-link:hover {
 		background: var(--hover);
@@ -300,5 +334,13 @@
 	}
 	.primary-cta:hover {
 		background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+	}
+	.nav-icon {
+		display: inline-flex;
+		align-items: center;
+		color: var(--accent-green);
+	}
+	.nav-icon.logout {
+		color: var(--accent-orange);
 	}
 </style>
