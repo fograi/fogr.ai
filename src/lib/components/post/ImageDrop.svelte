@@ -171,16 +171,18 @@
 			}
 			file = optimized;
 			setPreview(optimized);
-		} catch {
+		} catch (error) {
 			clearFile({ keepError: true });
+			const detail =
+				error instanceof Error && error.message ? ` (${error.message})` : '';
 			if (heic || avif) {
 				err =
-					'This image format is not supported on this device. Please choose a JPG or PNG.';
+					`This image format is not supported on this device. Please choose a JPG or PNG.${detail}`;
 			} else {
 				err =
 					f.type && !ALLOWED_IMAGE_TYPES.includes(f.type)
-						? `Unsupported image type (${f.type}). Use a JPG, PNG, or WebP.`
-						: 'We could not process that image. Please try a different file.';
+						? `Unsupported image type (${f.type}). Use a JPG, PNG, or WebP.${detail}`
+						: `We could not process that image. Please try a different file.${detail}`;
 			}
 		} finally {
 			compressing = false;
