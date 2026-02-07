@@ -137,82 +137,82 @@
 
 #### Part A - Category foundation + config
 
-- [ ] Add `Bikes` category to `src/lib/constants.ts` and update category color map.
-- [ ] Remove/replace legacy `Sports & Bikes` references in:
-  - [ ] `src/lib/constants.ts`
-  - [ ] `src/lib/icons.ts`
-  - [ ] mock data/fixtures
-  - [ ] e2e expectations (`e2e/home.test.ts` and any related tests)
-  - [ ] any search/filter category labels
-- [ ] Add/update category icon mapping in `src/lib/icons.ts` for `Bikes`.
-- [ ] Introduce a new config module for category profiles (example path: `src/lib/category-profiles.ts`) containing bike presets and rules.
-- [ ] Wire constants/helpers so bike checks use config, not scattered string comparisons.
+- [x] Add `Bikes` category to `src/lib/constants.ts` and update category color map.
+- [x] Remove/replace legacy `Sports & Bikes` references in:
+  - [x] `src/lib/constants.ts`
+  - [x] `src/lib/icons.ts`
+  - [x] mock data/fixtures
+  - [x] e2e expectations (`e2e/home.test.ts` and any related tests)
+  - [x] any search/filter category labels
+- [x] Add/update category icon mapping in `src/lib/icons.ts` for `Bikes`.
+- [x] Introduce a new config module for category profiles (example path: `src/lib/category-profiles.ts`) containing bike presets and rules.
+- [x] Wire constants/helpers so bike checks use config, not scattered string comparisons.
 
 #### Part B - Data model + typing
 
-- [ ] Create new Supabase migration adding a generic profile storage field to `ads`:
-  - [ ] `category_profile_data JSONB NULL`
-- [ ] Add optional GIN index on `category_profile_data` if query patterns require profile filtering at scale.
-- [ ] Update `src/lib/supabase.types.ts` for new fields.
-- [ ] Keep fields optional so non-bike listings remain valid.
+- [x] Create new Supabase migration adding a generic profile storage field to `ads`:
+  - [x] `category_profile_data JSONB NULL`
+- [x] Add optional GIN index on `category_profile_data` if query patterns require profile filtering at scale.
+- [x] Update `src/lib/supabase.types.ts` for new fields.
+- [x] Keep fields optional so non-bike listings remain valid.
 
 #### Part C - Step 1 (Details) bike UX extension
 
-- [ ] Extend `PostFields.svelte` Step 1 to show bike-only controls when category is `Bikes`.
-- [ ] Add required subtype button group: Adult, Kids, Electric.
-- [ ] Add bike type preset control (button style, not free-text first).
-- [ ] Add required condition control (preset buttons).
-- [ ] Add size controls:
-  - [ ] adult/electric sizes (`XS`..`XL`) + manual fallback
-  - [ ] kids age ranges
-- [ ] Auto-prefill title from selected bike presets, still editable.
-- [ ] Prefill assisted description template prompts, still editable.
-- [ ] Keep all existing non-bike Step 1 behavior unchanged.
+- [x] Extend `PostFields.svelte` Step 1 to show bike-only controls when category is `Bikes`.
+- [x] Add required subtype button group: Adult, Kids, Electric.
+- [x] Add bike type preset control (button style, not free-text first).
+- [x] Add required condition control (preset buttons).
+- [x] Add size controls:
+  - [x] adult/electric sizes (`XS`..`XL`) + manual fallback
+  - [x] kids age ranges
+- [x] Auto-prefill title from selected bike presets, still editable.
+- [x] Prefill assisted description template prompts, still editable.
+- [x] Keep all existing non-bike Step 1 behavior unchanged.
 
 #### Part D - Step 2 (Price) bike tuning
 
-- [ ] Ensure POA is unavailable for category `Bikes` in UI and validation.
-- [ ] Keep existing price flow structure (`fixed`/`free`) and offer controls.
-- [ ] Add quick min-offer presets for bikes (`70%`, `80%`, `custom`) when price type is fixed and not firm.
-- [ ] Add non-blocking price hint text for bikes from config (must avoid guarantee language).
-- [ ] Keep non-bike Step 2 behavior unchanged.
+- [x] Ensure POA is unavailable for category `Bikes` in UI and validation.
+- [x] Keep existing price flow structure (`fixed`/`free`) and offer controls.
+- [x] Add quick min-offer presets for bikes (`70%`, `80%`, `custom`) when price type is fixed and not firm.
+- [x] Add non-blocking price hint text for bikes from config (must avoid guarantee language).
+- [x] Keep non-bike Step 2 behavior unchanged.
 
 #### Part E - Step 3 (Photo) bike guidance
 
-- [ ] Add bike-only checklist guidance copy in photo step:
-  - [ ] full bike side view
-  - [ ] frame close-up
-  - [ ] gears/drivetrain
-  - [ ] serial area (optional)
-- [ ] Keep photos optional and do not add any blocking requirements.
-- [ ] Keep existing image upload/compression flow unchanged.
+- [x] Add bike-only checklist guidance copy in photo step:
+  - [x] full bike side view
+  - [x] frame close-up
+  - [x] gears/drivetrain
+  - [x] serial area (optional)
+- [x] Keep photos optional and do not add any blocking requirements.
+- [x] Keep existing image upload/compression flow unchanged.
 
 #### Part F - Validation + API wiring
 
-- [ ] Extend `ads-validation.ts` with profile-aware validation entry point (category + profile data).
-- [ ] Validate bike required fields server-side (subtype + condition + size rules).
-- [ ] Parse and persist category profile payload in:
-  - [ ] `src/routes/api/ads/+server.ts` (create)
-  - [ ] `src/routes/api/ads/[id]/+server.ts` (edit)
-- [ ] Keep non-bike validation path behavior unchanged.
-- [ ] Keep anti-abuse, moderation, and age-check behavior unchanged.
+- [x] Extend `ads-validation.ts` with profile-aware validation entry point (category + profile data).
+- [x] Validate bike required fields server-side (subtype + condition + size rules).
+- [x] Parse and persist category profile payload in:
+  - [x] `src/routes/api/ads/+server.ts` (create)
+  - [x] `src/routes/api/ads/[id]/+server.ts` (edit)
+- [x] Keep non-bike validation path behavior unchanged.
+- [x] Keep anti-abuse, moderation, and age-check behavior unchanged.
 
 #### Part G - Create/Edit page state + payload integration
 
-- [ ] Add bike state fields to post flow page (`/post`) and bind through `PostFields`.
-- [ ] Add the same bike state fields to edit flow page (`/ads/[id]/edit`) and prepopulate from persisted data.
-- [ ] Include profile payload in form/json submit bodies for create and edit.
-- [ ] Keep preview modal and step transitions unchanged.
+- [x] Add bike state fields to post flow page (`/post`) and bind through `PostFields`.
+- [x] Add the same bike state fields to edit flow page (`/ads/[id]/edit`) and prepopulate from persisted data.
+- [x] Include profile payload in form/json submit bodies for create and edit.
+- [x] Keep preview modal and step transitions unchanged.
 
 #### Part H - Metrics instrumentation
 
-- [ ] Extend `ad_created` metric properties with profile metadata:
-  - [ ] `categoryProfileUsed`
-  - [ ] `bikeSubtype`
-  - [ ] `bikeConditionSet`
-  - [ ] `bikeSizeSet`
-  - [ ] `usedPresetOnly` (deterministic using locked rule above)
-- [ ] Ensure `offer_auto_declined` includes enough context to segment bikes vs non-bikes.
+- [x] Extend `ad_created` metric properties with profile metadata:
+  - [x] `categoryProfileUsed`
+  - [x] `bikeSubtype`
+  - [x] `bikeConditionSet`
+  - [x] `bikeSizeSet`
+  - [x] `usedPresetOnly` (deterministic using locked rule above)
+- [x] Ensure `offer_auto_declined` includes enough context to segment bikes vs non-bikes.
 - [ ] Add or document query path for:
   - [ ] `% listings completed using presets only`
   - [ ] `% listings with condition + size set`
@@ -222,8 +222,8 @@
 
 #### Part I - Tests and verification
 
-- [ ] Add/extend unit tests in `src/lib/server/ads-validation.spec.ts` for bikes profile validation rules.
-- [ ] Update e2e tests for category label changes and bike flow happy path.
+- [x] Add/extend unit tests in `src/lib/server/ads-validation.spec.ts` for bikes profile validation rules.
+- [x] Update e2e tests for category label changes and bike flow happy path.
 - [ ] Add at least one e2e for bikes min-offer preset + auto-decline behavior.
 - [ ] Run `npm run test:unit -- --run`.
 - [ ] Run targeted e2e specs for post/edit/filtering flow.
