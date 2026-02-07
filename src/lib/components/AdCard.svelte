@@ -97,12 +97,6 @@
 						class:loading={!imgLoaded}
 					/>
 				</div>
-			{:else}
-				<div class="media placeholder" aria-hidden="true">
-					<div class="placeholder__inner">
-						<span class="placeholder__text">No photo</span>
-					</div>
-				</div>
 			{/if}
 
 			<h3 class="title title--text">{title}</h3>
