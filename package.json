@@ -54,6 +54,7 @@
 		"@supabase/ssr": "^0.8.0",
 		"@supabase/supabase-js": "^2.93.3",
 		"leo-profanity": "^1.9.0",
+		"lucide-svelte": "^0.563.0",
 		"obscenity": "^0.4.6",
 		"openai": "^6.17.0",
 		"pica": "^9.0.1"

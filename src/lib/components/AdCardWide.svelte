@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onDestroy, onMount, tick } from 'svelte';
-	import { catBase, catIcon } from '$lib/constants';
+	import { catBase } from '$lib/constants';
 	import { PUBLIC_R2_BASE } from '$env/static/public';
 	import { formatPriceLabel } from '$lib/utils/price';
+	import { CATEGORY_ICON_MAP, DefaultCategoryIcon } from '$lib/icons';
 
 	// Props
 	export let title: string;
@@ -20,7 +21,7 @@
 
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
-	$: bannerIcon = catIcon[category?.trim?.() ?? ''] ?? '🗂️';
+	$: bannerIcon = CATEGORY_ICON_MAP[category?.trim?.() ?? ''] ?? DefaultCategoryIcon;
 	$: displayedPrice = formatPriceLabel({ price, category, currency, locale });
 
 	$: expiresLabel = expiresAt
@@ -102,7 +103,9 @@
 		{#if showImg}
 			<!-- Banner header above image -->
 			<div class="banner" style="--banner:{bannerBase}">
-				<span class="banner__icon">{bannerIcon}</span>
+				<span class="banner__icon" aria-hidden="true">
+					<svelte:component this={bannerIcon} size={20} strokeWidth={1.6} />
+				</span>
 				<span class="banner__label">{(category || '').toUpperCase()}</span>
 			</div>
 
@@ -151,7 +154,9 @@
 			<!-- TEXT-ONLY FULL-WIDTH -->
 			<div class="text-body">
 				<div class="banner" style="--banner:{bannerBase}">
-					<span class="banner__icon">{bannerIcon}</span>
+					<span class="banner__icon" aria-hidden="true">
+						<svelte:component this={bannerIcon} size={20} strokeWidth={1.6} />
+					</span>
 					<span class="banner__label">{(category || '').toUpperCase()}</span>
 				</div>
 

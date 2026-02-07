@@ -3,6 +3,7 @@
 	import AdCard from '../lib/components/AdCard.svelte';
 	import { resolve } from '$app/paths';
 	import { CATEGORIES } from '$lib/constants';
+	import { SearchIcon } from '$lib/icons';
 
 	let { data } = $props();
 	let loggedError = false;
@@ -84,7 +85,9 @@
 				placeholder="Search"
 			/>
 			<button type="submit" aria-label="Search">
-				<span class="icon" aria-hidden="true">🔍</span>
+				<span class="icon" aria-hidden="true">
+					<SearchIcon size={18} strokeWidth={1.8} />
+				</span>
 			</button>
 			<label class="sr-only" for="search-category">Category</label>
 			<select id="search-category" name="category" value={category} onchange={submitFilters}>

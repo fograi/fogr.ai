@@ -3,11 +3,11 @@
 		ALLOWED_IMAGE_TYPES,
 		MAX_IMAGE_SIZE,
 		catBase,
-		catIcon,
 		type PriceType
 	} from '$lib/constants';
 	import pica from 'pica';
 	import { formatPriceLabel } from '$lib/utils/price';
+	import { CATEGORY_ICON_MAP, DefaultCategoryIcon, ImagePlaceholderIcon } from '$lib/icons';
 
 	// two-way bind from parent
 	export let file: File | null = null;
@@ -37,7 +37,7 @@
 	};
 
 	$: bannerBase = category ? catBase[category] : '#6B7280';
-	$: bannerIcon = category ? catIcon[category] : '🗂️';
+	$: bannerIcon = category ? CATEGORY_ICON_MAP[category] ?? DefaultCategoryIcon : DefaultCategoryIcon;
 
 	function setPreview(f: File) {
 		if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -183,7 +183,9 @@
 		{#if showMeta}
 			<!-- Banner header above image (centered) -->
 			<div class="banner" style="--banner:{bannerBase}">
-				<span class="banner__icon">{bannerIcon}</span>
+				<span class="banner__icon" aria-hidden="true">
+					<svelte:component this={bannerIcon} size={18} strokeWidth={1.6} />
+				</span>
 				<span class="banner__label">{(category || '').toUpperCase()}</span>
 			</div>
 		{/if}
@@ -227,7 +229,9 @@
 		</div>
 	{:else}
 		<div class="empty">
-			<div class="icon">🖼️</div>
+			<div class="icon" aria-hidden="true">
+				<ImagePlaceholderIcon size={26} strokeWidth={1.6} />
+			</div>
 			<p>Drag a photo here, or</p>
 			<div class="choice-row">
 				<label class="btn">

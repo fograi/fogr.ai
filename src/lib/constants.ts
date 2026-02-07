@@ -29,17 +29,6 @@ export const catBase: Record<Category, string> = {
 	'Lost and Found': '#EE6600',
 	'Free / Giveaway': '#1EAD7B'
 };
-export const catIcon: Record<string, string> = {
-	'Home & Garden': '🏠',
-	Electronics: '💻',
-	'Baby & Kids': '🧸',
-	'Sports & Bikes': '🚲',
-	'Clothing & Accessories': '👕',
-	'Services & Gigs': '🧰',
-	'Lessons & Tutoring': '🎓',
-	'Lost and Found': '🔎',
-	'Free / Giveaway': '🆓'
-};
 
 export const MIN_TITLE_LENGTH = 5;
 export const MAX_TITLE_LENGTH = 128;
