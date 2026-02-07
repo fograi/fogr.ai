@@ -12,8 +12,11 @@ export const BIKE_TYPES = [
 	'mountain',
 	'hybrid',
 	'gravel',
-	'electric',
-	'kids',
+	'balance',
+	'bmx',
+	'commuter',
+	'cargo',
+	'folding',
 	'other'
 ] as const;
 export type BikeType = (typeof BIKE_TYPES)[number];
@@ -37,15 +40,31 @@ export const BIKE_SUBTYPE_OPTIONS: ReadonlyArray<{ value: BikeSubtype; label: st
 	{ value: 'electric', label: 'Electric bike' }
 ];
 
-export const BIKE_TYPE_OPTIONS: ReadonlyArray<{ value: BikeType; label: string }> = [
-	{ value: 'road', label: 'Road' },
-	{ value: 'mountain', label: 'Mountain' },
-	{ value: 'hybrid', label: 'Hybrid' },
-	{ value: 'gravel', label: 'Gravel' },
-	{ value: 'electric', label: 'Electric' },
-	{ value: 'kids', label: 'Kids' },
-	{ value: 'other', label: 'Other' }
-];
+export const BIKE_TYPE_OPTIONS_BY_SUBTYPE: Readonly<
+	Record<BikeSubtype, ReadonlyArray<{ value: BikeType; label: string }>>
+> = {
+	adult: [
+		{ value: 'road', label: 'Road' },
+		{ value: 'mountain', label: 'Mountain' },
+		{ value: 'hybrid', label: 'Hybrid' },
+		{ value: 'gravel', label: 'Gravel' },
+		{ value: 'other', label: 'Other' }
+	],
+	kids: [
+		{ value: 'balance', label: 'Balance' },
+		{ value: 'mountain', label: 'Mountain' },
+		{ value: 'bmx', label: 'BMX' },
+		{ value: 'other', label: 'Other' }
+	],
+	electric: [
+		{ value: 'commuter', label: 'Commuter' },
+		{ value: 'mountain', label: 'Mountain' },
+		{ value: 'hybrid', label: 'Hybrid' },
+		{ value: 'cargo', label: 'Cargo' },
+		{ value: 'folding', label: 'Folding' },
+		{ value: 'other', label: 'Other' }
+	]
+};
 
 export const BIKE_CONDITION_OPTIONS: ReadonlyArray<{ value: BikeCondition; label: string }> = [
 	{ value: 'new', label: 'New' },
@@ -67,7 +86,7 @@ export type BikesProfileData = {
 	profile: 'bikes';
 	subtype: BikeSubtype;
 	condition: BikeCondition;
-	bikeType?: BikeType;
+	bikeType: BikeType;
 	sizePreset?: BikeSizePreset;
 	sizeManual?: string;
 	titleAutoFilled?: boolean;
@@ -75,10 +94,14 @@ export type BikesProfileData = {
 };
 
 const bikeSubtypeSet = new Set<string>(BIKE_SUBTYPES);
-const bikeTypeSet = new Set<string>(BIKE_TYPES);
 const bikeConditionSet = new Set<string>(BIKE_CONDITIONS);
 const bikeAdultSizePresetSet = new Set<string>(BIKE_ADULT_SIZE_PRESETS);
 const bikeKidsSizePresetSet = new Set<string>(BIKE_KIDS_SIZE_PRESETS);
+const bikeTypeSetBySubtype: Record<BikeSubtype, Set<string>> = {
+	adult: new Set(BIKE_TYPE_OPTIONS_BY_SUBTYPE.adult.map((option) => option.value)),
+	kids: new Set(BIKE_TYPE_OPTIONS_BY_SUBTYPE.kids.map((option) => option.value)),
+	electric: new Set(BIKE_TYPE_OPTIONS_BY_SUBTYPE.electric.map((option) => option.value))
+};
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
 	typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -95,10 +118,22 @@ const BIKE_TYPE_TITLE_LABEL: Record<BikeType, string> = {
 	mountain: 'Mountain',
 	hybrid: 'Hybrid',
 	gravel: 'Gravel',
-	electric: 'Electric',
-	kids: 'Kids',
+	balance: 'Balance',
+	bmx: 'BMX',
+	commuter: 'Commuter',
+	cargo: 'Cargo',
+	folding: 'Folding',
 	other: 'Bike'
 };
+
+export function getBikeSubtypeOptions(
+	subtype: BikeSubtype | '' | null | undefined
+): ReadonlyArray<{ value: BikeType; label: string }> {
+	if (subtype === 'adult') return BIKE_TYPE_OPTIONS_BY_SUBTYPE.adult;
+	if (subtype === 'kids') return BIKE_TYPE_OPTIONS_BY_SUBTYPE.kids;
+	if (subtype === 'electric') return BIKE_TYPE_OPTIONS_BY_SUBTYPE.electric;
+	return [];
+}
 
 export function isBikesCategory(category: string | Category | '' | null | undefined): boolean {
 	return (category ?? '').trim() === BIKES_CATEGORY;
@@ -137,11 +172,21 @@ export function buildBikeTitle({
 	sizeManual: string;
 }) {
 	if (!subtype) return '';
-
-	const typeSource =
-		bikeType || (subtype === 'electric' ? 'electric' : subtype === 'kids' ? 'kids' : 'other');
+	const typeSource = bikeType || 'other';
 	const typeLabel = BIKE_TYPE_TITLE_LABEL[typeSource];
-	const base = typeLabel === 'Bike' ? 'Bike' : `${typeLabel} bike`;
+	const descriptor = typeLabel === 'BMX' ? 'BMX' : typeLabel.toLowerCase();
+	const base =
+		subtype === 'kids'
+			? typeSource === 'other'
+				? 'Kids bike'
+				: `Kids ${descriptor} bike`
+			: subtype === 'electric'
+				? typeSource === 'other'
+					? 'Electric bike'
+					: `Electric ${descriptor} bike`
+				: typeSource === 'other'
+					? 'Bike'
+					: `${typeLabel} bike`;
 
 	if (subtype === 'kids') {
 		return sizePreset ? `${base} - ages ${sizePreset}` : base;
@@ -175,16 +220,19 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 		return { data: null, error: 'Invalid bike profile.' };
 	}
 	if (!bikeSubtypeSet.has(subtypeValue)) {
-		return { data: null, error: 'Bike subtype is required.' };
+		return { data: null, error: 'Bike type is required.' };
 	}
 	if (!bikeConditionSet.has(conditionValue)) {
 		return { data: null, error: 'Bike condition is required.' };
 	}
-	if (bikeTypeValue && !bikeTypeSet.has(bikeTypeValue)) {
-		return { data: null, error: 'Invalid bike type.' };
-	}
 
 	const subtype = subtypeValue as BikeSubtype;
+	if (!bikeTypeValue) {
+		return { data: null, error: 'Bike subtype is required.' };
+	}
+	if (!bikeTypeSetBySubtype[subtype].has(bikeTypeValue)) {
+		return { data: null, error: 'Invalid bike subtype for selected bike type.' };
+	}
 	const hasManualSize = sizeManualValue.length > 0;
 	const hasSizePreset = sizePresetValue.length > 0;
 
@@ -207,7 +255,7 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 		profile: BIKES_PROFILE_KEY,
 		subtype,
 		condition: conditionValue as BikeCondition,
-		bikeType: bikeTypeValue ? (bikeTypeValue as BikeType) : undefined,
+		bikeType: bikeTypeValue as BikeType,
 		sizePreset: hasSizePreset ? (sizePresetValue as BikeSizePreset) : undefined,
 		sizeManual: hasManualSize ? sizeManualValue.slice(0, 32) : undefined,
 		titleAutoFilled: asOptionalBoolean(input.titleAutoFilled),

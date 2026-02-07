@@ -109,18 +109,22 @@
 - Stored profile shape (v1) in `category_profile_data`:
   - `version: 1`
   - `profile: "bikes"`
-  - `subtype: "adult" | "kids" | "electric"`
-  - `bikeType: "road" | "mountain" | "hybrid" | "gravel" | "electric" | "kids" | "other"`
+  - `subtype: "adult" | "kids" | "electric"` (UI label: bike type)
+  - `bikeType`: bike subtype options depend on selected bike type:
+    - `adult`: `"road" | "mountain" | "hybrid" | "gravel" | "other"`
+    - `kids`: `"balance" | "mountain" | "bmx" | "other"`
+    - `electric`: `"commuter" | "mountain" | "hybrid" | "cargo" | "folding" | "other"`
   - `condition: "new" | "like_new" | "used_good" | "used_fair" | "needs_work"`
   - `sizePreset?: "XS" | "S" | "M" | "L" | "XL" | "3-5" | "6-8" | "9-12"`
   - `sizeManual?: string`
   - `titleAutoFilled?: boolean`
   - `descriptionTemplateUsed?: boolean`
 - Required bike fields:
-  - subtype: `adult | kids | electric`
+  - bike type (`subtype`): `adult | kids | electric`
+  - bike subtype (`bikeType`): required; options depend on selected bike type
   - condition: `new | like_new | used_good | used_fair | needs_work`
 - Guided fields:
-  - bike type: `road | mountain | hybrid | gravel | electric | kids | other`
+  - bike subtype presets via buttons (with `Other` fallback)
   - size:
     - adult: `XS | S | M | L | XL` or manual text
     - kids: age range presets (example `3-5`, `6-8`, `9-12`)
@@ -235,6 +239,15 @@
 - [ ] Confirm existing non-bike posting flow still works unchanged.
 - [ ] Confirm bike profile data persists and loads correctly in edit flow.
 - [ ] Confirm metrics events are emitted with expected properties.
+
+#### Part K - Bike taxonomy UX refinement (labels + overlap fix)
+
+- [x] Correct Step 1 labels so first selector is `Bike type` and second is `Bike subtype`.
+- [x] Make bike subtype mandatory (with `Other` available).
+- [x] Remove duplicated `Kids` / `Electric` values from second-level subtype choices.
+- [x] Drive second-level options from selected bike type via config map.
+- [x] Update bike profile validation to enforce valid type/subtype combinations.
+- [x] Add unit coverage for missing subtype and invalid type/subtype combinations.
 
 ### Acceptance Criteria (definition of done)
 

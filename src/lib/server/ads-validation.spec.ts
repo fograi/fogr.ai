@@ -185,7 +185,39 @@ describe('validateCategoryProfileData (bikes)', () => {
 		});
 		expect(result.error).toBeNull();
 		expect(result.categoryProfileData?.subtype).toBe('adult');
+		expect(result.categoryProfileData?.bikeType).toBe('road');
 		expect(result.categoryProfileData?.sizePreset).toBe('M');
+	});
+
+	it('rejects missing bike subtype selection', () => {
+		const result = validateCategoryProfileData({
+			category: 'Bikes',
+			categoryProfileDataRaw: {
+				version: 1,
+				profile: 'bikes',
+				subtype: 'adult',
+				condition: 'used_good',
+				sizePreset: 'M'
+			}
+		});
+		expect(result.error).toBe('Bike subtype is required.');
+		expect(result.categoryProfileData).toBeNull();
+	});
+
+	it('rejects subtype mismatch for selected bike type', () => {
+		const result = validateCategoryProfileData({
+			category: 'Bikes',
+			categoryProfileDataRaw: {
+				version: 1,
+				profile: 'bikes',
+				subtype: 'kids',
+				bikeType: 'road',
+				condition: 'used_good',
+				sizePreset: '6-8'
+			}
+		});
+		expect(result.error).toBe('Invalid bike subtype for selected bike type.');
+		expect(result.categoryProfileData).toBeNull();
 	});
 
 	it('rejects kids profile without age-range size', () => {
@@ -195,6 +227,7 @@ describe('validateCategoryProfileData (bikes)', () => {
 				version: 1,
 				profile: 'bikes',
 				subtype: 'kids',
+				bikeType: 'balance',
 				condition: 'used_good'
 			}
 		});

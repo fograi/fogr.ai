@@ -16,7 +16,7 @@
 		BIKE_MIN_OFFER_PRESET_RATIOS,
 		BIKE_PHOTO_CHECKLIST,
 		BIKE_SUBTYPE_OPTIONS,
-		BIKE_TYPE_OPTIONS,
+		getBikeSubtypeOptions,
 		getBikePriceHint,
 		isBikesCategory,
 		type BikeCondition,
@@ -59,6 +59,8 @@
 	$: poaAllowed = category ? POA_CATEGORY_SET.has(category) && !isBikes : false;
 	$: isLostAndFound = category === 'Lost and Found';
 	$: bikeSubtypeInvalid = showErrors && isBikes && !bikeSubtype;
+	$: bikeTypeInvalid = showErrors && isBikes && !bikeType;
+	$: bikeTypeOptions = bikeSubtype ? getBikeSubtypeOptions(bikeSubtype) : [];
 	$: bikeConditionInvalid = showErrors && isBikes && !bikeCondition;
 	$: kidsSizeInvalid =
 		showErrors &&
@@ -116,8 +118,11 @@
 
 	function pickBikeSubtype(nextSubtype: BikeSubtype) {
 		bikeSubtype = nextSubtype;
+		const nextSubtypeOptions = getBikeSubtypeOptions(nextSubtype);
+		if (!nextSubtypeOptions.some((option) => option.value === bikeType)) {
+			bikeType = '';
+		}
 		if (nextSubtype === 'kids') {
-			bikeType = 'kids';
 			bikeSizeManual = '';
 			if (
 				bikeSizePreset &&
@@ -127,8 +132,6 @@
 			}
 			return;
 		}
-		if (bikeType === 'kids') bikeType = '';
-		if (nextSubtype === 'electric' && !bikeType) bikeType = 'electric';
 		if (
 			bikeSizePreset &&
 			!BIKE_ADULT_SIZE_PRESETS.includes(bikeSizePreset as (typeof BIKE_ADULT_SIZE_PRESETS)[number])
@@ -168,8 +171,8 @@
 		{#if isBikes}
 			<div class="bike-panel">
 				<div class="field">
-					<p class="group-label">Bike subtype</p>
-					<div class="pill-row" role="radiogroup" aria-label="Bike subtype">
+					<p class="group-label">Bike type</p>
+					<div class="pill-row" role="radiogroup" aria-label="Bike type">
 						{#each BIKE_SUBTYPE_OPTIONS as option (option.value)}
 							<button
 								type="button"
@@ -184,26 +187,33 @@
 						{/each}
 					</div>
 					{#if bikeSubtypeInvalid}
-						<small class="error-text">Choose a bike subtype.</small>
+						<small class="error-text">Choose a bike type.</small>
 					{/if}
 				</div>
 
 				<div class="field">
-					<p class="group-label">Bike type <span class="muted">(optional)</span></p>
-					<div class="pill-row" role="radiogroup" aria-label="Bike type">
-						{#each BIKE_TYPE_OPTIONS as option (option.value)}
-							<button
-								type="button"
-								class="pill"
-								class:active={bikeType === option.value}
-								on:click={() => (bikeType = option.value)}
-								disabled={loading}
-								aria-pressed={bikeType === option.value}
-							>
-								{option.label}
-							</button>
-						{/each}
-					</div>
+					<p class="group-label">Bike subtype</p>
+					{#if bikeSubtype}
+						<div class="pill-row" role="radiogroup" aria-label="Bike subtype">
+							{#each bikeTypeOptions as option (option.value)}
+								<button
+									type="button"
+									class="pill"
+									class:active={bikeType === option.value}
+									on:click={() => (bikeType = option.value)}
+									disabled={loading}
+									aria-pressed={bikeType === option.value}
+								>
+									{option.label}
+								</button>
+							{/each}
+						</div>
+					{:else}
+						<small class="muted">Choose bike type first.</small>
+					{/if}
+					{#if bikeTypeInvalid}
+						<small class="error-text">Choose a bike subtype.</small>
+					{/if}
 				</div>
 
 				<div class="field">
@@ -271,7 +281,7 @@
 							}}
 						/>
 					{:else}
-						<small class="muted">Choose subtype first.</small>
+						<small class="muted">Choose bike type first.</small>
 					{/if}
 					{#if bikeSizeInvalid}
 						<small class="error-text">Add a size.</small>
