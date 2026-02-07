@@ -91,17 +91,15 @@ h3 {
 form
 	:is(input, textarea, select):not([type='checkbox']):not([type='radio'])[aria-invalid='true']
 	:not(:focus) {
-	border-color: var(--accent-orange);
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent);
-	background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
+	border-color: var(--accent-orange) !important;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-orange) 25%, transparent) !important;
+	background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg)) !important;
 }
 form
-	:is(input, textarea):not([type='checkbox']):not([type='radio'])[aria-invalid='false']
-	:not(:placeholder-shown)
-	:not(:focus),
-form select[aria-invalid='false']:not(:focus) {
-	border-color: var(--accent-green);
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent);
+	:is(input, textarea, select):not([type='checkbox']):not([type='radio'])[aria-invalid='false']
+	:not(:focus) {
+	border-color: var(--accent-green) !important;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 20%, transparent) !important;
 }
 
 a {
