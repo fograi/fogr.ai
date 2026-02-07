@@ -79,8 +79,8 @@
 				<span class="banner__label">{(category || '').toUpperCase()}</span>
 			</div>
 
-			<!-- Square image, NO overlays/chips -->
-			<div class="media square">
+			<!-- Full-height image, NO overlays/chips -->
+			<div class="media">
 				<img
 					bind:this={imgEl}
 					src={`${PUBLIC_R2_BASE.replace(/\/+$/, '')}/${img.replace(/^\/+/, '')}`}
@@ -213,14 +213,8 @@
 	}
 
 	/* Media */
-	.media,
-	.media.square {
+	.media {
 		width: 100%; /* <-- important: fill the grid column */
-		max-height: 70vh;
-	}
-
-	.media.square {
-		aspect-ratio: 1 / 1;
 		border: 8px solid color-mix(in srgb, var(--fg) 8%, transparent);
 		border-radius: 6px;
 		overflow: hidden;
@@ -230,8 +224,8 @@
 	.media img {
 		display: block; /* avoid inline gaps */
 		width: 100%;
-		height: 100%;
-		object-fit: cover;
+		height: auto;
+		object-fit: contain;
 	}
 
 	.title--standalone {

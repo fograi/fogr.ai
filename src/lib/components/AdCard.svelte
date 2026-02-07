@@ -206,12 +206,14 @@
 	/* Image: full width, no cropping, square corners */
 	.media {
 		margin: 8px 0 6px;
+		aspect-ratio: 1 / 1;
+		overflow: hidden;
+		background: color-mix(in srgb, var(--fg) 6%, var(--bg));
 	}
 	.media.placeholder {
-		aspect-ratio: 4 / 3;
+		aspect-ratio: 1 / 1;
 		border: 1px dashed color-mix(in srgb, var(--fg) 18%, transparent);
 		border-radius: 6px;
-		background: color-mix(in srgb, var(--fg) 6%, var(--bg));
 		display: grid;
 		place-items: center;
 	}
@@ -229,8 +231,8 @@
 	.media img {
 		display: block;
 		width: 100%;
-		height: auto;
-		object-fit: contain; /* never crop */
+		height: 100%;
+		object-fit: cover; /* crop to square */
 		filter: none; /* keep colour; set grayscale(100%) if you want */
 		transition: opacity 0.2s;
 	}
