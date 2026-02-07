@@ -58,6 +58,15 @@ body {
 	-webkit-text-size-adjust: 100%;
 	-moz-text-size-adjust: 100%;
 }
+@media (max-width: 640px) {
+	:root {
+		--page-pad: 12px;
+	}
+	html,
+	body {
+		margin: 0 4px;
+	}
+}
 body {
 	letter-spacing: -0.01em;
 }

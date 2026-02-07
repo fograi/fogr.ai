@@ -33,6 +33,8 @@ export const BIKE_KIDS_SIZE_PRESETS = ['3-5', '6-8', '9-12'] as const;
 export type BikeKidsSizePreset = (typeof BIKE_KIDS_SIZE_PRESETS)[number];
 
 export type BikeSizePreset = BikeAdultSizePreset | BikeKidsSizePreset;
+export const BIKE_MANUAL_SIZE_UNITS = ['cm', 'in'] as const;
+export type BikeManualSizeUnit = (typeof BIKE_MANUAL_SIZE_UNITS)[number];
 
 export const BIKE_MIN_OFFER_PRESET_RATIOS = [0.7, 0.8] as const;
 export const BIKE_GUIDED_FIELD_MAX_LENGTH = 120 as const;
@@ -417,6 +419,13 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 	}
 	const hasManualSize = sizeManualValue.length > 0;
 	const hasSizePreset = sizePresetValue.length > 0;
+	const manualSizeMatch = hasManualSize
+		? sizeManualValue.match(/^([0-9]{1,3}(?:\.[0-9]+)?)\s*(cm|in)$/i)
+		: null;
+	const manualSizeNormalized =
+		manualSizeMatch && Number(manualSizeMatch[1]) > 0
+			? `${manualSizeMatch[1]} ${(manualSizeMatch[2] as string).toLowerCase()}`
+			: '';
 
 	if (subtype === 'kids') {
 		if (!hasSizePreset || !bikeKidsSizePresetSet.has(sizePresetValue)) {
@@ -426,6 +435,9 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 		const presetIsValidAdult = hasSizePreset && bikeAdultSizePresetSet.has(sizePresetValue);
 		if (!presetIsValidAdult && !hasManualSize) {
 			return { data: null, error: 'Bike size is required.' };
+		}
+		if (hasManualSize && !manualSizeNormalized) {
+			return { data: null, error: 'Manual bike size must include a number and unit (cm or in).' };
 		}
 		if (hasSizePreset && !presetIsValidAdult) {
 			return { data: null, error: 'Invalid bike size.' };
@@ -439,7 +451,7 @@ export function validateAndNormalizeBikesProfileData(input: unknown): {
 		condition: conditionValue as BikeCondition,
 		bikeType: bikeTypeValue as BikeType,
 		sizePreset: hasSizePreset ? (sizePresetValue as BikeSizePreset) : undefined,
-		sizeManual: hasManualSize ? sizeManualValue.slice(0, 32) : undefined,
+		sizeManual: manualSizeNormalized ? manualSizeNormalized.slice(0, 32) : undefined,
 		reasonForSelling,
 		usageSummary,
 		knownIssues,

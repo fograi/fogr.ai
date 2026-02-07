@@ -15,6 +15,7 @@
 		BIKE_DESCRIPTION_ASSIST_PROMPTS,
 		BIKE_GUIDED_FIELD_MAX_LENGTH,
 		BIKE_KIDS_SIZE_PRESETS,
+		BIKE_MANUAL_SIZE_UNITS,
 		BIKE_MIN_OFFER_PRESET_RATIOS,
 		BIKE_PHOTO_CHECKLIST,
 		BIKE_SUBTYPE_OPTIONS,
@@ -23,6 +24,7 @@
 		isBikesCategory,
 		type BikeCondition,
 		type BikeDescriptionAssistKey,
+		type BikeManualSizeUnit,
 		type BikeSizePreset,
 		type BikeSubtype,
 		type BikeType
@@ -42,6 +44,7 @@
 	export let bikeCondition: BikeCondition | '' = '';
 	export let bikeSizePreset: BikeSizePreset | '' = '';
 	export let bikeSizeManual = '';
+	export let bikeSizeManualUnit: BikeManualSizeUnit | '' = '';
 	export let bikeReasonForSelling = '';
 	export let bikeUsageSummary = '';
 	export let bikeKnownIssues = '';
@@ -80,7 +83,7 @@
 		bikeSubtype !== '' &&
 		!isKidsBike &&
 		!bikeSizePreset &&
-		!bikeSizeManual.trim();
+		(!bikeSizeManual.trim() || !bikeSizeManualUnit);
 	$: bikeSizeInvalid = kidsSizeInvalid || adultSizeInvalid;
 	$: bikePriceHint = isBikes ? getBikePriceHint(bikeSubtype) : '';
 	$: numericPrice = price === '' ? Number.NaN : Number(price);
@@ -146,6 +149,7 @@
 		}
 		if (nextSubtype === 'kids') {
 			bikeSizeManual = '';
+			bikeSizeManualUnit = '';
 			if (
 				bikeSizePreset &&
 				!BIKE_KIDS_SIZE_PRESETS.includes(bikeSizePreset as (typeof BIKE_KIDS_SIZE_PRESETS)[number])
@@ -165,6 +169,7 @@
 	function pickBikeSizePreset(nextSize: BikeSizePreset) {
 		bikeSizePreset = nextSize;
 		bikeSizeManual = '';
+		bikeSizeManualUnit = '';
 	}
 
 	function applyBikeMinOfferPreset(ratio: number) {
@@ -312,17 +317,46 @@
 								</button>
 							{/each}
 						</div>
-						<input
-							id="bike-size-manual"
-							type="text"
-							bind:value={bikeSizeManual}
-							disabled={loading}
-							placeholder="or enter size in cm/inches"
-							on:input={() => {
-								if (bikeSizeManual.trim()) bikeSizePreset = '';
-								bikeSizeManualEdited = true;
-							}}
-						/>
+						<div class="size-manual-row">
+							<input
+								id="bike-size-manual"
+								type="text"
+								inputmode="numeric"
+								pattern="[0-9]*"
+								bind:value={bikeSizeManual}
+								disabled={loading}
+								placeholder="Manual size"
+								on:input={(event) => {
+									const input = event.currentTarget as HTMLInputElement;
+									const digitsOnly = input.value.replace(/[^0-9]/g, '');
+									if (digitsOnly !== input.value) {
+										input.value = digitsOnly;
+									}
+									bikeSizeManual = digitsOnly;
+									if (bikeSizeManual.trim()) {
+										bikeSizePreset = '';
+										if (!bikeSizeManualUnit) bikeSizeManualUnit = 'cm';
+									}
+									bikeSizeManualEdited = true;
+								}}
+							/>
+							<select
+								id="bike-size-manual-unit"
+								bind:value={bikeSizeManualUnit}
+								disabled={loading || !bikeSizeManual.trim()}
+								on:change={() => {
+									if (bikeSizeManual.trim()) {
+										bikeSizePreset = '';
+										bikeSizeManualEdited = true;
+									}
+								}}
+							>
+								<option value="" disabled selected hidden>Unit</option>
+								{#each BIKE_MANUAL_SIZE_UNITS as unit (unit)}
+									<option value={unit}>{unit}</option>
+								{/each}
+							</select>
+						</div>
 					{:else}
 						<small class="muted">Choose bike type first.</small>
 					{/if}
@@ -639,6 +673,21 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 8px;
+	}
+	.size-manual-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		width: fit-content;
+		max-width: 100%;
+	}
+	.size-manual-row input {
+		width: 10ch;
+		min-width: 10ch;
+	}
+	.size-manual-row select {
+		width: 5.5rem;
+		min-width: 5.5rem;
 	}
 	.pill {
 		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);

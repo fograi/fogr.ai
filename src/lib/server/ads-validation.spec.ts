@@ -189,6 +189,22 @@ describe('validateCategoryProfileData (bikes)', () => {
 		expect(result.categoryProfileData?.sizePreset).toBe('M');
 	});
 
+	it('accepts and normalizes adult manual bike size with unit', () => {
+		const result = validateCategoryProfileData({
+			category: 'Bikes',
+			categoryProfileDataRaw: {
+				version: 1,
+				profile: 'bikes',
+				subtype: 'adult',
+				bikeType: 'road',
+				condition: 'used_good',
+				sizeManual: '58 CM'
+			}
+		});
+		expect(result.error).toBeNull();
+		expect(result.categoryProfileData?.sizeManual).toBe('58 cm');
+	});
+
 	it('rejects missing bike subtype selection', () => {
 		const result = validateCategoryProfileData({
 			category: 'Bikes',
@@ -232,6 +248,22 @@ describe('validateCategoryProfileData (bikes)', () => {
 			}
 		});
 		expect(result.error).toBe('Kids bikes must include an age range.');
+		expect(result.categoryProfileData).toBeNull();
+	});
+
+	it('rejects adult manual bike size without unit', () => {
+		const result = validateCategoryProfileData({
+			category: 'Bikes',
+			categoryProfileDataRaw: {
+				version: 1,
+				profile: 'bikes',
+				subtype: 'adult',
+				bikeType: 'road',
+				condition: 'used_good',
+				sizeManual: '58'
+			}
+		});
+		expect(result.error).toBe('Manual bike size must include a number and unit (cm or in).');
 		expect(result.categoryProfileData).toBeNull();
 	});
 

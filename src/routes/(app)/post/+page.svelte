@@ -36,6 +36,7 @@
 	let bikeCondition: BikeCondition | '' = '';
 	let bikeSizePreset: BikeSizePreset | '' = '';
 	let bikeSizeManual = '';
+	let bikeSizeManualUnit: 'cm' | 'in' | '' = '';
 	let bikeReasonForSelling = '';
 	let bikeUsageSummary = '';
 	let bikeKnownIssues = '';
@@ -87,6 +88,7 @@
 		bikeCondition = '';
 		bikeSizePreset = '';
 		bikeSizeManual = '';
+		bikeSizeManualUnit = '';
 		bikeReasonForSelling = '';
 		bikeUsageSummary = '';
 		bikeKnownIssues = '';
@@ -96,12 +98,15 @@
 		lastBikeTitleSeed = '';
 		lastBikeDescriptionSeed = '';
 	}
-	$: bikeTitleSeed = `${bikeSubtype}|${bikeType}|${bikeSizePreset}|${bikeSizeManual.trim()}`;
+	$: bikeSizeManualWithUnit = bikeSizeManual.trim()
+		? `${bikeSizeManual.trim()}${bikeSizeManualUnit ? ` ${bikeSizeManualUnit}` : ''}`.trim()
+		: '';
+	$: bikeTitleSeed = `${bikeSubtype}|${bikeType}|${bikeSizePreset}|${bikeSizeManualWithUnit}`;
 	$: suggestedBikeTitle = buildBikeTitle({
 		subtype: bikeSubtype,
 		bikeType,
 		sizePreset: bikeSizePreset,
-		sizeManual: bikeSizeManual
+		sizeManual: bikeSizeManualWithUnit
 	});
 	$: if (
 		isBikes &&
@@ -170,7 +175,7 @@
 			bikeType: bikeType || undefined,
 			condition: bikeCondition || undefined,
 			sizePreset: bikeSizePreset || undefined,
-			sizeManual: bikeSizeManual.trim() || undefined,
+			sizeManual: bikeSizeManualWithUnit || undefined,
 			reasonForSelling: bikeReasonForSelling.trim() || undefined,
 			usageSummary: bikeUsageSummary.trim() || undefined,
 			knownIssues: bikeKnownIssues.trim() || undefined,
@@ -371,6 +376,7 @@
 			bikeCondition = '';
 			bikeSizePreset = '';
 			bikeSizeManual = '';
+			bikeSizeManualUnit = '';
 			bikeReasonForSelling = '';
 			bikeUsageSummary = '';
 			bikeKnownIssues = '';
@@ -473,6 +479,7 @@
 				bind:bikeCondition
 				bind:bikeSizePreset
 				bind:bikeSizeManual
+				bind:bikeSizeManualUnit
 				bind:bikeReasonForSelling
 				bind:bikeUsageSummary
 				bind:bikeKnownIssues
@@ -507,6 +514,7 @@
 				bind:bikeCondition
 				bind:bikeSizePreset
 				bind:bikeSizeManual
+				bind:bikeSizeManualUnit
 				bind:bikeReasonForSelling
 				bind:bikeUsageSummary
 				bind:bikeKnownIssues
@@ -552,6 +560,7 @@
 				bind:bikeCondition
 				bind:bikeSizePreset
 				bind:bikeSizeManual
+				bind:bikeSizeManualUnit
 				bind:bikeReasonForSelling
 				bind:bikeUsageSummary
 				bind:bikeKnownIssues

@@ -118,6 +118,22 @@ test('adult bike with subtype, condition, and size can continue to price step', 
 	await expect(page.getByLabel('Price type')).toBeVisible();
 });
 
+test('adult manual size is numeric-only and uses inline unit selector', async ({ page }) => {
+	await page.goto('/post');
+
+	await page.selectOption('#category', 'Bikes');
+	await page.getByRole('button', { name: 'Adult bike' }).click();
+	await page.getByRole('button', { name: 'Road' }).click();
+	await page.getByRole('button', { name: 'Used - good' }).click();
+
+	const manualSize = page.locator('#bike-size-manual');
+	await manualSize.fill('58cm');
+	await expect(manualSize).toHaveValue('58');
+	await expect(page.locator('#bike-size-manual-unit')).toHaveValue('cm');
+
+	await expect(page.locator('#title')).toHaveValue(/size 58 cm/i);
+});
+
 test('electric bike with subtype, condition, and size can continue to price step', async ({
 	page
 }) => {
