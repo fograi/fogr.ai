@@ -299,4 +299,5 @@
   - Consider if status like delivered on messages are useful or not? Maybe creates tension when un-replied?
   - Consider that the block must be two way, so the person who blocks won't accidentally chat to the via their ad
   - Need to ensure blocked lists or references are not send in gdpr, unless required.
-    - Will probably just use the uid which shoudl be some what safe, or probably expose partially masked such as 1111-\*\*\*\*-1111
+    - Will probably just use the uid which should be some what safe, or probably expose partially masked such as 1111-\*\*\*\*-1111
+- Set the max price validation to whatever is the max the db field will handle

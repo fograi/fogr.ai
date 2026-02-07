@@ -146,23 +146,31 @@
 				<span class="banner__label">{(category || '').toUpperCase()}</span>
 			</div>
 
-			<!-- Full-height image, NO overlays/chips -->
-			<button
-				type="button"
-				class="media media-button"
-				on:click={openLightbox}
-				aria-label="View listing image full screen"
-			>
-				<img
-					bind:this={imgEl}
-					src={`${PUBLIC_R2_BASE.replace(/\/+$/, '')}/${img.replace(/^\/+/, '')}`}
-					alt={title}
-					loading="lazy"
-					decoding="async"
-					on:load={onImgLoad}
-					on:error={onImgError}
-				/>
-			</button>
+			<div class="media-column">
+				{#if bikeChips.length > 0}
+					<div class="bike-chips media-highlights" aria-label="Bike highlights">
+						{#each bikeChips as chip (chip)}
+							<span class="bike-chip">{chip}</span>
+						{/each}
+					</div>
+				{/if}
+				<button
+					type="button"
+					class="media media-button"
+					on:click={openLightbox}
+					aria-label="View listing image full screen"
+				>
+					<img
+						bind:this={imgEl}
+						src={`${PUBLIC_R2_BASE.replace(/\/+$/, '')}/${img.replace(/^\/+/, '')}`}
+						alt={title}
+						loading="lazy"
+						decoding="async"
+						on:load={onImgLoad}
+						on:error={onImgError}
+					/>
+				</button>
+			</div>
 
 			<!-- Text meta beside/under the image -->
 			<div class="meta">
@@ -176,35 +184,6 @@
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
-				{#if bikeChips.length > 0}
-					<div class="bike-chips" aria-label="Bike highlights">
-						{#each bikeChips as chip (chip)}
-							<span class="bike-chip">{chip}</span>
-						{/each}
-					</div>
-				{/if}
-				{#if bikeSummary && (bikeSummary.reasonForSelling || bikeSummary.usageSummary || bikeSummary.knownIssues)}
-					<dl class="bike-facts">
-						{#if bikeSummary.reasonForSelling}
-							<div>
-								<dt>Reason for selling</dt>
-								<dd>{bikeSummary.reasonForSelling}</dd>
-							</div>
-						{/if}
-						{#if bikeSummary.usageSummary}
-							<div>
-								<dt>Usage</dt>
-								<dd>{bikeSummary.usageSummary}</dd>
-							</div>
-						{/if}
-						{#if bikeSummary.knownIssues}
-							<div>
-								<dt>Known issues</dt>
-								<dd>{bikeSummary.knownIssues}</dd>
-							</div>
-						{/if}
-					</dl>
-				{/if}
 				{#if expiresLabel && showExpires}
 					<p class="meta-line">
 						{status === 'expired' ? 'Expired on' : 'Expires on'}
@@ -236,6 +215,13 @@
 					</span>
 					<span class="banner__label">{(category || '').toUpperCase()}</span>
 				</div>
+				{#if bikeChips.length > 0}
+					<div class="bike-chips" aria-label="Bike highlights">
+						{#each bikeChips as chip (chip)}
+							<span class="bike-chip">{chip}</span>
+						{/each}
+					</div>
+				{/if}
 
 				<h3 class="title--standalone">{title}</h3>
 				{#if offerBadge}
@@ -247,35 +233,6 @@
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
-				{#if bikeChips.length > 0}
-					<div class="bike-chips" aria-label="Bike highlights">
-						{#each bikeChips as chip (chip)}
-							<span class="bike-chip">{chip}</span>
-						{/each}
-					</div>
-				{/if}
-				{#if bikeSummary && (bikeSummary.reasonForSelling || bikeSummary.usageSummary || bikeSummary.knownIssues)}
-					<dl class="bike-facts">
-						{#if bikeSummary.reasonForSelling}
-							<div>
-								<dt>Reason for selling</dt>
-								<dd>{bikeSummary.reasonForSelling}</dd>
-							</div>
-						{/if}
-						{#if bikeSummary.usageSummary}
-							<div>
-								<dt>Usage</dt>
-								<dd>{bikeSummary.usageSummary}</dd>
-							</div>
-						{/if}
-						{#if bikeSummary.knownIssues}
-							<div>
-								<dt>Known issues</dt>
-								<dd>{bikeSummary.knownIssues}</dd>
-							</div>
-						{/if}
-					</dl>
-				{/if}
 				{#if expiresLabel && showExpires}
 					<p class="meta-line">
 						{status === 'expired' ? 'Expired on' : 'Expires on'}
@@ -430,6 +387,11 @@
 		height: auto;
 		object-fit: contain;
 	}
+	.media-column {
+		display: grid;
+		gap: 10px;
+		align-content: start;
+	}
 
 	.title--standalone {
 		margin: 8px 0 4px;
@@ -471,6 +433,9 @@
 		justify-content: center;
 		gap: 6px;
 	}
+	.media-highlights {
+		min-height: 1.75rem;
+	}
 	.bike-chip {
 		display: inline-flex;
 		align-items: center;
@@ -480,28 +445,6 @@
 		font-weight: 700;
 		border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
 		background: color-mix(in srgb, var(--fg) 6%, var(--surface));
-	}
-	.bike-facts {
-		margin: 0;
-		display: grid;
-		gap: 6px;
-	}
-	.bike-facts div {
-		display: grid;
-		gap: 2px;
-	}
-	.bike-facts dt {
-		font-size: 0.78rem;
-		font-weight: 800;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: color-mix(in srgb, var(--fg) 58%, transparent);
-	}
-	.bike-facts dd {
-		margin: 0;
-		font-size: 0.95rem;
-		font-weight: 600;
-		color: color-mix(in srgb, var(--fg) 78%, transparent);
 	}
 	.desc {
 		margin: 0;

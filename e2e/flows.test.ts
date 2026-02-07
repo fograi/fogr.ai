@@ -405,6 +405,16 @@ test('edit ad page saves updates with mocked API', async ({ page }) => {
 	await expect(page).toHaveURL(/\/ad\/e2e-ad-1/);
 });
 
+test('edit ad bike pill changes refresh suggested title', async ({ page }) => {
+	await page.goto('/ads/e2e-ad-1/edit');
+
+	const titleInput = page.locator('#title');
+	await expect(titleInput).toHaveValue('E2E Test Ad');
+
+	await page.getByRole('button', { name: 'Mountain' }).click();
+	await expect(titleInput).toHaveValue('Mountain bike - size M');
+});
+
 test('ad detail page renders with mocked data', async ({ page }) => {
 	await page.goto('/ad/e2e-ad-1');
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
@@ -412,8 +422,22 @@ test('ad detail page renders with mocked data', async ({ page }) => {
 	await expect(page.getByText('Road')).toBeVisible();
 	await expect(page.getByText('Used - good')).toBeVisible();
 	await expect(page.getByText('Size M')).toBeVisible();
-	await expect(page.getByText('Reason for selling', { exact: true })).toBeVisible();
-	await expect(page.getByText('Upgrading bike', { exact: true })).toBeVisible();
+	await expect(page.getByText('Reason for selling', { exact: true })).toHaveCount(0);
+
+	const firstBikeChip = page.locator('.bike-chip').first();
+	await expect(firstBikeChip).toBeVisible();
+
+	const listingImage = page.locator('.media img').first();
+	if ((await listingImage.count()) > 0) {
+		await expect(listingImage).toBeVisible();
+		const [chipBox, imageBox] = await Promise.all([
+			firstBikeChip.boundingBox(),
+			listingImage.boundingBox()
+		]);
+		expect(chipBox).not.toBeNull();
+		expect(imageBox).not.toBeNull();
+		expect((chipBox?.y ?? 0) + (chipBox?.height ?? 0)).toBeLessThan(imageBox?.y ?? 0);
+	}
 });
 
 test('report form submits and shows reference', async ({ page }) => {

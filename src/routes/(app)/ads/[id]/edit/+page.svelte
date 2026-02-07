@@ -74,6 +74,14 @@
 		return { value: '', unit: '' as 'cm' | 'in' | '' };
 	};
 	const initialBikeManualSize = parseManualBikeSize(initialBikeProfile?.sizeManual);
+	const initialBikeSizeManualWithUnit = initialBikeManualSize.value
+		? `${initialBikeManualSize.value}${
+				initialBikeManualSize.unit ? ` ${initialBikeManualSize.unit}` : ''
+			}`.trim()
+		: '';
+	const initialBikeTitleSeed = `${initialBikeProfile?.subtype ?? ''}|${
+		initialBikeProfile?.bikeType ?? ''
+	}|${initialBikeProfile?.sizePreset ?? ''}|${initialBikeSizeManualWithUnit}`;
 	const initialBikeDescriptionTemplate = getBikeDescriptionTemplate({
 		reasonForSelling: initialBikeProfile?.reasonForSelling,
 		usageSummary: initialBikeProfile?.usageSummary,
@@ -105,7 +113,7 @@
 	let bikeUsageSummary = initialBikeProfile?.usageSummary ?? '';
 	let bikeKnownIssues = initialBikeProfile?.knownIssues ?? '';
 	let bikeSizeManualEdited = !!initialBikeManualSize.value;
-	let titleManuallyEdited = !!title;
+	let titleManuallyEdited = false;
 	let descriptionManuallyEdited =
 		!!description && description.trim() !== initialBikeDescriptionTemplate.trim();
 	let bikeTitleAutoFilled = initialBikeProfile?.titleAutoFilled ?? false;
@@ -113,7 +121,7 @@
 		initialBikeProfile?.descriptionTemplateUsed ??
 		(!!initialBikeDescriptionTemplate.trim() &&
 			description.trim() === initialBikeDescriptionTemplate.trim());
-	let lastBikeTitleSeed = '';
+	let lastBikeTitleSeed = initialBikeTitleSeed;
 	let lastBikeDescriptionSeed = '';
 	let currency = ad.currency ?? 'EUR';
 	let locale = 'en-IE';
