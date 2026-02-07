@@ -38,10 +38,12 @@
 	$: bikeChips = bikeSummary
 		? [
 				bikeSummary.subtypeLabel,
-				bikeSummary.bikeTypeLabel,
+				bikeSummary.bikeTypeLabel.toLowerCase() === 'other' ? null : bikeSummary.bikeTypeLabel,
 				bikeSummary.conditionLabel,
-				bikeSummary.sizeLabel
-			].filter((value): value is string => !!value)
+				bikeSummary.bikeTypeLabel.toLowerCase() === 'other' ? bikeSummary.sizeLabel : null
+			]
+				.filter((value): value is string => !!value)
+				.slice(0, 3)
 		: [];
 	$: bikeNarrative = bikeSummary
 		? bikeSummary.narrativeSummary ||
