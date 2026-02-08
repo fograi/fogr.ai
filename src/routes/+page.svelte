@@ -81,14 +81,6 @@
 		<div class="search__copy">
 			<h1>Buy. Sell. Done.</h1>
 			<p class="sub">Local deals, made simple.</p>
-			<div class="category-jump">
-				<label class="sr-only" for="browse-category">Browse category page</label>
-				<select id="browse-category" bind:value={browseCategorySlug} onchange={browseCategory}>
-					{#each categoryOptions as option (option.slug)}
-						<option value={option.slug}>{option.name}</option>
-					{/each}
-				</select>
-			</div>
 		</div>
 		<form class="search__form" method="GET" action={resolve('/')}>
 			<label class="sr-only" for="search-q">Search</label>
@@ -98,6 +90,12 @@
 					<SearchIcon size={18} strokeWidth={1.8} />
 				</span>
 			</button>
+			<label class="sr-only" for="browse-category">Browse category page</label>
+			<select id="browse-category" bind:value={browseCategorySlug} onchange={browseCategory}>
+				{#each categoryOptions as option (option.slug)}
+					<option value={option.slug}>{option.name}</option>
+				{/each}
+			</select>
 			{#if q || category || priceState}
 				<a class="clear" href={resolve('/')} rel="external">Clear</a>
 			{/if}
@@ -163,31 +161,17 @@
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 70%, transparent);
 	}
-	.category-jump {
-		margin-top: 10px;
-		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		max-width: 360px;
-	}
-	.category-jump select {
-		height: 40px;
-		padding: 0 10px;
-		border-radius: 10px;
-		border: 1px solid var(--hairline);
-		background: var(--surface);
-		color: inherit;
-		min-width: 0;
-	}
 	.search__form {
 		display: grid;
-		grid-template-columns: 1fr auto auto;
+		grid-template-columns: minmax(0, 1fr) auto minmax(160px, 220px) auto;
 		gap: 10px;
 		align-items: center;
 		width: 100%;
 		max-width: 720px;
 		justify-self: start;
 	}
-	.search__form input {
+	.search__form input,
+	.search__form select {
 		height: 44px;
 		padding: 0 12px;
 		border-radius: 12px;
@@ -229,11 +213,15 @@
 			grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
 			grid-template-areas:
 				'q btn'
+				'browse browse'
 				'clear clear';
 			max-width: 100%;
 		}
 		#search-q {
 			grid-area: q;
+		}
+		#browse-category {
+			grid-area: browse;
 		}
 		.search__form button {
 			grid-area: btn;

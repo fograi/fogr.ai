@@ -47,6 +47,25 @@ test('bikes category page supports sorting, range, and bike filters', async ({ p
 	await expect(page).toHaveURL(/max_price=120/);
 });
 
+test('category page renders removable applied filter chips', async ({ page }) => {
+	await page.goto('/category/bikes?bike_subtype=adult&min_price=50&max_price=120');
+
+	const subtypeChip = page.getByRole('link', { name: 'Remove Subtype: Adult bike' });
+	const priceChip = page.getByRole('link', { name: 'Remove Price: EUR 50-120' });
+
+	await expect(subtypeChip).toBeVisible();
+	await expect(priceChip).toBeVisible();
+
+	await subtypeChip.click();
+	await expect(page).not.toHaveURL(/bike_subtype=adult/);
+	await expect(page).toHaveURL(/min_price=50/);
+	await expect(page).toHaveURL(/max_price=120/);
+
+	await page.getByRole('link', { name: 'Clear all' }).click();
+	await expect(page).not.toHaveURL(/min_price=50/);
+	await expect(page).not.toHaveURL(/max_price=120/);
+});
+
 test('non-bike category page does not render bike-only filters', async ({ page }) => {
 	await page.goto('/category/electronics');
 	await expect(page.getByRole('heading', { name: 'Electronics' })).toBeVisible();
