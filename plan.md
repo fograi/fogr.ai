@@ -291,7 +291,7 @@
 
 ## Other todo to add tasks for
 
-- Add messages and other relevant stuff to "Export your data" feature on account page.
+- Add ad messages and other relevant stuff to "Export your data" feature on account page.
 - In the messages page, where the seller gets messages from multiple people for the same ad, group the messages, similar to maybe how the reports page groups reports for the same ad. Do some deep UX research to see what is best for the user.
 - On the message conversation view, I want to emphasise the anonymous nature of the chat, mostly to remind that you have no idea who you are talking to.
 - Add the profanity checks on the conversations between users
@@ -303,3 +303,4 @@
 - Set the max price validation to whatever is the max the db field will handle
 - Put euro symbols on inputs for monetary amounts, format with commas between 3 digits, e.g. €1,000. Possibly ban decimal places, I can't see how they would be useful.
 - Simple but innovative loading spinners where there are API calls or long running tasks like image compression.
+- Need to collect location to associate with as ad, Island > Province > County > City / Town / Village etc.
