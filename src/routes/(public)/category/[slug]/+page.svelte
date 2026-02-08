@@ -111,18 +111,18 @@
 				href: buildFilterHref({ minPrice: '', maxPrice: '' })
 			});
 		}
-		if (currentFilters.bikeSubtype) {
-			chips.push({
-				id: `bike_subtype:${currentFilters.bikeSubtype}`,
-				label: `Bike type: ${optionLabel(data.options.bikeSubtype, currentFilters.bikeSubtype)}`,
-				href: buildFilterHref({ bikeSubtype: '', bikeType: '' })
-			});
-		}
 		if (currentFilters.bikeType) {
 			chips.push({
 				id: `bike_type:${currentFilters.bikeType}`,
 				label: `Subtype: ${optionLabel(data.options.bikeType, currentFilters.bikeType)}`,
 				href: buildFilterHref({ bikeType: '' })
+			});
+		}
+		if (currentFilters.bikeSubtype) {
+			chips.push({
+				id: `bike_subtype:${currentFilters.bikeSubtype}`,
+				label: `Bike type: ${optionLabel(data.options.bikeSubtype, currentFilters.bikeSubtype)}`,
+				href: buildFilterHref({ bikeSubtype: '', bikeType: '' })
 			});
 		}
 		if (currentFilters.bikeCondition) {
