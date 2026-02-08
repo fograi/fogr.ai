@@ -28,6 +28,7 @@ import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
 import { recordMetric } from '$lib/server/metrics';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
+import { classifyAdWriteError } from '$lib/server/ads-write-errors';
 import { asCategory, asCategorySort } from '$lib/category-browse';
 import {
 	BIKE_ADULT_SIZE_PRESETS,
@@ -536,9 +537,16 @@ export const POST: RequestHandler = async (event) => {
 			})
 			.select('id')
 			.single();
-		if (insErr || !inserted) {
-			return errorResponse('We could not save your ad. Try again.', 500, requestId);
-		}
+			if (insErr || !inserted) {
+				const classified = classifyAdWriteError(insErr);
+				log('error', 'ads_post_insert_failed', {
+					errorCode: insErr?.code ?? null,
+					errorMessage: insErr?.message ?? null,
+					errorDetails: insErr?.details ?? null,
+					reason: classified.reason
+				});
+				return errorResponse(classified.message, classified.status, requestId);
+			}
 
 		const adId: string = inserted.id;
 
