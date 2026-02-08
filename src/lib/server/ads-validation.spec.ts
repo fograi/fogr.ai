@@ -5,6 +5,11 @@ import {
 	validateCategoryProfileData,
 	validateOfferRules
 } from './ads-validation';
+import {
+	MAX_AD_PRICE,
+	MAX_AD_PRICE_VALIDATION_MESSAGE,
+	WHOLE_EURO_VALIDATION_MESSAGE
+} from '$lib/constants';
 
 describe('validateAdMeta (price rules)', () => {
 	it('accepts fixed price over 0', () => {
@@ -25,6 +30,26 @@ describe('validateAdMeta (price rules)', () => {
 			priceType: 'fixed'
 		});
 		expect(result).toBe('Fixed price must be greater than 0.');
+	});
+
+	it('rejects fixed price with cents', () => {
+		const result = validateAdMeta({
+			category: 'Electronics',
+			currency: 'EUR',
+			priceStr: '1.5',
+			priceType: 'fixed'
+		});
+		expect(result).toBe(WHOLE_EURO_VALIDATION_MESSAGE);
+	});
+
+	it('rejects fixed price above max', () => {
+		const result = validateAdMeta({
+			category: 'Electronics',
+			currency: 'EUR',
+			priceStr: String(MAX_AD_PRICE + 1),
+			priceType: 'fixed'
+		});
+		expect(result).toBe(MAX_AD_PRICE_VALIDATION_MESSAGE);
 	});
 
 	it('accepts free price at 0', () => {
@@ -106,6 +131,26 @@ describe('validateAdMeta (price rules)', () => {
 		});
 		expect(result).toBe('Reward must be greater than 0.');
 	});
+
+	it('rejects Lost and Found reward with cents', () => {
+		const result = validateAdMeta({
+			category: 'Lost and Found',
+			currency: 'EUR',
+			priceStr: '10.50',
+			priceType: 'fixed'
+		});
+		expect(result).toBe(WHOLE_EURO_VALIDATION_MESSAGE);
+	});
+
+	it('rejects Lost and Found reward above max', () => {
+		const result = validateAdMeta({
+			category: 'Lost and Found',
+			currency: 'EUR',
+			priceStr: String(MAX_AD_PRICE + 1),
+			priceType: 'fixed'
+		});
+		expect(result).toBe(MAX_AD_PRICE_VALIDATION_MESSAGE);
+	});
 });
 
 describe('validateAdImages (min photos)', () => {
@@ -149,6 +194,26 @@ describe('validateOfferRules', () => {
 			minOfferStr: '150'
 		});
 		expect(result).toBe('Minimum offer must be less than the asking price.');
+	});
+
+	it('rejects min offer with cents', () => {
+		const result = validateOfferRules({
+			priceType: 'fixed',
+			priceStr: '100',
+			firmPrice: false,
+			minOfferStr: '10.5'
+		});
+		expect(result).toBe(WHOLE_EURO_VALIDATION_MESSAGE);
+	});
+
+	it('rejects min offer above max', () => {
+		const result = validateOfferRules({
+			priceType: 'fixed',
+			priceStr: String(MAX_AD_PRICE),
+			firmPrice: false,
+			minOfferStr: String(MAX_AD_PRICE + 1)
+		});
+		expect(result).toBe(MAX_AD_PRICE_VALIDATION_MESSAGE);
 	});
 });
 

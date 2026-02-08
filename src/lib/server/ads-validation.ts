@@ -1,6 +1,9 @@
 import {
 	CATEGORIES,
 	POA_CATEGORY_SET,
+	MAX_AD_PRICE,
+	MAX_AD_PRICE_VALIDATION_MESSAGE,
+	WHOLE_EURO_VALIDATION_MESSAGE,
 	getMinPhotosForCategory,
 	type Category,
 	type PriceType
@@ -25,6 +28,15 @@ const normalizePriceType = (value?: string | null): PriceType | null => {
 	return null;
 };
 
+const WHOLE_EURO_PATTERN = /^\d+$/;
+
+const parseWholeEuro = (value: string | null | undefined) => {
+	const trimmed = value?.trim() ?? '';
+	if (!trimmed) return null;
+	if (!WHOLE_EURO_PATTERN.test(trimmed)) return null;
+	return Number(trimmed);
+};
+
 export function validateAdMeta({
 	category,
 	currency,
@@ -44,8 +56,10 @@ export function validateAdMeta({
 
 	if (isLostAndFound) {
 		if (!priceStr || priceStr.trim() === '') return null;
-		const reward = Number(priceStr);
+		const reward = parseWholeEuro(priceStr);
+		if (reward === null) return WHOLE_EURO_VALIDATION_MESSAGE;
 		if (!Number.isFinite(reward) || reward <= 0) return 'Reward must be greater than 0.';
+		if (reward > MAX_AD_PRICE) return MAX_AD_PRICE_VALIDATION_MESSAGE;
 		return null;
 	}
 
@@ -56,8 +70,10 @@ export function validateAdMeta({
 	}
 
 	if (priceStr === null || priceStr.trim() === '') return 'Price is required.';
-	const n = Number(priceStr);
+	const n = parseWholeEuro(priceStr);
+	if (n === null) return WHOLE_EURO_VALIDATION_MESSAGE;
 	if (!Number.isFinite(n) || n < 0) return 'Invalid price.';
+	if (n > MAX_AD_PRICE) return MAX_AD_PRICE_VALIDATION_MESSAGE;
 	if (priceType === 'fixed' && n <= 0) return 'Fixed price must be greater than 0.';
 	if (priceType === 'free' && n !== 0) return 'Free items must have a price of 0.';
 	if (isFreeCategory && n !== 0) return 'Free items must have a price of 0.';
@@ -97,13 +113,19 @@ export function validateOfferRules({
 		return 'Firm price listings cannot set a minimum offer.';
 	}
 	if (!minOfferStr || minOfferStr.trim() === '') return null;
-	const minOffer = Number(minOfferStr);
+	const minOffer = parseWholeEuro(minOfferStr);
+	if (minOffer === null) {
+		return WHOLE_EURO_VALIDATION_MESSAGE;
+	}
 	if (!Number.isFinite(minOffer) || minOffer <= 0) {
 		return 'Minimum offer must be greater than 0.';
 	}
+	if (minOffer > MAX_AD_PRICE) {
+		return MAX_AD_PRICE_VALIDATION_MESSAGE;
+	}
 	if (priceStr && priceStr.trim() !== '') {
-		const price = Number(priceStr);
-		if (Number.isFinite(price) && minOffer >= price) {
+		const price = parseWholeEuro(priceStr);
+		if (price !== null && minOffer >= price) {
 			return 'Minimum offer must be less than the asking price.';
 		}
 	}

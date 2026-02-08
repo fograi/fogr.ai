@@ -1,4 +1,18 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+const WHOLE_EURO_VALIDATION_MESSAGE = 'No cents, no chaos - whole euros only (e.g. 2, not 1.50).';
+const MAX_AD_PRICE_VALIDATION_MESSAGE = 'Nice ambition - max allowed is EUR 2147483647.';
+
+async function goToPriceStep(page: Page) {
+	await page.goto('/post');
+	await page.selectOption('#category', 'Services & Gigs');
+	await page.fill('#title', 'E2E Listing Title');
+	await page.fill(
+		'#description',
+		'E2E listing description that is long enough to pass validation.'
+	);
+	await page.getByRole('button', { name: 'Continue' }).click();
+}
 
 test('login page loads the email form', async ({ page }) => {
 	await page.goto('/login');
@@ -8,15 +22,7 @@ test('login page loads the email form', async ({ page }) => {
 });
 
 test('post page allows submitting a listing with mocked API', async ({ page }) => {
-	await page.goto('/post');
-
-	await page.selectOption('#category', 'Services & Gigs');
-	await page.fill('#title', 'E2E Listing Title');
-	await page.fill(
-		'#description',
-		'E2E listing description that is long enough to pass validation.'
-	);
-	await page.getByRole('button', { name: 'Continue' }).click();
+	await goToPriceStep(page);
 
 	await page.fill('#price', '10');
 	await page.getByRole('button', { name: 'Continue' }).click();
@@ -39,6 +45,26 @@ test('post page allows submitting a listing with mocked API', async ({ page }) =
 	await page.getByRole('button', { name: 'Post ad' }).click();
 	await expect(page).toHaveURL(/\/ad\/e2e-ad-1/);
 	await expect(page.getByRole('heading', { name: 'E2E Test Ad' })).toBeVisible();
+});
+
+test('post price step rejects decimal values before preview', async ({ page }) => {
+	await goToPriceStep(page);
+
+	await page.fill('#price', '1.5');
+	await page.getByRole('button', { name: 'Continue' }).click();
+
+	await expect(page.getByText(WHOLE_EURO_VALIDATION_MESSAGE)).toBeVisible();
+	await expect(page.locator('#price')).toBeVisible();
+});
+
+test('post price step rejects values above max integer range', async ({ page }) => {
+	await goToPriceStep(page);
+
+	await page.fill('#price', '2147483648');
+	await page.getByRole('button', { name: 'Continue' }).click();
+
+	await expect(page.getByText(MAX_AD_PRICE_VALIDATION_MESSAGE)).toBeVisible();
+	await expect(page.locator('#price')).toBeVisible();
 });
 
 test('bike subtype resets when bike type changes to a different branch', async ({ page }) => {

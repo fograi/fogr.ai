@@ -34,6 +34,10 @@ export const MIN_TITLE_LENGTH = 5;
 export const MAX_TITLE_LENGTH = 128;
 export const MIN_DESC_LENGTH = 20;
 export const MAX_DESC_LENGTH = 1024;
+export const MAX_AD_PRICE = 2_147_483_647;
+export const WHOLE_EURO_VALIDATION_MESSAGE =
+	'No cents, no chaos - whole euros only (e.g. 2, not 1.50).';
+export const MAX_AD_PRICE_VALIDATION_MESSAGE = `Nice ambition - max allowed is EUR ${MAX_AD_PRICE}.`;
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_IMAGE_COUNT = 1;

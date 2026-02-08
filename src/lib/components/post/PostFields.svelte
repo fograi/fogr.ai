@@ -4,6 +4,7 @@
 		type Category,
 		type PriceType,
 		POA_CATEGORY_SET,
+		MAX_AD_PRICE,
 		MIN_TITLE_LENGTH,
 		MAX_TITLE_LENGTH,
 		MIN_DESC_LENGTH,
@@ -60,6 +61,7 @@
 	let bikeMinOfferUnit: BikeMinOfferUnit = 'eur';
 	let bikeMinOfferDisplay = '';
 	let bikeMinOfferDisplaySignature = '';
+	const maxAdPriceLabel = new Intl.NumberFormat('en-IE').format(MAX_AD_PRICE);
 
 	$: titleLen = title.length;
 	$: descLen = description.length;
@@ -91,12 +93,15 @@
 	$: bikeSizeInvalid = kidsSizeInvalid || adultSizeInvalid;
 	$: bikePriceHint = isBikes ? getBikePriceHint(bikeSubtype) : '';
 	$: numericPrice = price === '' ? Number.NaN : Number(price);
+	$: numericMinOffer = minOffer === '' ? Number.NaN : Number(minOffer);
 	$: canUseBikeMinOfferPresets =
 		isBikes &&
 		priceType === 'fixed' &&
 		!firmPrice &&
 		Number.isFinite(numericPrice) &&
-		numericPrice > 0;
+		Number.isInteger(numericPrice) &&
+		numericPrice > 0 &&
+		numericPrice <= MAX_AD_PRICE;
 	$: bikeMinusTenPercentMinOffer = canUseBikeMinOfferPresets
 		? Math.max(1, Math.floor(numericPrice * 0.9))
 		: null;
@@ -110,22 +115,26 @@
 		showErrors &&
 		isLostAndFound &&
 		price !== '' &&
-		(Number.isNaN(Number(price)) || Number(price) <= 0);
+		(!Number.isInteger(numericPrice) || numericPrice <= 0 || numericPrice > MAX_AD_PRICE);
 	$: priceInvalid =
 		showErrors &&
 		!isLostAndFound &&
 		((priceType === 'fixed' &&
-			(price === '' || Number.isNaN(Number(price)) || Number(price) <= 0)) ||
-			(priceType === 'free' && Number(price) !== 0));
+			(price === '' ||
+				!Number.isInteger(numericPrice) ||
+				numericPrice <= 0 ||
+				numericPrice > MAX_AD_PRICE)) ||
+			(priceType === 'free' && numericPrice !== 0));
 	$: minOfferInvalid =
 		showErrors &&
 		!isLostAndFound &&
 		priceType === 'fixed' &&
 		!firmPrice &&
 		minOffer !== '' &&
-		(Number.isNaN(Number(minOffer)) ||
-			Number(minOffer) <= 0 ||
-			(price !== '' && Number(minOffer) >= Number(price)));
+		(!Number.isInteger(numericMinOffer) ||
+			numericMinOffer <= 0 ||
+			numericMinOffer > MAX_AD_PRICE ||
+			(price !== '' && Number.isInteger(numericPrice) && numericMinOffer >= numericPrice));
 	$: {
 		if (!isBikes || priceType !== 'fixed' || firmPrice) {
 			bikeMinOfferUnit = 'eur';
@@ -203,7 +212,7 @@
 	function applyBikeMinOfferAbsolute(value: number) {
 		if (!Number.isFinite(value) || value <= 0) return;
 		bikeMinOfferUnit = 'eur';
-		minOffer = Math.floor(value);
+		minOffer = value;
 		bikeMinOfferDisplay = String(minOffer);
 		bikeMinOfferDisplaySignature = getBikeMinOfferDisplaySignature();
 	}
@@ -218,7 +227,7 @@
 		if (minOffer === '') return '';
 		const minOfferValue = Number(minOffer);
 		if (!Number.isFinite(minOfferValue) || minOfferValue <= 0) return '';
-		if (bikeMinOfferUnit === 'eur') return String(Math.floor(minOfferValue));
+		if (bikeMinOfferUnit === 'eur') return String(minOfferValue);
 		if (!Number.isFinite(numericPrice) || numericPrice <= 0) return '';
 		const percent = Math.ceil((minOfferValue / numericPrice) * 100);
 		return String(Math.min(99, Math.max(1, percent)));
@@ -251,11 +260,14 @@
 		}
 
 		if (bikeMinOfferUnit === 'eur') {
-			minOffer = Math.floor(numericValue);
-			bikeMinOfferDisplay = String(minOffer);
+			minOffer = numericValue;
 		} else if (Number.isFinite(numericPrice) && numericPrice > 0) {
-			const percentageValue = Math.max(1, Math.min(99, Math.floor(numericValue)));
-			minOffer = Math.max(1, Math.floor((numericPrice * percentageValue) / 100));
+			const percentageValue = Math.max(1, Math.min(99, numericValue));
+			if (Number.isInteger(percentageValue)) {
+				minOffer = Math.max(1, Math.floor((numericPrice * percentageValue) / 100));
+			} else {
+				minOffer = (numericPrice * percentageValue) / 100;
+			}
 			bikeMinOfferDisplay = String(percentageValue);
 		} else {
 			minOffer = '';
@@ -597,6 +609,7 @@
 						id="reward"
 						type="number"
 						min="1"
+						max={MAX_AD_PRICE}
 						step="1"
 						inputmode="numeric"
 						pattern="[0-9]*"
@@ -605,7 +618,10 @@
 						placeholder="e.g., 50"
 						aria-invalid={showErrors ? rewardInvalid : undefined}
 					/>
-					<small class="muted">Optional. Leave blank if no reward is offered.</small>
+					<small class="muted">
+						Optional. Leave blank if no reward is offered. Whole euros only, up to EUR
+						{maxAdPriceLabel}.
+					</small>
 				</div>
 			</div>
 		{:else}
@@ -632,6 +648,7 @@
 								id="price"
 								type="number"
 								min="0"
+								max={MAX_AD_PRICE}
 								step="1"
 								inputmode="numeric"
 								pattern="[0-9]*"
@@ -649,6 +666,9 @@
 			</div>
 			{#if bikePriceHint}
 				<small class="muted">{bikePriceHint}</small>
+			{/if}
+			{#if priceType === 'fixed'}
+				<small class="muted">Whole euros only, up to EUR {maxAdPriceLabel}.</small>
 			{/if}
 		{/if}
 
@@ -693,7 +713,7 @@
 								id="min-offer"
 								type="number"
 								min="1"
-								max={bikeMinOfferUnit === 'percent' ? 99 : undefined}
+								max={bikeMinOfferUnit === 'percent' ? 99 : MAX_AD_PRICE}
 								step="1"
 								inputmode="numeric"
 								pattern="[0-9]*"
@@ -718,6 +738,7 @@
 							id="min-offer"
 							type="number"
 							min="1"
+							max={MAX_AD_PRICE}
 							step="1"
 							inputmode="numeric"
 							pattern="[0-9]*"
@@ -727,7 +748,10 @@
 							aria-invalid={showErrors ? minOfferInvalid : undefined}
 						/>
 					{/if}
-					<small class="muted">Auto-decline lower offers.</small>
+					<small class="muted">
+						Auto-decline lower offers. Whole {bikeMinOfferUnit === 'percent' ? 'numbers' : 'euros'}
+						only{bikeMinOfferUnit === 'percent' ? ' (1-99).' : `, up to EUR ${maxAdPriceLabel}.`}
+					</small>
 				</div>
 			{/if}
 			{#if firmPrice || minOffer !== ''}
