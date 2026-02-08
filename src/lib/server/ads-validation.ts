@@ -2,8 +2,8 @@ import {
 	CATEGORIES,
 	POA_CATEGORY_SET,
 	MAX_AD_PRICE,
-	MAX_AD_PRICE_VALIDATION_MESSAGE,
-	WHOLE_EURO_VALIDATION_MESSAGE,
+	getMaxAdPriceValidationMessage,
+	getWholeEuroValidationMessage,
 	getMinPhotosForCategory,
 	type Category,
 	type PriceType
@@ -57,9 +57,9 @@ export function validateAdMeta({
 	if (isLostAndFound) {
 		if (!priceStr || priceStr.trim() === '') return null;
 		const reward = parseWholeEuro(priceStr);
-		if (reward === null) return WHOLE_EURO_VALIDATION_MESSAGE;
+		if (reward === null) return getWholeEuroValidationMessage(priceStr);
 		if (!Number.isFinite(reward) || reward <= 0) return 'Reward must be greater than 0.';
-		if (reward > MAX_AD_PRICE) return MAX_AD_PRICE_VALIDATION_MESSAGE;
+		if (reward > MAX_AD_PRICE) return getMaxAdPriceValidationMessage();
 		return null;
 	}
 
@@ -71,9 +71,9 @@ export function validateAdMeta({
 
 	if (priceStr === null || priceStr.trim() === '') return 'Price is required.';
 	const n = parseWholeEuro(priceStr);
-	if (n === null) return WHOLE_EURO_VALIDATION_MESSAGE;
+	if (n === null) return getWholeEuroValidationMessage(priceStr);
 	if (!Number.isFinite(n) || n < 0) return 'Invalid price.';
-	if (n > MAX_AD_PRICE) return MAX_AD_PRICE_VALIDATION_MESSAGE;
+	if (n > MAX_AD_PRICE) return getMaxAdPriceValidationMessage();
 	if (priceType === 'fixed' && n <= 0) return 'Fixed price must be greater than 0.';
 	if (priceType === 'free' && n !== 0) return 'Free items must have a price of 0.';
 	if (isFreeCategory && n !== 0) return 'Free items must have a price of 0.';
@@ -115,13 +115,13 @@ export function validateOfferRules({
 	if (!minOfferStr || minOfferStr.trim() === '') return null;
 	const minOffer = parseWholeEuro(minOfferStr);
 	if (minOffer === null) {
-		return WHOLE_EURO_VALIDATION_MESSAGE;
+		return getWholeEuroValidationMessage(minOfferStr);
 	}
 	if (!Number.isFinite(minOffer) || minOffer <= 0) {
 		return 'Minimum offer must be greater than 0.';
 	}
 	if (minOffer > MAX_AD_PRICE) {
-		return MAX_AD_PRICE_VALIDATION_MESSAGE;
+		return getMaxAdPriceValidationMessage();
 	}
 	if (priceStr && priceStr.trim() !== '') {
 		const price = parseWholeEuro(priceStr);

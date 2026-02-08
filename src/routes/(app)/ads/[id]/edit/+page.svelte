@@ -7,8 +7,8 @@
 		type PriceType,
 		POA_CATEGORY_SET,
 		MAX_AD_PRICE,
-		MAX_AD_PRICE_VALIDATION_MESSAGE,
-		WHOLE_EURO_VALIDATION_MESSAGE,
+		getMaxAdPriceValidationMessage,
+		getWholeEuroValidationMessage,
 		MIN_TITLE_LENGTH,
 		MAX_TITLE_LENGTH,
 		MIN_DESC_LENGTH,
@@ -288,9 +288,9 @@
 		if (category === 'Lost and Found') {
 			if (price === '') return '';
 			const reward = parseWholeEuro(price);
-			if (reward === null) return WHOLE_EURO_VALIDATION_MESSAGE;
+			if (reward === null) return getWholeEuroValidationMessage(price);
 			if (reward <= 0) return 'Reward must be greater than 0.';
-			if (reward > MAX_AD_PRICE) return MAX_AD_PRICE_VALIDATION_MESSAGE;
+			if (reward > MAX_AD_PRICE) return getMaxAdPriceValidationMessage();
 			return '';
 		}
 		if (priceType === 'poa' && category && !POA_CATEGORY_SET.has(category)) {
@@ -299,26 +299,26 @@
 		if (priceType === 'fixed' && price === '') return 'Enter a price.';
 		if (priceType === 'fixed') {
 			const askingPrice = parseWholeEuro(price);
-			if (askingPrice === null) return WHOLE_EURO_VALIDATION_MESSAGE;
+			if (askingPrice === null) return getWholeEuroValidationMessage(price);
 			if (askingPrice <= 0) return 'Price must be greater than 0.';
-			if (askingPrice > MAX_AD_PRICE) return MAX_AD_PRICE_VALIDATION_MESSAGE;
+			if (askingPrice > MAX_AD_PRICE) return getMaxAdPriceValidationMessage();
 		}
 		if (priceType === 'free') {
 			const freePrice = parseWholeEuro(price);
-			if (freePrice === null) return WHOLE_EURO_VALIDATION_MESSAGE;
+			if (freePrice === null) return getWholeEuroValidationMessage(price);
 			if (freePrice !== 0) return 'Free listings must be 0.';
 		}
 		if (priceType === 'fixed') {
 			const askingPrice = parseWholeEuro(price);
-			if (askingPrice === null) return WHOLE_EURO_VALIDATION_MESSAGE;
+			if (askingPrice === null) return getWholeEuroValidationMessage(price);
 			if (firmPrice && minOffer !== '') {
 				return 'Firm price listings cannot set a minimum offer.';
 			}
 			if (minOffer !== '') {
 				const minimumOffer = parseWholeEuro(minOffer);
-				if (minimumOffer === null) return WHOLE_EURO_VALIDATION_MESSAGE;
+				if (minimumOffer === null) return getWholeEuroValidationMessage(minOffer);
 				if (minimumOffer <= 0) return 'Minimum offer must be greater than 0.';
-				if (minimumOffer > MAX_AD_PRICE) return MAX_AD_PRICE_VALIDATION_MESSAGE;
+				if (minimumOffer > MAX_AD_PRICE) return getMaxAdPriceValidationMessage();
 				if (minimumOffer >= askingPrice) return 'Minimum offer must be less than the asking price.';
 			}
 		}

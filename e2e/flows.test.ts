@@ -1,7 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 
-const WHOLE_EURO_VALIDATION_MESSAGE = 'No cents, no chaos - whole euros only (e.g. 2, not 1.50).';
-const MAX_AD_PRICE_VALIDATION_MESSAGE = 'Nice ambition - max allowed is EUR 2147483647.';
+const WHOLE_EURO_VALIDATION_MESSAGE =
+	/(Non-Cents! Noone wants to deal with that! Just make it €2\.|No price psychology games here, just make it €2\.)/;
+const MAX_AD_PRICE_VALIDATION_MESSAGE =
+	/(Good luck with that! €2,147,483,647 is the max price\.|Quit messing around now! €2,147,483,647 is the max price\.)/;
 
 async function goToPriceStep(page: Page) {
 	await page.goto('/post');

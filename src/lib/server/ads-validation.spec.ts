@@ -7,9 +7,19 @@ import {
 } from './ads-validation';
 import {
 	MAX_AD_PRICE,
-	MAX_AD_PRICE_VALIDATION_MESSAGE,
-	WHOLE_EURO_VALIDATION_MESSAGE
+	MAX_AD_PRICE_VALIDATION_MESSAGES,
+	getWholeEuroValidationMessagesForAmount
 } from '$lib/constants';
+
+const expectWholeEuroVariant = (result: string | null, rawValue: string) => {
+	expect(result).toBeTruthy();
+	expect(getWholeEuroValidationMessagesForAmount(rawValue)).toContain(result as string);
+};
+
+const expectMaxPriceVariant = (result: string | null) => {
+	expect(result).toBeTruthy();
+	expect(MAX_AD_PRICE_VALIDATION_MESSAGES).toContain(result as string);
+};
 
 describe('validateAdMeta (price rules)', () => {
 	it('accepts fixed price over 0', () => {
@@ -39,7 +49,7 @@ describe('validateAdMeta (price rules)', () => {
 			priceStr: '1.5',
 			priceType: 'fixed'
 		});
-		expect(result).toBe(WHOLE_EURO_VALIDATION_MESSAGE);
+		expectWholeEuroVariant(result, '1.5');
 	});
 
 	it('rejects fixed price above max', () => {
@@ -49,7 +59,7 @@ describe('validateAdMeta (price rules)', () => {
 			priceStr: String(MAX_AD_PRICE + 1),
 			priceType: 'fixed'
 		});
-		expect(result).toBe(MAX_AD_PRICE_VALIDATION_MESSAGE);
+		expectMaxPriceVariant(result);
 	});
 
 	it('accepts free price at 0', () => {
@@ -139,7 +149,7 @@ describe('validateAdMeta (price rules)', () => {
 			priceStr: '10.50',
 			priceType: 'fixed'
 		});
-		expect(result).toBe(WHOLE_EURO_VALIDATION_MESSAGE);
+		expectWholeEuroVariant(result, '10.50');
 	});
 
 	it('rejects Lost and Found reward above max', () => {
@@ -149,7 +159,7 @@ describe('validateAdMeta (price rules)', () => {
 			priceStr: String(MAX_AD_PRICE + 1),
 			priceType: 'fixed'
 		});
-		expect(result).toBe(MAX_AD_PRICE_VALIDATION_MESSAGE);
+		expectMaxPriceVariant(result);
 	});
 });
 
@@ -203,7 +213,7 @@ describe('validateOfferRules', () => {
 			firmPrice: false,
 			minOfferStr: '10.5'
 		});
-		expect(result).toBe(WHOLE_EURO_VALIDATION_MESSAGE);
+		expectWholeEuroVariant(result, '10.5');
 	});
 
 	it('rejects min offer above max', () => {
@@ -213,7 +223,7 @@ describe('validateOfferRules', () => {
 			firmPrice: false,
 			minOfferStr: String(MAX_AD_PRICE + 1)
 		});
-		expect(result).toBe(MAX_AD_PRICE_VALIDATION_MESSAGE);
+		expectMaxPriceVariant(result);
 	});
 });
 

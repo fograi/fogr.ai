@@ -5,6 +5,8 @@
 		type PriceType,
 		POA_CATEGORY_SET,
 		MAX_AD_PRICE,
+		MAX_AD_PRICE_LABEL,
+		MAX_AD_PRICE_TOOLTIP_TEXT,
 		MIN_TITLE_LENGTH,
 		MAX_TITLE_LENGTH,
 		MIN_DESC_LENGTH,
@@ -61,7 +63,6 @@
 	let bikeMinOfferUnit: BikeMinOfferUnit = 'eur';
 	let bikeMinOfferDisplay = '';
 	let bikeMinOfferDisplaySignature = '';
-	const maxAdPriceLabel = new Intl.NumberFormat('en-IE').format(MAX_AD_PRICE);
 
 	$: titleLen = title.length;
 	$: descLen = description.length;
@@ -619,8 +620,15 @@
 						aria-invalid={showErrors ? rewardInvalid : undefined}
 					/>
 					<small class="muted">
-						Optional. Leave blank if no reward is offered. Whole euros only, up to EUR
-						{maxAdPriceLabel}.
+						Optional. Leave blank if no reward is offered. Whole euros only, up to
+						{MAX_AD_PRICE_LABEL}.
+						<span
+							class="max-tooltip"
+							title={MAX_AD_PRICE_TOOLTIP_TEXT}
+							aria-label={MAX_AD_PRICE_TOOLTIP_TEXT}
+						>
+							i
+						</span>
 					</small>
 				</div>
 			</div>
@@ -668,7 +676,16 @@
 				<small class="muted">{bikePriceHint}</small>
 			{/if}
 			{#if priceType === 'fixed'}
-				<small class="muted">Whole euros only, up to EUR {maxAdPriceLabel}.</small>
+				<small class="muted">
+					Whole euros only, up to {MAX_AD_PRICE_LABEL}.
+					<span
+						class="max-tooltip"
+						title={MAX_AD_PRICE_TOOLTIP_TEXT}
+						aria-label={MAX_AD_PRICE_TOOLTIP_TEXT}
+					>
+						i
+					</span>
+				</small>
 			{/if}
 		{/if}
 
@@ -750,7 +767,16 @@
 					{/if}
 					<small class="muted">
 						Auto-decline lower offers. Whole {bikeMinOfferUnit === 'percent' ? 'numbers' : 'euros'}
-						only{bikeMinOfferUnit === 'percent' ? ' (1-99).' : `, up to EUR ${maxAdPriceLabel}.`}
+						only{bikeMinOfferUnit === 'percent' ? ' (1-99).' : `, up to ${MAX_AD_PRICE_LABEL}.`}
+						{#if bikeMinOfferUnit !== 'percent'}
+							<span
+								class="max-tooltip"
+								title={MAX_AD_PRICE_TOOLTIP_TEXT}
+								aria-label={MAX_AD_PRICE_TOOLTIP_TEXT}
+							>
+								i
+							</span>
+						{/if}
 					</small>
 				</div>
 			{/if}
@@ -982,6 +1008,20 @@
 	}
 	.muted {
 		color: color-mix(in srgb, var(--fg) 55%, transparent);
+	}
+	.max-tooltip {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1rem;
+		height: 1rem;
+		margin-left: 0.3rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+		font-size: 0.72rem;
+		font-weight: 700;
+		line-height: 1;
+		cursor: help;
 	}
 	.price-slot {
 		min-height: 44px;

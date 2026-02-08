@@ -35,9 +35,52 @@ export const MAX_TITLE_LENGTH = 128;
 export const MIN_DESC_LENGTH = 20;
 export const MAX_DESC_LENGTH = 1024;
 export const MAX_AD_PRICE = 2_147_483_647;
-export const WHOLE_EURO_VALIDATION_MESSAGE =
-	'No cents, no chaos - whole euros only (e.g. 2, not 1.50).';
-export const MAX_AD_PRICE_VALIDATION_MESSAGE = `Nice ambition - max allowed is EUR ${MAX_AD_PRICE}.`;
+export const MAX_AD_PRICE_LABEL = new Intl.NumberFormat('en-IE', {
+	style: 'currency',
+	currency: 'EUR',
+	maximumFractionDigits: 0
+}).format(MAX_AD_PRICE);
+export const MAX_AD_PRICE_VALIDATION_MESSAGES = [
+	`Good luck with that! ${MAX_AD_PRICE_LABEL} is the max price.`,
+	`Quit messing around now! ${MAX_AD_PRICE_LABEL} is the max price.`
+] as const;
+const WHOLE_EURO_FALLBACK_AMOUNT = 1;
+const formatWholeEuroSuggestion = (amount: number) =>
+	new Intl.NumberFormat('en-IE', {
+		style: 'currency',
+		currency: 'EUR',
+		maximumFractionDigits: 0
+	}).format(amount);
+const normalizeMoneyInput = (value: string | number | null | undefined) => {
+	if (typeof value === 'number') return value;
+	const trimmed = value?.trim() ?? '';
+	if (!trimmed) return Number.NaN;
+	return Number(trimmed.replace(',', '.'));
+};
+const getWholeEuroSuggestion = (value: string | number | null | undefined) => {
+	const normalized = normalizeMoneyInput(value);
+	if (!Number.isFinite(normalized)) return WHOLE_EURO_FALLBACK_AMOUNT;
+	return Math.max(WHOLE_EURO_FALLBACK_AMOUNT, Math.ceil(normalized));
+};
+const pickMessageVariant = (messages: readonly string[]) => {
+	const index = Math.floor(Math.random() * messages.length);
+	return messages[index] ?? messages[0] ?? '';
+};
+export const getMaxAdPriceValidationMessage = () =>
+	pickMessageVariant(MAX_AD_PRICE_VALIDATION_MESSAGES);
+export const getWholeEuroValidationMessagesForAmount = (
+	value: string | number | null | undefined
+) => {
+	const suggested = formatWholeEuroSuggestion(getWholeEuroSuggestion(value));
+	return [
+		`Non-Cents! Noone wants to deal with that! Just make it ${suggested}.`,
+		`No price psychology games here, just make it ${suggested}.`
+	] as const;
+};
+export const getWholeEuroValidationMessage = (value: string | number | null | undefined) =>
+	pickMessageVariant(getWholeEuroValidationMessagesForAmount(value));
+export const MAX_AD_PRICE_TOOLTIP_TEXT =
+	'The number 2,147,483,647 is the maximum positive value for a 32-bit signed binary integer in computing.';
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_IMAGE_COUNT = 1;
