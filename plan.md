@@ -576,12 +576,12 @@
 
 #### Delivery checklist
 
-- [ ] Build shared loading primitives (skeleton, inline spinner, progress bar).
-- [ ] Add determinate progress feedback to image compression/upload in post flow.
-- [ ] Add account export progress state (preparing -> ready) for async path.
-- [ ] Add skeleton states for messages inbox and conversation initial fetch.
-- [ ] Add accessibility labels (`aria-busy`, live regions, reduced-motion variants).
-- [ ] Add visual regression/e2e checks for key loading states.
+- [x] Build shared loading primitives (skeleton, inline spinner, progress bar).
+- [x] Add determinate progress feedback to image compression/upload in post flow.
+- [x] Add account export progress state (preparing -> ready) for async path.
+- [x] Add skeleton states for messages inbox and conversation initial fetch.
+- [x] Add accessibility labels (`aria-busy`, live regions, reduced-motion variants).
+- [x] Add visual regression/e2e checks for key loading states.
 
 #### Acceptance criteria
 

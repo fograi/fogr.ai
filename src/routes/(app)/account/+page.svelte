@@ -1,19 +1,74 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
+	import InlineSpinner from '$lib/components/loading/InlineSpinner.svelte';
+	import ProgressBar from '$lib/components/loading/ProgressBar.svelte';
+	import {
+		getExportStageTarget,
+		stepTowardPercent,
+		type ExportStage
+	} from '$lib/utils/loading';
 
 	export let data: { user: { id: string; email?: string | null } };
 
 	let exporting = false;
 	let deleting = false;
+	let exportStage: ExportStage = 'idle';
+	let exportProgress = 0;
+	let exportTicker: ReturnType<typeof setInterval> | null = null;
 	let err = '';
 	let ok = '';
+	$: exportStatusLabel =
+		exportStage === 'preparing'
+			? 'Preparing export request.'
+			: exportStage === 'collecting'
+				? 'Collecting your account data.'
+				: exportStage === 'finalizing'
+					? 'Finalizing download file.'
+					: exportStage === 'complete'
+						? 'Export ready.'
+						: '';
+
+	function stopExportTicker() {
+		if (!exportTicker) return;
+		clearInterval(exportTicker);
+		exportTicker = null;
+	}
+
+	function setExportStage(stage: ExportStage) {
+		exportStage = stage;
+		if (stage === 'idle') {
+			exportProgress = 0;
+			stopExportTicker();
+			return;
+		}
+		if (stage === 'complete') {
+			exportProgress = 100;
+			stopExportTicker();
+			return;
+		}
+		const target = getExportStageTarget(stage);
+		exportProgress = stepTowardPercent(exportProgress, target, 10);
+		if (exportTicker) return;
+		exportTicker = setInterval(() => {
+			exportProgress = stepTowardPercent(exportProgress, getExportStageTarget(exportStage), 3);
+		}, 120);
+	}
+
+	onDestroy(() => {
+		stopExportTicker();
+	});
 
 	async function downloadExport() {
 		err = '';
 		ok = '';
 		exporting = true;
+		setExportStage('idle');
+		setExportStage('preparing');
 		try {
+			setExportStage('collecting');
 			const res = await fetch('/api/me/export');
 			if (!res.ok) throw new Error('We could not export your data. Try again.');
+			setExportStage('finalizing');
 			const blob = await res.blob();
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement('a');
@@ -25,8 +80,10 @@
 			a.click();
 			a.remove();
 			URL.revokeObjectURL(url);
+			setExportStage('complete');
 			ok = 'Export ready. Your download has started.';
 		} catch (e: unknown) {
+			setExportStage('idle');
 			err = e instanceof Error ? e.message : 'We could not export your data. Try again.';
 		} finally {
 			exporting = false;
@@ -40,7 +97,7 @@
 		deleting = true;
 		try {
 			const res = await fetch('/api/me/delete', { method: 'POST' });
-			const body = await res.json().catch(() => ({}));
+			const body = (await res.json().catch(() => ({}))) as { success?: boolean; message?: string };
 			if (!res.ok || body?.success === false) {
 				throw new Error(body?.message || 'We could not delete the account. Try again.');
 			}
@@ -77,6 +134,16 @@
 		<button type="button" on:click={downloadExport} disabled={exporting}>
 			{exporting ? 'Preparing…' : 'Download data export'}
 		</button>
+		{#if exporting || exportStage === 'complete'}
+			<div class="export-progress" aria-live="polite" aria-busy={exporting}>
+				{#if exporting}
+					<InlineSpinner label={exportStatusLabel} />
+				{:else}
+					<p class="muted export-ready">Export completed.</p>
+				{/if}
+				<ProgressBar value={exportProgress} label="Data export progress" />
+			</div>
+		{/if}
 	</div>
 
 	<div class="card danger">
@@ -117,6 +184,17 @@
 		padding: 16px;
 		display: grid;
 		gap: 10px;
+	}
+	.export-progress {
+		display: grid;
+		gap: 8px;
+		padding: 8px 10px;
+		border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+	}
+	.export-ready {
+		font-weight: 700;
 	}
 	.row {
 		display: flex;

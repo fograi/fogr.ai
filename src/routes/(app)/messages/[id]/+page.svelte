@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { formatPriceLabel } from '$lib/utils/price';
+	import InlineSpinner from '$lib/components/loading/InlineSpinner.svelte';
+	import SkeletonBlock from '$lib/components/loading/SkeletonBlock.svelte';
 
 	type MessageView = {
 		id: string;
@@ -22,15 +24,30 @@
 		};
 		readMeta: { viewerRole: 'buyer' | 'seller'; otherLastReadAt: string | null; viewerLastReadAt: string };
 		autoDeclineMessage?: string;
-		messages: MessageView[];
+		streamed: { messages: Promise<MessageView[]> };
 	};
 
 	let message = '';
 	let sending = false;
+	let initialMessagesLoading = true;
+	let initialMessagesError = '';
 	let err = '';
 	let ok = '';
-	let messages = data.messages;
+	let messages: MessageView[] = [];
 	$: isTyping = message.trim().length > 0;
+	const skeletonRows = [1, 2, 3];
+
+	const initialMessagesPromise = data.streamed.messages;
+	void initialMessagesPromise
+		.then((loadedMessages) => {
+			messages = loadedMessages;
+		})
+		.catch(() => {
+			initialMessagesError = 'Could not load messages.';
+		})
+		.finally(() => {
+			initialMessagesLoading = false;
+		});
 
 	const dateKey = (iso: string) => new Date(iso).toDateString();
 	const dateLabel = (iso: string) => {
@@ -87,6 +104,7 @@
 	async function send() {
 		err = '';
 		ok = '';
+		if (initialMessagesLoading) return;
 		if (!message.trim()) {
 			err = 'Write a message.';
 			return;
@@ -111,7 +129,14 @@
 			const now = new Date().toISOString();
 			messages = [
 				...messages,
-				{ id: `local-${now}`, body: message.trim(), createdAt: now, isMine: true, kind: 'question' }
+				{
+					id: `local-${now}`,
+					body: message.trim(),
+					createdAt: now,
+					isMine: true,
+					kind: 'question',
+					autoDeclined: false
+				}
 			];
 			message = '';
 			ok = 'Message sent.';
@@ -149,8 +174,26 @@
 		</div>
 	</header>
 
-	<div class="messages">
-		{#if messages.length === 0}
+	<div class="messages" aria-busy={initialMessagesLoading}>
+		{#if initialMessagesLoading}
+			<div class="loading" aria-live="polite">
+				<InlineSpinner label="Loading conversation." />
+				<div class="message-skeletons" aria-hidden="true">
+					{#each skeletonRows as row (row)}
+						<div class={`bubble skeleton ${row % 2 === 0 ? 'mine' : 'theirs'}`}>
+							<SkeletonBlock width="80%" height="0.95rem" />
+							<SkeletonBlock width="60%" height="0.95rem" />
+							<SkeletonBlock width="95px" height="0.75rem" />
+						</div>
+					{/each}
+				</div>
+			</div>
+		{:else if initialMessagesError}
+			<div class="empty" role="alert">
+				<p>{initialMessagesError}</p>
+				<p class="muted">Refresh and try again.</p>
+			</div>
+		{:else if messages.length === 0}
 			<div class="empty">
 				<p>No messages yet.</p>
 				<p class="muted">Start the conversation below.</p>
@@ -188,15 +231,20 @@
 			rows="3"
 			bind:value={message}
 			placeholder="Write a message"
+			disabled={sending || initialMessagesLoading}
 		></textarea>
 		<div class="actions">
 			{#if err}<p class="notice error" role="alert">{err}</p>{/if}
 			{#if ok}<p class="notice ok" role="status">{ok}</p>{/if}
-			{#if isTyping && !sending}
+			{#if isTyping && !sending && !initialMessagesLoading}
 				<span class="typing" aria-live="polite">Typing…</span>
 			{/if}
-			<button type="submit" class="btn primary" disabled={sending}>
-				{sending ? 'Sending…' : 'Send'}
+			<button type="submit" class="btn primary" disabled={sending || initialMessagesLoading}>
+				{#if sending}
+					<InlineSpinner label="Sending..." tone="default" size={12} />
+				{:else}
+					Send
+				{/if}
 			</button>
 		</div>
 	</form>
@@ -269,6 +317,18 @@
 	.messages {
 		display: grid;
 		gap: 10px;
+	}
+	.loading {
+		display: grid;
+		gap: 10px;
+	}
+	.message-skeletons {
+		display: grid;
+		gap: 10px;
+	}
+	.bubble.skeleton {
+		pointer-events: none;
+		gap: 8px;
 	}
 	.divider {
 		text-align: center;

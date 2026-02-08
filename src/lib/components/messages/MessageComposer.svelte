@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { hasPaidPrice } from '$lib/utils/price';
 	import { ReportIcon } from '$lib/icons';
+	import InlineSpinner from '$lib/components/loading/InlineSpinner.svelte';
 
 	const dispatch = createEventDispatcher<{ flag: void }>();
 	export let adId: string;
@@ -113,7 +114,7 @@
 
 </script>
 
-<section class="composer" aria-label="Message seller">
+<section class="composer" aria-label="Message seller" aria-busy={loading}>
 	<div class="header">
 		<h2>Message seller</h2>
 		<p class="muted">Messages are anonymous by default.</p>
@@ -211,7 +212,11 @@
 	{/if}
 
 	<button type="button" class="btn primary" on:click={submit} disabled={loading}>
-		{loading ? 'Sending…' : 'Send message'}
+		{#if loading}
+			<InlineSpinner label="Sending..." tone="default" size={12} />
+		{:else}
+			Send message
+		{/if}
 	</button>
 </section>
 

@@ -35,6 +35,29 @@ type MessageView = {
 	autoDeclined: boolean;
 };
 
+async function loadConversationMessages(
+	locals: App.Locals,
+	conversationId: string,
+	userId: string
+): Promise<MessageView[]> {
+	const { data: messages, error: msgError } = await locals.supabase
+		.from('messages')
+		.select('id, sender_id, body, kind, auto_declined, created_at')
+		.eq('conversation_id', conversationId)
+		.order('created_at', { ascending: true });
+
+	if (msgError) throw error(500, 'Could not load messages.');
+
+	return (messages ?? []).map((m) => ({
+		id: m.id,
+		body: m.body,
+		createdAt: m.created_at,
+		isMine: m.sender_id === userId,
+		kind: m.kind,
+		autoDeclined: m.auto_declined ?? false
+	})) satisfies MessageView[];
+}
+
 export const load: PageServerLoad = async ({ params, locals, url, platform }) => {
 	if (isE2eMock(platform)) {
 		return {
@@ -53,14 +76,18 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 				viewerLastReadAt: new Date().toISOString()
 			},
 			autoDeclineMessage: buildAutoDeclineMessage(E2E_MOCK_AD),
-			messages: E2E_MOCK_MESSAGES.map((m) => ({
-				id: m.id,
-				body: m.body,
-				createdAt: m.created_at,
-				isMine: m.sender_id === E2E_MOCK_CONVERSATION.buyer_id,
-				kind: m.kind,
-				autoDeclined: m.auto_declined ?? false
-			})) satisfies MessageView[]
+			streamed: {
+				messages: Promise.resolve(
+					E2E_MOCK_MESSAGES.map((m) => ({
+						id: m.id,
+						body: m.body,
+						createdAt: m.created_at,
+						isMine: m.sender_id === E2E_MOCK_CONVERSATION.buyer_id,
+						kind: m.kind,
+						autoDeclined: m.auto_declined ?? false
+					})) satisfies MessageView[]
+				)
+			}
 		};
 	}
 
@@ -74,7 +101,7 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 
 	const { data: convo, error: convoError } = await locals.supabase
 		.from('conversations')
-		.select('id, ad_id, buyer_id, seller_id')
+		.select('id, ad_id, buyer_id, seller_id, buyer_last_read_at, seller_last_read_at')
 		.eq('id', id)
 		.maybeSingle();
 
@@ -93,14 +120,6 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 		.eq('id', convo.ad_id)
 		.maybeSingle();
 
-	const { data: messages, error: msgError } = await locals.supabase
-		.from('messages')
-		.select('id, sender_id, body, kind, auto_declined, created_at')
-		.eq('conversation_id', convo.id)
-		.order('created_at', { ascending: true });
-
-	if (msgError) throw error(500, 'Could not load messages.');
-
 	return {
 		conversation: {
 			id: convo.id,
@@ -117,13 +136,8 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 			viewerLastReadAt: nowIso
 		},
 		autoDeclineMessage: ad ? buildAutoDeclineMessage(ad) : '',
-		messages: (messages ?? []).map((m) => ({
-			id: m.id,
-			body: m.body,
-			createdAt: m.created_at,
-			isMine: m.sender_id === user.id,
-			kind: m.kind,
-			autoDeclined: m.auto_declined ?? false
-		})) satisfies MessageView[]
+		streamed: {
+			messages: loadConversationMessages(locals, convo.id, user.id)
+		}
 	};
 };

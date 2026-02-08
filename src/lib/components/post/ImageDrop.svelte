@@ -2,11 +2,18 @@
 	import {
 		ALLOWED_IMAGE_TYPES,
 		MAX_IMAGE_SIZE,
-		catBase,
+		catBase
 	} from '$lib/constants';
 	import pica from 'pica';
 	import { formatPriceLabel } from '$lib/utils/price';
 	import { CATEGORY_ICON_MAP, DefaultCategoryIcon, ImagePlaceholderIcon } from '$lib/icons';
+	import InlineSpinner from '$lib/components/loading/InlineSpinner.svelte';
+	import ProgressBar from '$lib/components/loading/ProgressBar.svelte';
+	import {
+		getCompressionStageLabel,
+		getCompressionStageProgress,
+		type CompressionStage
+	} from '$lib/utils/loading';
 
 	// two-way bind from parent
 	export let file: File | null = null;
@@ -23,6 +30,7 @@
 	let err = '';
 	let warn = '';
 	let compressing = false;
+	let compressionStage: CompressionStage = 'idle';
 
 	const MAX_DIMENSION = 2048;
 	const WEBP_QUALITY = 0.85;
@@ -36,6 +44,8 @@
 
 	$: bannerBase = category ? catBase[category] : '#6B7280';
 	$: bannerIcon = category ? CATEGORY_ICON_MAP[category] ?? DefaultCategoryIcon : DefaultCategoryIcon;
+	$: compressionLabel = getCompressionStageLabel(compressionStage);
+	$: compressionProgress = getCompressionStageProgress(compressionStage);
 
 	function setPreview(f: File) {
 		if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -48,6 +58,7 @@
 		file = null;
 		imgLoaded = false;
 		warn = '';
+		compressionStage = 'idle';
 		if (!keepError) err = '';
 	}
 
@@ -105,7 +116,11 @@
 		return await decodeWithImageElement(f);
 	}
 
-	async function optimizeImage(f: File): Promise<File> {
+	async function optimizeImage(
+		f: File,
+		onStage: (stage: CompressionStage) => void
+	): Promise<File> {
+		onStage('decoding');
 		const bitmap = await decodeImage(f);
 		const width = 'width' in bitmap ? bitmap.width : (bitmap as HTMLImageElement).naturalWidth;
 		const height = 'height' in bitmap ? bitmap.height : (bitmap as HTMLImageElement).naturalHeight;
@@ -126,6 +141,7 @@
 		canvas.width = targetW;
 		canvas.height = targetH;
 		const processor = getPica();
+		onStage('resizing');
 
 		const toBlob = (sourceCanvas: HTMLCanvasElement, type: string, quality: number) =>
 			new Promise<Blob>((resolve, reject) => {
@@ -165,6 +181,7 @@
 
 		let quality = WEBP_QUALITY;
 		let blob: Blob;
+		onStage('encoding');
 		try {
 			blob = useFallback
 				? await toBlob(canvas, 'image/webp', quality)
@@ -201,6 +218,7 @@
 				? await toBlob(canvas, 'image/webp', quality)
 				: await processor.toBlob(canvas, 'image/webp', quality);
 		}
+		onStage('finalizing');
 
 		return new File([blob], normalizeName(f.name), {
 			type: 'image/webp',
@@ -210,6 +228,7 @@
 
 	async function handleFile(f: File) {
 		warn = '';
+		compressionStage = 'validating';
 		const heic = isHeic(f);
 		const avif = isAvif(f);
 		const isImageType = f.type ? f.type.startsWith('image/') : false;
@@ -229,7 +248,9 @@
 		err = '';
 		compressing = true;
 		try {
-			const optimized = await optimizeImage(f);
+			const optimized = await optimizeImage(f, (stage) => {
+				compressionStage = stage;
+			});
 			if (optimized.size > MAX_IMAGE_SIZE) {
 				clearFile({ keepError: true });
 				err = 'Image is still too large. Use a smaller file.';
@@ -237,6 +258,7 @@
 			}
 			file = optimized;
 			setPreview(optimized);
+			compressionStage = 'complete';
 		} catch (error) {
 			clearFile({ keepError: true });
 			const detail =
@@ -252,6 +274,7 @@
 			}
 		} finally {
 			compressing = false;
+			if (!file) compressionStage = 'idle';
 		}
 	}
 
@@ -317,20 +340,21 @@
 			{/if}
 		{/if}
 		<div class="row actions">
-			<button type="button" class="btn ghost" on:click={() => clearFile()}>
+			<button type="button" class="btn ghost" on:click={() => clearFile()} disabled={compressing}>
 				Remove image
 			</button>
-			<label class="btn">
+			<label class="btn" class:disabled={compressing}>
 				Replace
-				<input type="file" accept="image/*" on:change={onFileChange} hidden />
+				<input type="file" accept="image/*" on:change={onFileChange} disabled={compressing} hidden />
 			</label>
-			<label class="btn ghost">
+			<label class="btn ghost" class:disabled={compressing}>
 				Use camera
 				<input
 					type="file"
 					accept="image/*"
 					capture="environment"
 					on:change={onFileChange}
+					disabled={compressing}
 					hidden
 				/>
 			</label>
@@ -367,7 +391,12 @@
 			<small>Optional. Add 1 photo if you have it.</small>
 		</div>
 	{/if}
-	{#if compressing}<p class="hint">Compressing image…</p>{/if}
+	{#if compressing}
+		<div class="loading-state" aria-live="polite" aria-busy="true">
+			<InlineSpinner label={compressionLabel} />
+			<ProgressBar value={compressionProgress} label="Image compression progress" />
+		</div>
+	{/if}
 	{#if warn}<p class="warn">{warn}</p>{/if}
 	{#if err}<p class="error">{err}</p>{/if}
 </div>
@@ -462,6 +491,11 @@
 	.btn.ghost {
 		background: transparent;
 	}
+	.btn.disabled,
+	.btn[disabled] {
+		opacity: 0.6;
+		cursor: default;
+	}
 
 	/* Empty state (unchanged) */
 	.empty {
@@ -482,9 +516,10 @@
 		padding: 8px 10px;
 		font-weight: 700;
 	}
-	.hint {
-		color: color-mix(in srgb, var(--fg) 70%, transparent);
-		font-weight: 600;
+	.loading-state {
+		display: grid;
+		gap: 6px;
+		padding: 2px 0;
 	}
 	.warn {
 		color: color-mix(in srgb, #d97706 85%, var(--bg));
