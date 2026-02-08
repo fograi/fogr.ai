@@ -155,7 +155,7 @@
 		let useFallback = false;
 		let picaFailure: string | null = null;
 		try {
-			await processor.resize(bitmap as CanvasImageSource, canvas);
+			await processor.resize(bitmap, canvas);
 		} catch (error) {
 			useFallback = true;
 			picaFailure = error instanceof Error ? error.message : 'Pica resize failed';
@@ -174,7 +174,7 @@
 			ctx.imageSmoothingEnabled = true;
 			ctx.imageSmoothingQuality = 'high';
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.drawImage(bitmap as CanvasImageSource, 0, 0, canvas.width, canvas.height);
+			ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 		}
 
 		if ('close' in bitmap) bitmap.close();
