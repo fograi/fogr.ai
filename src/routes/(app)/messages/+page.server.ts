@@ -1,6 +1,11 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { E2E_MOCK_AD, E2E_MOCK_CONVERSATION, E2E_MOCK_MESSAGES, isE2eMock } from '$lib/server/e2e-mocks';
+import {
+	E2E_MOCK_AD,
+	E2E_MOCK_CONVERSATION,
+	E2E_MOCK_MESSAGES,
+	isE2eMock
+} from '$lib/server/e2e-mocks';
 
 type ConversationView = {
 	id: string;
@@ -8,6 +13,7 @@ type ConversationView = {
 	adTitle: string;
 	adPrice: number | null;
 	adCurrency: string | null;
+	counterpartyId: string;
 	role: 'buyer' | 'seller';
 	lastMessageAt: string;
 	preview: string;
@@ -15,26 +21,70 @@ type ConversationView = {
 	unreadCount: number;
 };
 
-const buildE2eConversations = () =>
-	[
+const buildE2eConversations = () => {
+	const now = Date.now();
+	return [
 		{
 			id: E2E_MOCK_CONVERSATION.id,
 			adId: E2E_MOCK_AD.id,
 			adTitle: E2E_MOCK_AD.title,
 			adPrice: E2E_MOCK_AD.price,
 			adCurrency: E2E_MOCK_AD.currency,
+			counterpartyId: E2E_MOCK_CONVERSATION.seller_id,
 			role: 'buyer',
 			lastMessageAt: E2E_MOCK_CONVERSATION.last_message_at,
 			preview: E2E_MOCK_MESSAGES[E2E_MOCK_MESSAGES.length - 1]?.body ?? '',
 			unread: true,
 			unreadCount: 2
+		},
+		{
+			id: 'e2e-convo-2',
+			adId: 'e2e-my-ad-1',
+			adTitle: 'E2E Seller Listing',
+			adPrice: 220,
+			adCurrency: 'EUR',
+			counterpartyId: '22222222-2222-2222-2222-222222222222',
+			role: 'seller',
+			lastMessageAt: new Date(now - 1000 * 60 * 3).toISOString(),
+			preview: 'Could you do a better price if I collect today?',
+			unread: true,
+			unreadCount: 1
+		},
+		{
+			id: 'e2e-convo-3',
+			adId: 'e2e-my-ad-1',
+			adTitle: 'E2E Seller Listing',
+			adPrice: 220,
+			adCurrency: 'EUR',
+			counterpartyId: '33333333-3333-3333-3333-333333333333',
+			role: 'seller',
+			lastMessageAt: new Date(now - 1000 * 60 * 14).toISOString(),
+			preview: 'Thanks, I will confirm pickup tomorrow.',
+			unread: false,
+			unreadCount: 0
+		},
+		{
+			id: 'e2e-convo-4',
+			adId: 'e2e-ad-2',
+			adTitle: 'E2E Buyer Listing',
+			adPrice: 85,
+			adCurrency: 'EUR',
+			counterpartyId: '44444444-4444-4444-4444-444444444444',
+			role: 'buyer',
+			lastMessageAt: new Date(now - 1000 * 60 * 26).toISOString(),
+			preview: 'Still available if needed.',
+			unread: false,
+			unreadCount: 0
 		}
 	] satisfies ConversationView[];
+};
 
 async function loadConversations(locals: App.Locals, userId: string): Promise<ConversationView[]> {
 	const { data: conversations, error: convoError } = await locals.supabase
 		.from('conversations')
-		.select('id, ad_id, buyer_id, seller_id, last_message_at, buyer_last_read_at, seller_last_read_at')
+		.select(
+			'id, ad_id, buyer_id, seller_id, last_message_at, buyer_last_read_at, seller_last_read_at'
+		)
 		.or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
 		.order('last_message_at', { ascending: false });
 
@@ -49,12 +99,33 @@ async function loadConversations(locals: App.Locals, userId: string): Promise<Co
 			.in('id', adIds);
 		if (ads) {
 			adMap = new Map(
-				ads.map((ad) => [ad.id, { title: ad.title, price: ad.price ?? null, currency: ad.currency ?? null }])
+				ads.map((ad) => [
+					ad.id,
+					{ title: ad.title, price: ad.price ?? null, currency: ad.currency ?? null }
+				])
 			);
 		}
 	}
 
 	const convoList = conversations ?? [];
+	let previewMap = new Map<string, string>();
+	if (convoList.length > 0) {
+		const { data: latestMessages } = await locals.supabase
+			.from('messages')
+			.select('conversation_id, body, created_at')
+			.in(
+				'conversation_id',
+				convoList.map((conversation) => conversation.id)
+			)
+			.order('created_at', { ascending: false });
+		if (latestMessages) {
+			for (const message of latestMessages) {
+				if (!previewMap.has(message.conversation_id)) {
+					previewMap.set(message.conversation_id, message.body);
+				}
+			}
+		}
+	}
 	const unreadCounts = await Promise.all(
 		convoList.map(async (c) => {
 			const isSeller = c.seller_id === userId;
@@ -75,16 +146,17 @@ async function loadConversations(locals: App.Locals, userId: string): Promise<Co
 		const isSeller = c.seller_id === userId;
 		const lastReadAt = isSeller ? c.seller_last_read_at : c.buyer_last_read_at;
 		const unreadCount = unreadCounts[idx] ?? 0;
-		const unread = unreadCount > 0 || (!lastReadAt || c.last_message_at > lastReadAt);
+		const unread = unreadCount > 0 || !lastReadAt || c.last_message_at > lastReadAt;
 		return {
 			id: c.id,
 			adId: c.ad_id,
 			adTitle: ad?.title ?? 'Listing',
 			adPrice: ad?.price ?? null,
 			adCurrency: ad?.currency ?? null,
+			counterpartyId: isSeller ? c.buyer_id : c.seller_id,
 			role: isSeller ? 'seller' : 'buyer',
 			lastMessageAt: c.last_message_at,
-			preview: '',
+			preview: previewMap.get(c.id) ?? '',
 			unread,
 			unreadCount
 		} satisfies ConversationView;

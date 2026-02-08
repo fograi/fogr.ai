@@ -350,13 +350,13 @@
 
 #### Delivery checklist
 
-- [ ] Extend inbox load model in `src/routes/(app)/messages/+page.server.ts` with grouped seller view data.
-- [ ] Add inbox toggle and grouped rendering in `src/routes/(app)/messages/+page.svelte`.
-- [ ] Show per-group aggregate unread and per-thread unread counts.
-- [ ] Add drill-in behavior: group card opens threads list, then conversation.
-- [ ] Persist last-used inbox mode in local storage for UX continuity.
+- [x] Extend inbox load model in `src/routes/(app)/messages/+page.server.ts` with grouped seller view data.
+- [x] Add inbox toggle and grouped rendering in `src/routes/(app)/messages/+page.svelte`.
+- [x] Show per-group aggregate unread and per-thread unread counts.
+- [x] Add drill-in behavior: group card opens threads list, then conversation.
+- [x] Persist last-used inbox mode in local storage for UX continuity.
 - [ ] Add metrics events for mode usage and thread-open latency by mode.
-- [ ] Update `e2e/messages.test.ts` for grouped mode rendering and navigation.
+- [x] Update `e2e/messages.test.ts` for grouped mode rendering and navigation.
 
 #### Acceptance criteria
 

@@ -15,10 +15,21 @@ test('ad page keeps contact details private', async ({ page }) => {
 	await expect(page.getByRole('link', { name: 'e2e@example.com' })).toHaveCount(0);
 });
 
-test('messages inbox renders a thread', async ({ page }) => {
+test('messages inbox supports grouped UX for mixed buyer/seller roles', async ({ page }) => {
 	await page.goto('/messages');
 	await expect(page.getByRole('heading', { name: 'Messages' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Grouped' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Threads' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'All roles' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Selling' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Buying' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Selling conversations' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Buying conversations' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Threads' })).toBeVisible();
+	await page.getByRole('button', { name: 'Threads' }).click();
 	await expect(page.getByRole('link', { name: /E2E Test Ad/i })).toBeVisible();
+	await page.getByRole('button', { name: 'Selling' }).click();
+	await expect(page.getByRole('heading', { name: 'Selling conversations' })).toBeVisible();
 });
 
 test('thread view can send a message', async ({ page }) => {
