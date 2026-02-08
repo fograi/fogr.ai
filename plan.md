@@ -229,15 +229,15 @@
 - [x] Add/extend unit tests in `src/lib/server/ads-validation.spec.ts` for bikes profile validation rules.
 - [x] Update e2e tests for category label changes and bike flow happy path.
 - [x] Add at least one e2e for bikes min-offer preset + auto-decline behavior.
-- [ ] Run `npm run test:unit -- --run`.
-- [ ] Run targeted e2e specs for post/edit/filtering flow.
+- [x] Run `npm run test:unit -- --run`.
+- [x] Run targeted e2e specs for post/edit/filtering flow.
 
 #### Part J - Ship checklist
 
-- [ ] Manual QA on `/post` and `/ads/[id]/edit` for both bike and non-bike categories.
-- [ ] Confirm no new steps were introduced.
-- [ ] Confirm existing non-bike posting flow still works unchanged.
-- [ ] Confirm bike profile data persists and loads correctly in edit flow.
+- [x] Manual QA on `/post` and `/ads/[id]/edit` for both bike and non-bike categories.
+- [x] Confirm no new steps were introduced.
+- [x] Confirm existing non-bike posting flow still works unchanged.
+- [x] Confirm bike profile data persists and loads correctly in edit flow.
 - [ ] Confirm metrics events are emitted with expected properties.
 
 #### Part K - Bike taxonomy UX refinement (labels + overlap fix)
