@@ -187,8 +187,7 @@
 		max-width: 720px;
 		justify-self: start;
 	}
-	.search__form input,
-	.search__form select {
+	.search__form input {
 		height: 44px;
 		padding: 0 12px;
 		border-radius: 12px;
