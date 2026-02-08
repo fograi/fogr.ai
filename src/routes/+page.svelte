@@ -14,10 +14,16 @@
 	const q = $derived(data?.q ?? '');
 	const category = $derived(data?.category ?? '');
 	const priceState = $derived(data?.priceState ?? '');
-	const categoryLinks = CATEGORIES.map((cat) => ({
+	const categoryOptions = CATEGORIES.map((cat) => ({
 		name: cat,
-		href: resolve('/(public)/category/[slug]', { slug: categoryToSlug(cat) })
+		slug: categoryToSlug(cat)
 	}));
+	let browseCategorySlug = categoryOptions[0]?.slug ?? '';
+	const browseCategoryHref = $derived(
+		resolve('/(public)/category/[slug]', {
+			slug: browseCategorySlug || categoryOptions[0]?.slug || 'bikes'
+		})
+	);
 
 	function submitFilters() {
 		if (!searchForm) return;
@@ -79,10 +85,14 @@
 		<div class="search__copy">
 			<h1>Buy. Sell. Done.</h1>
 			<p class="sub">Local deals, made simple.</p>
-			<div class="category-links" aria-label="Browse categories">
-				{#each categoryLinks as item (item.name)}
-					<a href={item.href} rel="external">{item.name}</a>
-				{/each}
+			<div class="category-jump">
+				<label class="sr-only" for="browse-category">Browse category page</label>
+				<select id="browse-category" bind:value={browseCategorySlug}>
+					{#each categoryOptions as option (option.slug)}
+						<option value={option.slug}>{option.name}</option>
+					{/each}
+				</select>
+				<a class="category-jump__go" href={browseCategoryHref} rel="external">Browse</a>
 			</div>
 		</div>
 		<form bind:this={searchForm} class="search__form" method="GET" action={resolve('/')}>
@@ -177,23 +187,34 @@
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 70%, transparent);
 	}
-	.category-links {
+	.category-jump {
 		margin-top: 10px;
-		display: flex;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
 		gap: 8px;
+		max-width: 360px;
 	}
-	.category-links a {
+	.category-jump select {
+		height: 40px;
+		padding: 0 10px;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		background: var(--surface);
+		color: inherit;
+		min-width: 0;
+	}
+	.category-jump__go {
 		text-decoration: none;
 		color: inherit;
-		font-size: 0.8rem;
 		font-weight: 700;
+		border-radius: 10px;
 		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
-		background: color-mix(in srgb, var(--fg) 5%, var(--surface));
-		border-radius: 999px;
-		padding: 5px 10px;
+		background: color-mix(in srgb, var(--fg) 6%, var(--surface));
+		padding: 0 12px;
+		display: inline-flex;
+		align-items: center;
 	}
-	.category-links a:hover {
+	.category-jump__go:hover {
 		border-color: color-mix(in srgb, var(--fg) 30%, transparent);
 	}
 	.search__form {

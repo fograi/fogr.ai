@@ -9,6 +9,24 @@
 		resolve('/(public)/category/[slug]', { slug: String(data.categorySlug ?? '') })
 	);
 	const isBikes = $derived(data.category === 'Bikes');
+	const hasActiveBikeFilters = $derived(
+		!!(
+			data.filters?.bikeSubtype ||
+			data.filters?.bikeType ||
+			data.filters?.bikeCondition ||
+			data.filters?.bikeSize
+		)
+	);
+	const hasActiveFilters = $derived(
+		!!(
+			data.filters?.q ||
+			data.filters?.sort !== 'newest' ||
+			data.filters?.priceState ||
+			data.filters?.minPrice ||
+			data.filters?.maxPrice ||
+			hasActiveBikeFilters
+		)
+	);
 
 	function submitFilters() {
 		if (!filtersForm) return;
@@ -20,18 +38,25 @@
 	}
 
 	function buildPageHref(targetPage: number) {
-		const params = new URLSearchParams();
-		params.set('page', String(targetPage));
-		if (data.filters?.q) params.set('q', data.filters.q);
-		if (data.filters?.sort && data.filters.sort !== 'newest') params.set('sort', data.filters.sort);
-		if (data.filters?.priceState) params.set('price_state', data.filters.priceState);
-		if (data.filters?.minPrice) params.set('min_price', data.filters.minPrice);
-		if (data.filters?.maxPrice) params.set('max_price', data.filters.maxPrice);
-		if (data.filters?.bikeSubtype) params.set('bike_subtype', data.filters.bikeSubtype);
-		if (data.filters?.bikeType) params.set('bike_type', data.filters.bikeType);
-		if (data.filters?.bikeCondition) params.set('bike_condition', data.filters.bikeCondition);
-		if (data.filters?.bikeSize) params.set('bike_size', data.filters.bikeSize);
-		return `${categoryPath}?${params.toString()}`;
+		const params = [`page=${encodeURIComponent(String(targetPage))}`];
+		const pushParam = (key: string, value?: string) => {
+			if (!value) return;
+			params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+		};
+
+		pushParam('q', data.filters?.q);
+		if (data.filters?.sort && data.filters.sort !== 'newest') {
+			pushParam('sort', data.filters.sort);
+		}
+		pushParam('price_state', data.filters?.priceState);
+		pushParam('min_price', data.filters?.minPrice);
+		pushParam('max_price', data.filters?.maxPrice);
+		pushParam('bike_subtype', data.filters?.bikeSubtype);
+		pushParam('bike_type', data.filters?.bikeType);
+		pushParam('bike_condition', data.filters?.bikeCondition);
+		pushParam('bike_size', data.filters?.bikeSize);
+
+		return `${categoryPath}?${params.join('&')}`;
 	}
 </script>
 
@@ -43,161 +68,170 @@
 	</header>
 
 	<form bind:this={filtersForm} class="filters" method="GET" action={categoryPath}>
-		<div class="filters-main">
-			<div class="field field--search">
-				<label for="cat-q">Search in {data.category}</label>
-				<input
-					id="cat-q"
-					name="q"
-					type="search"
-					value={data.filters.q}
-					placeholder="Search titles or details"
-				/>
-			</div>
-			<div class="field">
-				<label for="cat-sort">Sort</label>
-				<select id="cat-sort" name="sort" value={data.filters.sort} onchange={submitFilters}>
-					{#each data.options.sort as option (option.value)}
-						<option value={option.value}>{option.label}</option>
-					{/each}
-				</select>
-			</div>
-			<div class="field">
-				<label for="cat-price-state">Price type</label>
-				<select
-					id="cat-price-state"
-					name="price_state"
-					value={data.filters.priceState}
-					onchange={submitFilters}
-				>
-					<option value="">Any</option>
-					<option value="fixed">Fixed</option>
-					<option value="free">Free</option>
-					<option value="poa">POA</option>
-				</select>
-			</div>
-			<div class="field field--price">
-				<label for="cat-min-price">Price range</label>
-				<div class="range-row">
-					<input
-						id="cat-min-price"
-						name="min_price"
-						type="number"
-						min="0"
-						step="1"
-						inputmode="numeric"
-						pattern="[0-9]*"
-						value={data.filters.minPrice}
-						placeholder="Min"
-					/>
-					<span aria-hidden="true">to</span>
-					<input
-						id="cat-max-price"
-						name="max_price"
-						type="number"
-						min="0"
-						step="1"
-						inputmode="numeric"
-						pattern="[0-9]*"
-						value={data.filters.maxPrice}
-						placeholder="Max"
-					/>
-				</div>
-			</div>
-		</div>
-
-		{#if isBikes}
-			<details
-				class="bike-filters"
-				open={!!(
-					data.filters.bikeSubtype ||
-					data.filters.bikeType ||
-					data.filters.bikeCondition ||
-					data.filters.bikeSize
-				)}
-			>
-				<summary>Bike filters</summary>
-				<div class="bike-grid">
-					<div class="field bike-pills">
-						<span class="label">Subtype</span>
-						<div class="pill-group" role="radiogroup" aria-label="Bike subtype">
-							<label class="pill" class:active={!data.filters.bikeSubtype}>
-								<input
-									type="radio"
-									name="bike_subtype"
-									value=""
-									checked={!data.filters.bikeSubtype}
-									onchange={submitFilters}
-								/>
-								<span>All</span>
-							</label>
-							{#each data.options.bikeSubtype as option (option.value)}
-								<label class="pill" class:active={data.filters.bikeSubtype === option.value}>
-									<input
-										type="radio"
-										name="bike_subtype"
-										value={option.value}
-										checked={data.filters.bikeSubtype === option.value}
-										onchange={submitFilters}
-									/>
-									<span>{option.label}</span>
-								</label>
-							{/each}
+		<details class="filters-shell" open={hasActiveFilters}>
+			<summary>Filters & sort</summary>
+			<div class="filters-body">
+				<details class="filter-group" open={!!(data.filters?.q || data.filters?.sort !== 'newest')}>
+					<summary>Search & sort</summary>
+					<div class="filters-main filters-main--core">
+						<div class="field">
+							<label for="cat-q">Search in {data.category}</label>
+							<input
+								id="cat-q"
+								name="q"
+								type="search"
+								value={data.filters.q}
+								placeholder="Search titles or details"
+							/>
+						</div>
+						<div class="field">
+							<label for="cat-sort">Sort</label>
+							<select id="cat-sort" name="sort" value={data.filters.sort} onchange={submitFilters}>
+								{#each data.options.sort as option (option.value)}
+									<option value={option.value}>{option.label}</option>
+								{/each}
+							</select>
 						</div>
 					</div>
+				</details>
 
-					<div class="field">
-						<label for="cat-bike-type">Bike type</label>
-						<select
-							id="cat-bike-type"
-							name="bike_type"
-							value={data.filters.bikeType}
-							onchange={submitFilters}
-						>
-							<option value="">Any bike type</option>
-							{#each data.options.bikeType as option (option.value)}
-								<option value={option.value}>{option.label}</option>
-							{/each}
-						</select>
+				<details
+					class="filter-group"
+					open={!!(data.filters?.priceState || data.filters?.minPrice || data.filters?.maxPrice)}
+				>
+					<summary>Price</summary>
+					<div class="filters-main filters-main--price">
+						<div class="field">
+							<label for="cat-price-state">Price type</label>
+							<select
+								id="cat-price-state"
+								name="price_state"
+								value={data.filters.priceState}
+								onchange={submitFilters}
+							>
+								<option value="">Any</option>
+								<option value="fixed">Fixed</option>
+								<option value="free">Free</option>
+								<option value="poa">POA</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="cat-min-price">Price range</label>
+							<div class="range-row">
+								<input
+									id="cat-min-price"
+									name="min_price"
+									type="number"
+									min="0"
+									step="1"
+									inputmode="numeric"
+									pattern="[0-9]*"
+									value={data.filters.minPrice}
+									placeholder="Min"
+								/>
+								<span aria-hidden="true">to</span>
+								<input
+									id="cat-max-price"
+									name="max_price"
+									type="number"
+									min="0"
+									step="1"
+									inputmode="numeric"
+									pattern="[0-9]*"
+									value={data.filters.maxPrice}
+									placeholder="Max"
+								/>
+							</div>
+						</div>
 					</div>
+				</details>
 
-					<div class="field">
-						<label for="cat-bike-condition">Condition</label>
-						<select
-							id="cat-bike-condition"
-							name="bike_condition"
-							value={data.filters.bikeCondition}
-							onchange={submitFilters}
-						>
-							<option value="">Any condition</option>
-							{#each data.options.bikeCondition as option (option.value)}
-								<option value={option.value}>{option.label}</option>
-							{/each}
-						</select>
-					</div>
+				{#if isBikes}
+					<details class="filter-group bike-filters" open={hasActiveBikeFilters}>
+						<summary>Bike filters</summary>
+						<div class="bike-grid">
+							<div class="field bike-pills">
+								<span class="label">Subtype</span>
+								<div class="pill-group" role="radiogroup" aria-label="Bike subtype">
+									<label class="pill" class:active={!data.filters.bikeSubtype}>
+										<input
+											type="radio"
+											name="bike_subtype"
+											value=""
+											checked={!data.filters.bikeSubtype}
+											onchange={submitFilters}
+										/>
+										<span>All</span>
+									</label>
+									{#each data.options.bikeSubtype as option (option.value)}
+										<label class="pill" class:active={data.filters.bikeSubtype === option.value}>
+											<input
+												type="radio"
+												name="bike_subtype"
+												value={option.value}
+												checked={data.filters.bikeSubtype === option.value}
+												onchange={submitFilters}
+											/>
+											<span>{option.label}</span>
+										</label>
+									{/each}
+								</div>
+							</div>
 
-					<div class="field">
-						<label for="cat-bike-size">Size</label>
-						<select
-							id="cat-bike-size"
-							name="bike_size"
-							value={data.filters.bikeSize}
-							onchange={submitFilters}
-						>
-							<option value="">Any size</option>
-							{#each data.options.bikeSize as size (size)}
-								<option value={size}>{size}</option>
-							{/each}
-						</select>
-					</div>
+							<div class="field">
+								<label for="cat-bike-type">Bike type</label>
+								<select
+									id="cat-bike-type"
+									name="bike_type"
+									value={data.filters.bikeType}
+									onchange={submitFilters}
+								>
+									<option value="">Any bike type</option>
+									{#each data.options.bikeType as option (option.value)}
+										<option value={option.value}>{option.label}</option>
+									{/each}
+								</select>
+							</div>
+
+							<div class="field">
+								<label for="cat-bike-condition">Condition</label>
+								<select
+									id="cat-bike-condition"
+									name="bike_condition"
+									value={data.filters.bikeCondition}
+									onchange={submitFilters}
+								>
+									<option value="">Any condition</option>
+									{#each data.options.bikeCondition as option (option.value)}
+										<option value={option.value}>{option.label}</option>
+									{/each}
+								</select>
+							</div>
+
+							<div class="field">
+								<label for="cat-bike-size">Size</label>
+								<select
+									id="cat-bike-size"
+									name="bike_size"
+									value={data.filters.bikeSize}
+									onchange={submitFilters}
+								>
+									<option value="">Any size</option>
+									{#each data.options.bikeSize as size (size)}
+										<option value={size}>{size}</option>
+									{/each}
+								</select>
+							</div>
+						</div>
+					</details>
+				{/if}
+
+				<div class="actions">
+					<a href={categoryPath} rel="external">Clear</a>
+					<button type="submit">Apply</button>
 				</div>
-			</details>
-		{/if}
-
-		<div class="actions">
-			<button type="submit">Apply</button>
-			<a href={categoryPath} rel="external">Clear</a>
-		</div>
+			</div>
+		</details>
 	</form>
 
 	{#if data?.error}
@@ -256,17 +290,48 @@
 	}
 
 	.filters {
+		display: grid;
+	}
+	.filters-shell {
 		border: 1px solid var(--hairline);
 		border-radius: 14px;
-		padding: 12px;
+		padding: 10px 12px;
+		background: color-mix(in srgb, var(--fg) 3%, var(--surface));
+	}
+	.filters-shell > summary {
+		cursor: pointer;
+		font-weight: 800;
+	}
+	.filters-shell > summary::-webkit-details-marker {
+		display: none;
+	}
+	.filters-body {
+		margin-top: 10px;
 		display: grid;
 		gap: 10px;
-		background: color-mix(in srgb, var(--fg) 3%, var(--surface));
+	}
+	.filter-group {
+		border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
+		border-radius: 12px;
+		padding: 8px 10px 10px;
+		background: color-mix(in srgb, var(--fg) 4%, var(--surface));
+	}
+	.filter-group > summary {
+		cursor: pointer;
+		font-weight: 700;
+	}
+	.filter-group > summary::-webkit-details-marker {
+		display: none;
 	}
 	.filters-main {
 		display: grid;
-		grid-template-columns: minmax(180px, 2fr) repeat(2, minmax(130px, 1fr)) minmax(220px, 1.4fr);
 		gap: 10px;
+	}
+	.filters-main--core {
+		grid-template-columns: minmax(220px, 2fr) minmax(180px, 1fr);
+	}
+	.filters-main--price {
+		grid-template-columns: minmax(160px, 1fr) minmax(240px, 1.4fr);
 	}
 	.field {
 		display: grid;
@@ -299,14 +364,7 @@
 	}
 
 	.bike-filters {
-		border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
-		border-radius: 12px;
-		padding: 8px 10px 10px;
-		background: color-mix(in srgb, var(--fg) 4%, var(--surface));
-	}
-	.bike-filters > summary {
-		cursor: pointer;
-		font-weight: 700;
+		padding-bottom: 10px;
 	}
 	.bike-grid {
 		margin-top: 8px;
@@ -408,12 +466,9 @@
 	}
 
 	@media (max-width: 1000px) {
-		.filters-main {
+		.filters-main--core,
+		.filters-main--price {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-		.field--search,
-		.field--price {
-			grid-column: 1 / -1;
 		}
 		.bike-grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -423,18 +478,15 @@
 		}
 	}
 	@media (max-width: 640px) {
-		.filters-main {
+		.filters-main--core,
+		.filters-main--price {
 			grid-template-columns: 1fr;
-		}
-		.field--search,
-		.field--price {
-			grid-column: auto;
 		}
 		.bike-grid {
 			grid-template-columns: 1fr;
 		}
 		.actions {
-			justify-content: space-between;
+			justify-content: flex-end;
 		}
 	}
 </style>

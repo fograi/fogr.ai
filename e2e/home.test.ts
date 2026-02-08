@@ -35,16 +35,18 @@ test('home page search keeps selected filters', async ({ page }) => {
 test('bikes category page supports sorting, range, and bike filters', async ({ page }) => {
 	await page.goto('/category/bikes');
 	await expect(page.getByRole('heading', { name: 'Bikes' })).toBeVisible();
+	await page.locator('details.filters-shell > summary').click();
+	await page.locator('details.filter-group > summary', { hasText: 'Search & sort' }).click();
 	await expect(page.locator('#cat-sort')).toBeVisible();
-	await expect(page.locator('#cat-min-price')).toBeVisible();
-	await expect(page.getByText('Bike filters')).toBeVisible();
 
 	await page.selectOption('#cat-sort', 'price_high');
 	await expect(page).toHaveURL(/sort=price_high/);
 
+	await page.locator('details.filter-group > summary', { hasText: 'Bike filters' }).click();
 	await page.locator('.bike-pills .pill', { hasText: 'Adult bike' }).click();
 	await expect(page).toHaveURL(/bike_subtype=adult/);
 
+	await page.locator('details.filter-group > summary', { hasText: 'Price' }).click();
 	await page.fill('#cat-min-price', '50');
 	await page.fill('#cat-max-price', '120');
 	await page.getByRole('button', { name: 'Apply' }).click();
