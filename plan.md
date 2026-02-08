@@ -301,3 +301,5 @@
   - Need to ensure blocked lists or references are not send in gdpr, unless required.
     - Will probably just use the uid which should be some what safe, or probably expose partially masked such as 1111-\*\*\*\*-1111
 - Set the max price validation to whatever is the max the db field will handle
+- Put euro symbols on inputs for monetary amounts, format with commas between 3 digits, e.g. €1,000. Possibly ban decimal places, I can't see how they would be useful.
+- Simple but innovative loading spinners where there are API calls or long running tasks like image compression.
