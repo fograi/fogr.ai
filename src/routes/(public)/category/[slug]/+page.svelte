@@ -75,7 +75,7 @@
 		return buildFilterHref({}, targetPage);
 	}
 
-	function optionLabel(options: Array<{ value: string; label: string }>, value: string) {
+	function optionLabel(options: ReadonlyArray<{ value: string; label: string }>, value: string) {
 		if (!value) return '';
 		return options.find((option) => option.value === value)?.label ?? value;
 	}
