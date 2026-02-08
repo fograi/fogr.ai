@@ -291,16 +291,348 @@
 
 ## Other todo to add tasks for
 
-- Add ad messages and other relevant stuff to "Export your data" feature on account page.
-- In the messages page, where the seller gets messages from multiple people for the same ad, group the messages, similar to maybe how the reports page groups reports for the same ad. Do some deep UX research to see what is best for the user.
-- On the message conversation view, I want to emphasise the anonymous nature of the chat, mostly to remind that you have no idea who you are talking to.
-- Add the profanity checks on the conversations between users
-- Allow users to block chat from users in chat, for this chat only, or for all future chats
-  - Consider if status like delivered on messages are useful or not? Maybe creates tension when un-replied?
-  - Consider that the block must be two way, so the person who blocks won't accidentally chat to the via their ad
-  - Need to ensure blocked lists or references are not send in gdpr, unless required.
-    - Will probably just use the uid which should be some what safe, or probably expose partially masked such as 1111-\*\*\*\*-1111
-- Set the max price validation to whatever is the max the db field will handle
-- Put euro symbols on inputs for monetary amounts, format with commas between 3 digits, e.g. €1,000. Possibly ban decimal places, I can't see how they would be useful.
-- Simple but innovative loading spinners where there are API calls or long running tasks like image compression.
-- Need to collect location to associate with as ad, Island > Province > County > City / Town / Village etc.
+- Research snapshot date: February 8, 2026.
+
+### Task 1 - Expand "Export your data" to include messages and relevant account data
+
+#### Snapshot (for fresh agent chats)
+
+- Current export endpoint `src/routes/api/me/export/+server.ts` returns user profile, age confirmation, and ads only.
+- Export trigger/UI lives on `src/routes/(app)/account/+page.svelte`.
+- Current payload excludes conversations, messages, and trust/safety records tied to the user.
+
+#### UX and policy decisions (research-backed)
+
+- Keep export machine-readable and contract-based (`schema_version`) so users can move/inspect data easily.
+- Include personal data the user provided or generated through usage (messages, conversation metadata, listing interactions).
+- Apply rights-of-others guardrails: redact or pseudonymize counterpart identifiers unless full disclosure is legally required.
+- Include only block references created by the requesting user by default; avoid exposing who blocked them.
+- If payload becomes large, move to async export job UX (status + later download) instead of blocking account page actions.
+
+#### Delivery checklist
+
+- [ ] Define `export_payload_v2` contract (versioned JSON schema) and store it in docs.
+- [ ] Extend `src/routes/api/me/export/+server.ts` to include: `conversations`, `messages`, and user-relevant moderation/report records.
+- [ ] Add redaction/pseudonymization helper for third-party identifiers before payload serialization.
+- [ ] Add optional async export flow (job status endpoint + signed download) for large payloads.
+- [ ] Update account page copy in `src/routes/(app)/account/+page.svelte` to explain included datasets.
+- [ ] Update E2E mock export payload in `src/lib/server/e2e-mocks.ts` and any dependent tests.
+- [ ] Add tests for: completeness, schema stability, and third-party data redaction behavior.
+
+#### Acceptance criteria
+
+- Export contains message and conversation data relevant to the signed-in user.
+- Payload is versioned and documented for future migrations.
+- Third-party identifiers are handled per redaction policy.
+- Export endpoint and account UI pass updated unit/e2e tests.
+
+#### Research references
+
+- `https://gdpr-info.eu/art-15-gdpr/`
+- `https://gdpr-info.eu/art-20-gdpr/`
+- `https://www.edpb.europa.eu/sme-data-protection-guide/respect-individuals-rights/right-data-portability_en`
+
+### Task 2 - Group seller inbox conversations by listing (ad-first view)
+
+#### Snapshot (for fresh agent chats)
+
+- Inbox query and shaping lives in `src/routes/(app)/messages/+page.server.ts`.
+- Inbox UI is currently flat conversation cards in `src/routes/(app)/messages/+page.svelte`.
+- Seller handling many buyers on one ad currently gets noisy, high-switch-cost navigation.
+
+#### UX decisions (research-backed)
+
+- Seller inbox default should be grouped by `ad_id`; buyer view can remain individual-first.
+- Provide a clear toggle between `Grouped by listing` and `Individual chats`.
+- Group cards should show: ad title, unread total, active buyer count, and latest activity timestamp.
+- Inside a group, sort chats by `unread first`, then `latest activity`.
+- Preserve fast filters (`Selling`, `Buying`, offer-state filters) to avoid forcing one navigation model.
+
+#### Delivery checklist
+
+- [ ] Extend inbox load model in `src/routes/(app)/messages/+page.server.ts` with grouped seller view data.
+- [ ] Add inbox toggle and grouped rendering in `src/routes/(app)/messages/+page.svelte`.
+- [ ] Show per-group aggregate unread and per-thread unread counts.
+- [ ] Add drill-in behavior: group card opens threads list, then conversation.
+- [ ] Persist last-used inbox mode in local storage for UX continuity.
+- [ ] Add metrics events for mode usage and thread-open latency by mode.
+- [ ] Update `e2e/messages.test.ts` for grouped mode rendering and navigation.
+
+#### Acceptance criteria
+
+- Seller can manage multi-buyer traffic on one listing without losing conversation context.
+- Buyer inbox remains simple and unaffected unless user toggles mode.
+- Unread prioritization works both at group and thread levels.
+- Grouped inbox behavior is covered by tests.
+
+#### Research references
+
+- `https://www.facebook.com/help/347147066002616/`
+- `https://developer.ebay.com/devzone/xml/docs/reference/ebay/GetMemberMessages.html`
+
+### Task 3 - Emphasize anonymous-chat safety in conversation view
+
+#### Snapshot (for fresh agent chats)
+
+- Conversation page: `src/routes/(app)/messages/[id]/+page.svelte`.
+- Ad-side composer: `src/lib/components/messages/MessageComposer.svelte`.
+- Anonymous context is currently lightly signposted and easy to ignore.
+
+#### UX decisions (research-backed)
+
+- Add a persistent but compact safety callout near composer: "You may not know who this is; keep chat on-platform."
+- Add contextual friction when users type high-risk details (phone, email, external payment, OTP-like text).
+- Keep warnings non-blocking for normal use; only escalate on explicit high-risk patterns.
+- Include direct actions in warning area: `Report`, `Block`, `Safety tips`.
+- Use first-contact context cues where possible (for example, unknown contact / no prior trust signals).
+
+#### Delivery checklist
+
+- [ ] Add reusable safety banner component for message views and ad-side composer.
+- [ ] Add pre-send risk phrase detector in client UX and confirm-before-send dialog for risky content.
+- [ ] Create lightweight safety tips page and link it from warning surfaces.
+- [ ] Add event instrumentation: warning shown, warning bypassed, warning-confirmed send.
+- [ ] Ensure all warning copy is concise and non-alarmist.
+- [ ] Add e2e tests for safety warning trigger and send-confirm flow.
+
+#### Acceptance criteria
+
+- Conversation UI consistently reminds users about anonymous counterpart risk.
+- Risky content attempts receive contextual warnings before send.
+- Warnings do not block normal conversation flow for low-risk text.
+- Report/block/safety actions are always reachable from warning surfaces.
+
+#### Research references
+
+- `https://support.signal.org/hc/en-us/articles/360007459591-Signal-Profiles-and-Message-Requests`
+- `https://support.signal.org/hc/en-us/articles/9932739446426-Defending-against-phishing-attempts-in-Signal`
+- `https://www.cftc.gov/LearnAndProtect/AdvisoriesAndArticles/RomanceScams.html`
+
+### Task 4 - Add profanity checks for user-to-user conversations
+
+#### Snapshot (for fresh agent chats)
+
+- Message send pipeline is `src/routes/api/messages/+server.ts`.
+- Current messaging pipeline includes scam-pattern checks but no profanity/toxicity moderation layer.
+- Ad posting routes already include moderation components that can inform architecture reuse.
+
+#### UX and trust/safety decisions (research-backed)
+
+- Use layered moderation: rule-based profanity detection plus model-based severity classification.
+- Apply severity tiers:
+  - hard block for threats/hate/severe abuse,
+  - soft warn-and-edit for lower-severity profanity,
+  - allow benign text.
+- Build for false-positive handling and calibration by language/community context.
+- Log moderation outcomes for audit and threshold tuning without over-retaining sensitive text.
+
+#### Delivery checklist
+
+- [ ] Add `src/lib/server/message-moderation.ts` with deterministic + model-assisted checks.
+- [ ] Integrate moderation decision into `src/routes/api/messages/+server.ts` before insert.
+- [ ] Define blocked/warned response contracts for client UX.
+- [ ] Add moderation event logging table and server write path.
+- [ ] Add admin tooling hook for reviewing false positives and threshold updates.
+- [ ] Add unit coverage for edge cases and adversarial variants.
+- [ ] Add e2e coverage for blocked and warn-then-edit paths.
+
+#### Acceptance criteria
+
+- Severe abusive content is blocked at send time.
+- Borderline content is warned with editable retry path.
+- Moderation decisions are auditable and tunable.
+- False-positive handling is test-covered.
+
+#### Research references
+
+- `https://openai.com/transparency-and-content-moderation/`
+- `https://openai.com/index/a-holistic-approach-to-undesired-content-detection-in-the-real-world/`
+- `https://research.google/pubs/designing-toxic-content-classification-for-a-diversity-of-perspectives/`
+
+### Task 5 - Add chat blocking controls (chat-only + global) and finalize receipt UX
+
+#### Snapshot (for fresh agent chats)
+
+- No block model currently exists in DB schema/messaging APIs.
+- Conversation UI currently surfaces `Delivered`/`Seen` state for latest outgoing message.
+- User requirement includes chat-only block, global block, two-way effect, and GDPR export safety.
+
+#### UX and policy decisions (research-backed)
+
+- Support two scopes:
+  - `Block this chat` (conversation scope),
+  - `Block this user` (all future chats).
+- Enforce two-way block semantics for sends and conversation creation.
+- Keep historical thread readable but disable composer with clear unblock CTA for blocker.
+- For MVP, remove in-thread `Delivered`/`Seen` labels to reduce social pressure; keep local "Message sent" acknowledgment.
+- Export only outbound block records for requester, with masked counterpart IDs in exports.
+
+#### Delivery checklist
+
+- [ ] Create migration(s) for `conversation_blocks` and `user_blocks` plus indexes and RLS.
+- [ ] Add block/unblock endpoints and server checks in `src/routes/api/messages/+server.ts`.
+- [ ] Enforce block checks when creating new conversations and sending new messages.
+- [ ] Add block controls in `src/routes/(app)/messages/[id]/+page.svelte`.
+- [ ] Disable composer when blocked and show block state explanation.
+- [ ] Remove `Delivered`/`Seen` labels from thread bubble metadata in conversation UI.
+- [ ] Add export integration in `src/routes/api/me/export/+server.ts` with masked identifiers.
+- [ ] Add unit/e2e tests for both block scopes and two-way enforcement.
+
+#### Acceptance criteria
+
+- Users can block per-chat or globally.
+- Blocked pairs cannot continue messaging in either direction.
+- Conversation receipt UX no longer pressures for immediate response.
+- Export includes requester-created block records only, per policy.
+
+#### Research references
+
+- `https://support.signal.org/hc/en-us/articles/360007060072-Block-numbers-usernames-or-groups`
+- `https://support.signal.org/hc/en-us/articles/360007059812-Read-Receipts`
+- `https://www.facebook.com/help/447613741984126/`
+
+### Task 6 - Cap ad price validation to DB-safe maximum
+
+#### Snapshot (for fresh agent chats)
+
+- Price validation currently checks positivity but not upper bounds.
+- Relevant validation and API files:
+  - `src/lib/server/ads-validation.ts`
+  - `src/routes/api/ads/+server.ts`
+  - `src/routes/api/ads/[id]/+server.ts`
+
+#### Technical decisions (for UX consistency)
+
+- Derive max from actual DB column type, then codify as shared constant.
+- Enforce same max on both client and server to avoid inconsistent errors.
+- Return user-facing validation error that includes allowed maximum.
+
+#### Delivery checklist
+
+- [ ] Confirm `ads.price` and `ads.min_offer` DB types and compute exact max safe value.
+- [ ] Add/verify DB check constraint for max allowed price.
+- [ ] Add shared `MAX_AD_PRICE` constant and use it in all validators.
+- [ ] Mirror max in post/edit input attributes and inline error copy.
+- [ ] Add boundary unit tests at `max`, `max + 1`, and invalid numeric formats.
+- [ ] Add regression tests ensuring no overflow-like inserts reach DB.
+
+#### Acceptance criteria
+
+- No request can submit price above DB-supported maximum.
+- Client and server show identical upper-bound behavior.
+- Bound is documented and test-covered.
+
+#### Research references
+
+- Internal schema and Supabase typing inspection in this repo.
+
+### Task 7 - Add euro-prefixed money inputs with grouping and whole-euro policy
+
+#### Snapshot (for fresh agent chats)
+
+- Prices are formatted for display via `src/lib/utils/price.ts`, but editing inputs are mostly plain numeric.
+- Relevant input surfaces include post/edit flows and offer composer.
+
+#### UX decisions (research-backed)
+
+- Show currency symbol in money-entry fields to reduce ambiguity (`EUR` / `€`).
+- Accept forgiving pasted input (`€`, commas, spaces), normalize before validation.
+- Store and validate whole-euro amounts for listing and offer flows unless a future requirement requires cents.
+- Keep display formatting locale-aware via `Intl.NumberFormat('en-IE', ...)`.
+
+#### Delivery checklist
+
+- [ ] Add shared parser/formatter helper for editable currency inputs.
+- [ ] Update price/min-offer inputs in `src/lib/components/post/PostFields.svelte`.
+- [ ] Update offer amount input in `src/lib/components/messages/MessageComposer.svelte`.
+- [ ] Ensure server validators reject decimal amounts if whole-euro policy is enabled.
+- [ ] Add inline helper/error copy explaining no-decimal rule.
+- [ ] Add tests for typing/pasting values like `€1,000`, `1000`, and `1 000`.
+
+#### Acceptance criteria
+
+- Users can enter currency values naturally and see consistent euro formatting.
+- Whole-euro rule is enforced across create/edit/message offer flows.
+- Existing display labels remain consistent with edited values.
+
+#### Research references
+
+- `https://design.tax.service.gov.uk/hmrc-design-patterns/currency-input/`
+- `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat`
+
+### Task 8 - Introduce stronger loading states for API and long-running tasks
+
+#### Snapshot (for fresh agent chats)
+
+- Current UX mainly uses button text swaps (`Sending...`, `Preparing...`) with limited visual progress language.
+- Image compression/upload and export generation are clear candidates for richer progress UX.
+
+#### UX decisions (research-backed)
+
+- Use determinate progress when completion can be measured (upload/compression/export stages).
+- Use indeterminate spinner only for short unknown waits.
+- Use skeleton placeholders for content regions on initial loads.
+- Respect reduced-motion preferences and keep indicators non-blocking where possible.
+
+#### Delivery checklist
+
+- [ ] Build shared loading primitives (skeleton, inline spinner, progress bar).
+- [ ] Add determinate progress feedback to image compression/upload in post flow.
+- [ ] Add account export progress state (preparing -> ready) for async path.
+- [ ] Add skeleton states for messages inbox and conversation initial fetch.
+- [ ] Add accessibility labels (`aria-busy`, live regions, reduced-motion variants).
+- [ ] Add visual regression/e2e checks for key loading states.
+
+#### Acceptance criteria
+
+- Long-running tasks always show visible progress feedback.
+- Loading states map to task type (determinate vs indeterminate vs skeleton).
+- Accessibility checks pass for motion and assistive-tech announcements.
+
+#### Research references
+
+- `https://developer.apple.com/design/human-interface-guidelines/loading`
+- `https://material-web.dev/components/progress/`
+- `https://fluent2.microsoft.design/components/ios/core/activityindicator/usage`
+
+### Task 9 - Add hierarchical location capture to listings (Island -> Province -> County -> Locality)
+
+#### Snapshot (for fresh agent chats)
+
+- Ads currently do not capture structured location hierarchy fields.
+- Post/edit flow candidates:
+  - `src/lib/components/post/PostFields.svelte`
+  - `src/routes/(app)/post/+page.svelte`
+  - `src/routes/(app)/ads/[id]/edit/+page.svelte`
+
+#### UX and data decisions (research-backed)
+
+- Use progressive location selection, not a single long dropdown.
+- Keep county and locality as core required fields; treat province as optional/derived metadata.
+- Do not require exact street address for public ad discovery; keep privacy-preserving granularity.
+- Store both canonical IDs and display labels for stable filtering and rendering.
+- Support autocomplete semantics for address-like fields for accessibility and browser assist.
+
+#### Delivery checklist
+
+- [ ] Define `location_profile_data` contract (`island`, `province`, `county`, `locality`, optional geo).
+- [ ] Add migration for location storage and indexes for county/locality filters.
+- [ ] Add data seed/lookup source for Irish county and settlement hierarchy.
+- [ ] Implement progressive selectors and local search in Step 1 of post/edit flows.
+- [ ] Add server validation for required location levels.
+- [ ] Surface location summary on listing cards/details with privacy-safe granularity.
+- [ ] Add filters by county/locality on browse/category pages.
+- [ ] Add unit/e2e tests for selection, validation, and filtering behavior.
+
+#### Acceptance criteria
+
+- Listings can be created with structured location hierarchy.
+- Users can filter/search listings by county and locality.
+- Location UX remains fast on mobile and desktop.
+- Public listing display avoids over-disclosure of exact addresses.
+
+#### Research references
+
+- `https://www.cso.ie/en/census/census2011boundaryfiles/`
+- `https://design-system.service.gov.uk/patterns/addresses/`
+- `https://mdn2.netlify.app/en-us/docs/web/html/attributes/autocomplete/`
