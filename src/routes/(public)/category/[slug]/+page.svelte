@@ -114,14 +114,14 @@
 		if (currentFilters.bikeSubtype) {
 			chips.push({
 				id: `bike_subtype:${currentFilters.bikeSubtype}`,
-				label: `Subtype: ${optionLabel(data.options.bikeSubtype, currentFilters.bikeSubtype)}`,
+				label: `Bike type: ${optionLabel(data.options.bikeSubtype, currentFilters.bikeSubtype)}`,
 				href: buildFilterHref({ bikeSubtype: '', bikeType: '' })
 			});
 		}
 		if (currentFilters.bikeType) {
 			chips.push({
 				id: `bike_type:${currentFilters.bikeType}`,
-				label: `Type: ${optionLabel(data.options.bikeType, currentFilters.bikeType)}`,
+				label: `Subtype: ${optionLabel(data.options.bikeType, currentFilters.bikeType)}`,
 				href: buildFilterHref({ bikeType: '' })
 			});
 		}
@@ -148,7 +148,6 @@
 	<header class="head">
 		<a class="back" href={resolve('/')} rel="external">All listings</a>
 		<h1>{data.category}</h1>
-		<p class="sub">Browse local listings with focused filters.</p>
 	</header>
 
 	<div class="listing-layout">
@@ -209,8 +208,8 @@
 				<div class="bike-filters">
 					<div class="bike-grid">
 						<div class="field bike-pills">
-							<span class="label">Subtype</span>
-							<div class="pill-group" role="radiogroup" aria-label="Bike subtype">
+							<span class="label">Bike type</span>
+							<div class="pill-group" role="radiogroup" aria-label="Bike type">
 								<label class="pill" class:active={!data.filters.bikeSubtype}>
 									<input
 										type="radio"
@@ -237,14 +236,14 @@
 						</div>
 
 						<div class="field">
-							<label for="cat-bike-type">Bike type</label>
+							<label for="cat-bike-type">Subtype</label>
 							<select
 								id="cat-bike-type"
 								name="bike_type"
 								value={data.filters.bikeType}
 								onchange={submitFilters}
 							>
-								<option value="">Any bike type</option>
+								<option value="">Any subtype</option>
 								{#each data.options.bikeType as option (option.value)}
 									<option value={option.value}>{option.label}</option>
 								{/each}
@@ -360,10 +359,7 @@
 		text-decoration: none;
 		font-weight: 600;
 	}
-	.sub {
-		margin: 0;
-		color: color-mix(in srgb, var(--fg) 68%, transparent);
-	}
+
 	.listing-layout {
 		display: grid;
 		gap: 14px;

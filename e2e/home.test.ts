@@ -50,7 +50,7 @@ test('bikes category page supports sorting, range, and bike filters', async ({ p
 test('category page renders removable applied filter chips', async ({ page }) => {
 	await page.goto('/category/bikes?bike_subtype=adult&min_price=50&max_price=120');
 
-	const subtypeChip = page.getByRole('link', { name: 'Remove Subtype: Adult bike' });
+	const subtypeChip = page.getByRole('link', { name: 'Remove Bike type: Adult bike' });
 	const priceChip = page.getByRole('link', { name: 'Remove Price: EUR 50-120' });
 
 	await expect(subtypeChip).toBeVisible();
