@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import AdCard from '../lib/components/AdCard.svelte';
 	import { resolve } from '$app/paths';
 	import { CATEGORIES } from '$lib/constants';
@@ -10,7 +11,6 @@
 	let loggedError = false;
 
 	let container: HTMLUListElement;
-	let searchForm: HTMLFormElement | null = null;
 	const q = $derived(data?.q ?? '');
 	const category = $derived(data?.category ?? '');
 	const priceState = $derived(data?.priceState ?? '');
@@ -19,19 +19,15 @@
 		slug: categoryToSlug(cat)
 	}));
 	let browseCategorySlug = $state(categoryOptions[0]?.slug ?? '');
-	const browseCategoryHref = $derived(
-		resolve('/(public)/category/[slug]', {
-			slug: browseCategorySlug || categoryOptions[0]?.slug || 'bikes'
-		})
-	);
 
-	function submitFilters() {
-		if (!searchForm) return;
-		if (typeof searchForm.requestSubmit === 'function') {
-			searchForm.requestSubmit();
-		} else {
-			searchForm.submit();
-		}
+	async function browseCategory(event: Event) {
+		const select = event.currentTarget as HTMLSelectElement | null;
+		const slug = select?.value || categoryOptions[0]?.slug || 'bikes';
+		await goto(
+			resolve('/(public)/category/[slug]', {
+				slug
+			})
+		);
 	}
 
 	function layout() {
@@ -87,15 +83,14 @@
 			<p class="sub">Local deals, made simple.</p>
 			<div class="category-jump">
 				<label class="sr-only" for="browse-category">Browse category page</label>
-				<select id="browse-category" bind:value={browseCategorySlug}>
+				<select id="browse-category" bind:value={browseCategorySlug} onchange={browseCategory}>
 					{#each categoryOptions as option (option.slug)}
 						<option value={option.slug}>{option.name}</option>
 					{/each}
 				</select>
-				<a class="category-jump__go" href={browseCategoryHref} rel="external">Browse</a>
 			</div>
 		</div>
-		<form bind:this={searchForm} class="search__form" method="GET" action={resolve('/')}>
+		<form class="search__form" method="GET" action={resolve('/')}>
 			<label class="sr-only" for="search-q">Search</label>
 			<input id="search-q" name="q" type="search" value={q} placeholder="Search" />
 			<button type="submit" class="search__submit" aria-label="Search">
@@ -103,25 +98,6 @@
 					<SearchIcon size={18} strokeWidth={1.8} />
 				</span>
 			</button>
-			<label class="sr-only" for="search-category">Category</label>
-			<select id="search-category" name="category" value={category} onchange={submitFilters}>
-				<option value="">All categories</option>
-				{#each CATEGORIES as cat (cat)}
-					<option value={cat}>{cat}</option>
-				{/each}
-			</select>
-			<label class="sr-only" for="search-price-state">Price</label>
-			<select
-				id="search-price-state"
-				name="price_state"
-				value={priceState}
-				onchange={submitFilters}
-			>
-				<option value="">Any price</option>
-				<option value="fixed">Fixed price</option>
-				<option value="free">Free</option>
-				<option value="poa">POA</option>
-			</select>
 			{#if q || category || priceState}
 				<a class="clear" href={resolve('/')} rel="external">Clear</a>
 			{/if}
@@ -190,8 +166,7 @@
 	.category-jump {
 		margin-top: 10px;
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		gap: 8px;
+		grid-template-columns: minmax(0, 1fr);
 		max-width: 360px;
 	}
 	.category-jump select {
@@ -203,23 +178,9 @@
 		color: inherit;
 		min-width: 0;
 	}
-	.category-jump__go {
-		text-decoration: none;
-		color: inherit;
-		font-weight: 700;
-		border-radius: 10px;
-		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
-		background: color-mix(in srgb, var(--fg) 6%, var(--surface));
-		padding: 0 12px;
-		display: inline-flex;
-		align-items: center;
-	}
-	.category-jump__go:hover {
-		border-color: color-mix(in srgb, var(--fg) 30%, transparent);
-	}
 	.search__form {
 		display: grid;
-		grid-template-columns: 1fr auto auto auto;
+		grid-template-columns: 1fr auto auto;
 		gap: 10px;
 		align-items: center;
 		width: 100%;
@@ -269,19 +230,11 @@
 			grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
 			grid-template-areas:
 				'q btn'
-				'category category'
-				'price price'
 				'clear clear';
 			max-width: 100%;
 		}
 		#search-q {
 			grid-area: q;
-		}
-		#search-category {
-			grid-area: category;
-		}
-		#search-price-state {
-			grid-area: price;
 		}
 		.search__form button {
 			grid-area: btn;
