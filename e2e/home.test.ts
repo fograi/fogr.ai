@@ -31,3 +31,29 @@ test('home page search keeps selected filters', async ({ page }) => {
 	await expect(page).toHaveURL(/category=Electronics/);
 	await expect(page).toHaveURL(/price_state=fixed/);
 });
+
+test('bikes category page supports sorting, range, and bike filters', async ({ page }) => {
+	await page.goto('/category/bikes');
+	await expect(page.getByRole('heading', { name: 'Bikes' })).toBeVisible();
+	await expect(page.locator('#cat-sort')).toBeVisible();
+	await expect(page.locator('#cat-min-price')).toBeVisible();
+	await expect(page.getByText('Bike filters')).toBeVisible();
+
+	await page.selectOption('#cat-sort', 'price_high');
+	await expect(page).toHaveURL(/sort=price_high/);
+
+	await page.locator('.bike-pills .pill', { hasText: 'Adult bike' }).click();
+	await expect(page).toHaveURL(/bike_subtype=adult/);
+
+	await page.fill('#cat-min-price', '50');
+	await page.fill('#cat-max-price', '120');
+	await page.getByRole('button', { name: 'Apply' }).click();
+	await expect(page).toHaveURL(/min_price=50/);
+	await expect(page).toHaveURL(/max_price=120/);
+});
+
+test('non-bike category page does not render bike-only filters', async ({ page }) => {
+	await page.goto('/category/electronics');
+	await expect(page.getByRole('heading', { name: 'Electronics' })).toBeVisible();
+	await expect(page.getByText('Bike filters')).toHaveCount(0);
+});

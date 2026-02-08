@@ -28,6 +28,15 @@ import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
 import { recordMetric } from '$lib/server/metrics';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
+import { asCategory, asCategorySort } from '$lib/category-browse';
+import {
+	BIKE_ADULT_SIZE_PRESETS,
+	BIKE_CONDITIONS,
+	BIKE_KIDS_SIZE_PRESETS,
+	BIKE_SUBTYPES,
+	BIKE_TYPES,
+	getBikeSubtypeOptions
+} from '$lib/category-profiles';
 import type { Database } from '$lib/supabase.types';
 
 filter.add(bannedWords);
@@ -68,6 +77,19 @@ const rateLimitResponse = (retryAfterSeconds: number, requestId?: string) =>
 const makeRequestId = () =>
 	crypto?.randomUUID?.() ??
 	`req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+
+const bikeSubtypeSet = new Set<string>(BIKE_SUBTYPES);
+const bikeTypeSet = new Set<string>(BIKE_TYPES);
+const bikeConditionSet = new Set<string>(BIKE_CONDITIONS);
+const bikePresetSizeSet = new Set<string>([...BIKE_ADULT_SIZE_PRESETS, ...BIKE_KIDS_SIZE_PRESETS]);
+
+function asPositiveNumber(value: string | null | undefined): number | null {
+	const normalized = (value ?? '').trim();
+	if (!normalized || !/^[0-9]+$/.test(normalized)) return null;
+	const parsed = Number(normalized);
+	if (!Number.isFinite(parsed) || parsed < 0) return null;
+	return parsed;
+}
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
 	const bytes = new Uint8Array(buf);
@@ -630,14 +652,61 @@ export const GET: RequestHandler = async (event) => {
 	const { page, limit, from, to } = getPagination(url.searchParams, 24, 100);
 	const nowIso = new Date().toISOString();
 	const q = (url.searchParams.get('q') ?? '').trim();
-	const category = (url.searchParams.get('category') ?? '').trim();
+	const category = asCategory(url.searchParams.get('category'));
 	const priceState = (url.searchParams.get('price_state') ?? '').trim().toLowerCase();
+	const sort = asCategorySort(url.searchParams.get('sort'));
+	const minPrice = asPositiveNumber(url.searchParams.get('min_price'));
+	const maxPrice = asPositiveNumber(url.searchParams.get('max_price'));
+	const rawBikeSubtype = (url.searchParams.get('bike_subtype') ?? '').trim().toLowerCase();
+	const rawBikeType = (url.searchParams.get('bike_type') ?? '').trim().toLowerCase();
+	const rawBikeCondition = (url.searchParams.get('bike_condition') ?? '').trim().toLowerCase();
+	const rawBikeSizePreset = (url.searchParams.get('bike_size') ?? '').trim().toUpperCase();
+	const bikeSubtype = bikeSubtypeSet.has(rawBikeSubtype) ? rawBikeSubtype : '';
+	const bikeCondition = bikeConditionSet.has(rawBikeCondition) ? rawBikeCondition : '';
+	const bikeSizePreset = bikePresetSizeSet.has(rawBikeSizePreset) ? rawBikeSizePreset : '';
+	let bikeType = bikeTypeSet.has(rawBikeType) ? rawBikeType : '';
+	if (bikeSubtype && bikeType) {
+		const scopedTypes = new Set(getBikeSubtypeOptions(bikeSubtype).map((option) => option.value));
+		if (!scopedTypes.has(bikeType)) bikeType = '';
+	}
 
 	if (isE2eMock(platform)) {
+		const mockProfile =
+			E2E_MOCK_AD.category_profile_data && typeof E2E_MOCK_AD.category_profile_data === 'object'
+				? (E2E_MOCK_AD.category_profile_data as Record<string, unknown>)
+				: null;
+		const mockPrice = E2E_MOCK_AD.price;
+		const matchesCategory = !category || E2E_MOCK_AD.category === category;
+		const matchesPriceState =
+			!priceState ||
+			(priceState === 'free' && mockPrice === 0) ||
+			(priceState === 'poa' && mockPrice === null) ||
+			(priceState === 'fixed' && typeof mockPrice === 'number' && mockPrice > 0);
+		const matchesMinPrice =
+			minPrice === null || (typeof mockPrice === 'number' && mockPrice >= minPrice);
+		const matchesMaxPrice =
+			maxPrice === null || (typeof mockPrice === 'number' && mockPrice <= maxPrice);
+		const matchesBikeSubtype =
+			!bikeSubtype || (mockProfile?.subtype as string | undefined) === bikeSubtype;
+		const matchesBikeType = !bikeType || (mockProfile?.bikeType as string | undefined) === bikeType;
+		const matchesBikeCondition =
+			!bikeCondition || (mockProfile?.condition as string | undefined) === bikeCondition;
+		const matchesBikeSize =
+			!bikeSizePreset || (mockProfile?.sizePreset as string | undefined) === bikeSizePreset;
+		const shouldInclude =
+			matchesCategory &&
+			matchesPriceState &&
+			matchesMinPrice &&
+			matchesMaxPrice &&
+			matchesBikeSubtype &&
+			matchesBikeType &&
+			matchesBikeCondition &&
+			matchesBikeSize;
+
 		return json(
 			{
 				success: true,
-				ads: [E2E_MOCK_AD],
+				ads: shouldInclude ? [E2E_MOCK_AD] : [],
 				page: 1,
 				limit: 1,
 				nextPage: null,
@@ -679,8 +748,30 @@ export const GET: RequestHandler = async (event) => {
 	if (priceState === 'free') query = query.eq('price', 0);
 	if (priceState === 'poa') query = query.is('price', null);
 	if (priceState === 'fixed') query = query.gt('price', 0);
+	if (minPrice !== null) query = query.gte('price', minPrice);
+	if (maxPrice !== null) query = query.lte('price', maxPrice);
 
-	const { data, error } = await query.order('created_at', { ascending: false }).range(from, to);
+	if (category === 'Bikes') {
+		if (bikeSubtype) query = query.filter('category_profile_data->>subtype', 'eq', bikeSubtype);
+		if (bikeType) query = query.filter('category_profile_data->>bikeType', 'eq', bikeType);
+		if (bikeCondition)
+			query = query.filter('category_profile_data->>condition', 'eq', bikeCondition);
+		if (bikeSizePreset)
+			query = query.filter('category_profile_data->>sizePreset', 'eq', bikeSizePreset);
+	}
+	if (sort === 'price_low') {
+		query = query
+			.order('price', { ascending: true, nullsFirst: false })
+			.order('created_at', { ascending: false });
+	} else if (sort === 'price_high') {
+		query = query
+			.order('price', { ascending: false, nullsFirst: false })
+			.order('created_at', { ascending: false });
+	} else {
+		query = query.order('created_at', { ascending: false });
+	}
+
+	const { data, error } = await query.range(from, to);
 
 	if (error) {
 		return json(

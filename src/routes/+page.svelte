@@ -3,6 +3,7 @@
 	import AdCard from '../lib/components/AdCard.svelte';
 	import { resolve } from '$app/paths';
 	import { CATEGORIES } from '$lib/constants';
+	import { categoryToSlug } from '$lib/category-browse';
 	import { SearchIcon } from '$lib/icons';
 
 	let { data } = $props();
@@ -13,6 +14,10 @@
 	const q = $derived(data?.q ?? '');
 	const category = $derived(data?.category ?? '');
 	const priceState = $derived(data?.priceState ?? '');
+	const categoryLinks = CATEGORIES.map((cat) => ({
+		name: cat,
+		href: resolve('/(public)/category/[slug]', { slug: categoryToSlug(cat) })
+	}));
 
 	function submitFilters() {
 		if (!searchForm) return;
@@ -74,16 +79,15 @@
 		<div class="search__copy">
 			<h1>Buy. Sell. Done.</h1>
 			<p class="sub">Local deals, made simple.</p>
+			<div class="category-links" aria-label="Browse categories">
+				{#each categoryLinks as item (item.name)}
+					<a href={item.href} rel="external">{item.name}</a>
+				{/each}
+			</div>
 		</div>
 		<form bind:this={searchForm} class="search__form" method="GET" action={resolve('/')}>
 			<label class="sr-only" for="search-q">Search</label>
-			<input
-				id="search-q"
-				name="q"
-				type="search"
-				value={q}
-				placeholder="Search"
-			/>
+			<input id="search-q" name="q" type="search" value={q} placeholder="Search" />
 			<button type="submit" class="search__submit" aria-label="Search">
 				<span class="icon" aria-hidden="true">
 					<SearchIcon size={18} strokeWidth={1.8} />
@@ -92,7 +96,7 @@
 			<label class="sr-only" for="search-category">Category</label>
 			<select id="search-category" name="category" value={category} onchange={submitFilters}>
 				<option value="">All categories</option>
-				{#each CATEGORIES as cat}
+				{#each CATEGORIES as cat (cat)}
 					<option value={cat}>{cat}</option>
 				{/each}
 			</select>
@@ -172,6 +176,25 @@
 	.search__copy .sub {
 		margin: 0;
 		color: color-mix(in srgb, var(--fg) 70%, transparent);
+	}
+	.category-links {
+		margin-top: 10px;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.category-links a {
+		text-decoration: none;
+		color: inherit;
+		font-size: 0.8rem;
+		font-weight: 700;
+		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+		background: color-mix(in srgb, var(--fg) 5%, var(--surface));
+		border-radius: 999px;
+		padding: 5px 10px;
+	}
+	.category-links a:hover {
+		border-color: color-mix(in srgb, var(--fg) 30%, transparent);
 	}
 	.search__form {
 		display: grid;
