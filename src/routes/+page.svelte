@@ -18,7 +18,7 @@
 		name: cat,
 		slug: categoryToSlug(cat)
 	}));
-	let browseCategorySlug = categoryOptions[0]?.slug ?? '';
+	let browseCategorySlug = $state(categoryOptions[0]?.slug ?? '');
 	const browseCategoryHref = $derived(
 		resolve('/(public)/category/[slug]', {
 			slug: browseCategorySlug || categoryOptions[0]?.slug || 'bikes'
