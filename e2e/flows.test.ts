@@ -18,6 +18,7 @@ async function goToPriceStep(page: Page) {
 }
 
 async function selectDefaultLocation(page: Page) {
+	await page.click('#location-tree-trigger');
 	await page.check('#location-root-checkbox');
 }
 
