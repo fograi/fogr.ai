@@ -129,8 +129,8 @@
 	$: authedLinks = user
 		? [
 				...baseLinks,
-				{ href: '/(app)/messages', label: 'Messages' },
 				{ href: '/(app)/account', label: 'Account' },
+				{ href: '/(app)/messages', label: 'Messages' },
 				{ href: '/(app)/ads', label: 'My ads' }
 			]
 		: baseLinks;

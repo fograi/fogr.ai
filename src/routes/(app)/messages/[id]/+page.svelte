@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { formatPriceLabel } from '$lib/utils/price';
 	import InlineSpinner from '$lib/components/loading/InlineSpinner.svelte';
 	import SkeletonBlock from '$lib/components/loading/SkeletonBlock.svelte';
@@ -149,6 +150,7 @@
 <section class="thread">
 	<header class="head">
 		<div>
+			<a class="back" href={resolve('/(app)/messages')}>&lt;&nbsp;Messages</a>
 			<h1>{data.conversation.adTitle}</h1>
 			<details class="ad-summary">
 				<summary>
@@ -250,19 +252,28 @@
 	</form>
 </section>
 
-<style>
-	.thread {
-		max-width: 840px;
-		margin: 0 auto;
-		padding: 24px var(--page-pad) 80px;
-		display: grid;
-		gap: 16px;
-	}
-	.head h1 {
-		margin: 0 0 4px;
-		font-size: 1.5rem;
-		font-weight: 800;
-	}
+	<style>
+		.thread {
+			max-width: 840px;
+			margin: 0 auto;
+			padding: 24px var(--page-pad) 80px;
+			display: grid;
+			gap: 16px;
+		}
+		.head {
+			display: grid;
+			gap: 4px;
+		}
+		.back {
+			font-size: 0.9rem;
+			text-decoration: none;
+			font-weight: 600;
+		}
+		.head h1 {
+			margin: 0 0 4px;
+			font-size: 1.5rem;
+			font-weight: 800;
+		}
 	.ad-summary {
 		margin-top: 6px;
 	}
