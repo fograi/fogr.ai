@@ -366,20 +366,37 @@ describe('validateCategoryProfileData (bikes)', () => {
 });
 
 describe('validateLocationProfileData', () => {
-	it('accepts canonical county/locality ids and normalizes labels', () => {
+	it('accepts selected county ids and normalizes labels', () => {
 		const result = validateLocationProfileData({
 			locationProfileDataRaw: {
-				county: { id: 'ie/leinster/dublin', name: 'Wrong County Label' },
-				locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Wrong Locality Label' }
+				selectedNodeIds: ['ie/leinster/dublin']
 			}
 		});
 		expect(result.error).toBeNull();
 		expect(result.locationProfileData).toMatchObject({
-			version: 1,
+			version: 2,
+			level: 'county',
+			primary: { id: 'ie/leinster/dublin', name: 'Dublin', type: 'county' },
 			island: { id: 'ie', name: 'Ireland' },
 			province: { id: 'ie/leinster', name: 'Leinster' },
-			county: { id: 'ie/leinster/dublin', name: 'Dublin' },
-			locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Ard Na Gréine' }
+			county: { id: 'ie/leinster/dublin', name: 'Dublin' }
+		});
+	});
+
+	it('accepts subtree selection and keeps the broadest selected level as primary', () => {
+		const result = validateLocationProfileData({
+			locationProfileDataRaw: {
+				selectedNodeIds: ['ie', 'ie/leinster', 'ie/leinster/dublin']
+			}
+		});
+		expect(result.error).toBeNull();
+		expect(result.locationProfileData).toMatchObject({
+			version: 2,
+			level: 'country',
+			primary: { id: 'ie', name: 'Ireland', type: 'country' },
+			island: { id: 'ie', name: 'Ireland' },
+			province: null,
+			county: null
 		});
 	});
 
@@ -391,25 +408,13 @@ describe('validateLocationProfileData', () => {
 		expect(result.locationProfileData).toBeNull();
 	});
 
-	it('rejects invalid county id', () => {
+	it('rejects invalid location ids', () => {
 		const result = validateLocationProfileData({
 			locationProfileDataRaw: {
-				county: { id: 'ie/leinster/not-a-county', name: 'Nowhere' },
-				locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Ard Na Gréine' }
+				selectedNodeIds: ['ie/leinster/not-a-county']
 			}
 		});
-		expect(result.error).toBe('Invalid county.');
-		expect(result.locationProfileData).toBeNull();
-	});
-
-	it('rejects locality that does not belong to county', () => {
-		const result = validateLocationProfileData({
-			locationProfileDataRaw: {
-				county: { id: 'ie/leinster/dublin', name: 'Dublin' },
-				locality: { id: 'ie/munster/cork/ballincollig', name: 'Ballincollig' }
-			}
-		});
-		expect(result.error).toBe('Invalid locality for selected county.');
+		expect(result.error).toBe('Select at least one location.');
 		expect(result.locationProfileData).toBeNull();
 	});
 });

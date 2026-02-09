@@ -18,9 +18,7 @@ async function goToPriceStep(page: Page) {
 }
 
 async function selectDefaultLocation(page: Page) {
-	await page.selectOption('#location-county', 'ie/leinster/dublin');
-	await expect(page.locator('#location-locality')).toBeEnabled();
-	await page.selectOption('#location-locality', 'ie/leinster/dublin/ard-na-greine');
+	await page.check('#location-root-checkbox');
 }
 
 test('login page loads the email form', async ({ page }) => {

@@ -33,16 +33,15 @@
 		type BikeType
 	} from '$lib/category-profiles';
 	import {
-		ISLAND_OPTION,
-		getCountyOptions,
-		getLocalityOptionsByCountyId,
-		getProvinceForCountyId
+		getLocationSelectionDescendantIds,
+		getLocationSelectionNodeById,
+		getLocationSelectionTree,
+		normalizeLocationSelectionIds
 	} from '$lib/location-hierarchy';
 
 	// two-way bind from parent
 	export let category: Category | '' = '';
-	export let locationCountyId = '';
-	export let locationLocalityId = '';
+	export let locationSelectionIds: string[] = [];
 	export let title = '';
 	export let description = '';
 	export let price: number | '' = '';
@@ -68,42 +67,51 @@
 	// validation messages from parent (optional)
 	export let loading = false;
 	type BikeMinOfferUnit = 'eur' | 'percent';
-	const countyOptions = getCountyOptions();
-	let countySearch = '';
-	let localitySearch = '';
+	const locationTree = getLocationSelectionTree();
+	let expandedNodeIds = new Set<string>();
+	let selectedLocationSet = new Set<string>();
 	let bikeMinOfferUnit: BikeMinOfferUnit = 'eur';
 	let bikeMinOfferDisplay = '';
 	let bikeMinOfferDisplaySignature = '';
 
-	$: normalizedCountySearch = countySearch.trim().toLowerCase();
-	$: normalizedLocalitySearch = localitySearch.trim().toLowerCase();
-	$: filteredCountyOptions = normalizedCountySearch
-		? countyOptions.filter((county) => county.name.toLowerCase().includes(normalizedCountySearch))
-		: countyOptions;
-	$: localityOptions = getLocalityOptionsByCountyId(locationCountyId);
-	$: filteredLocalityOptions = normalizedLocalitySearch
-		? localityOptions.filter((locality) =>
-				locality.name.toLowerCase().includes(normalizedLocalitySearch)
-			)
-		: localityOptions;
-	$: selectedProvince = getProvinceForCountyId(locationCountyId);
-	$: locationCountyInvalid = showErrors && !locationCountyId;
-	$: locationLocalityInvalid = showErrors && !locationLocalityId;
-	$: if (locationCountyId && !countyOptions.some((county) => county.id === locationCountyId)) {
-		locationCountyId = '';
+	$: {
+		const nextSelectionIds = normalizeLocationSelectionIds(locationSelectionIds);
+		if (
+			nextSelectionIds.length !== locationSelectionIds.length ||
+			nextSelectionIds.some((id, index) => id !== locationSelectionIds[index])
+		) {
+			locationSelectionIds = nextSelectionIds;
+		}
 	}
-	$: if (
-		locationCountyId &&
-		locationLocalityId &&
-		!localityOptions.some((locality) => locality.id === locationLocalityId)
-	) {
-		locationLocalityId = '';
-	}
-	$: if (!locationCountyId && locationLocalityId) {
-		locationLocalityId = '';
-	}
-	$: if (!locationCountyId && localitySearch) {
-		localitySearch = '';
+	$: selectedLocationSet = new Set(locationSelectionIds);
+	$: locationSelectionInvalid = showErrors && locationSelectionIds.length === 0;
+	$: {
+		const nextExpanded = new Set(expandedNodeIds);
+		const selectedIds = new Set(locationSelectionIds);
+		for (const selectedId of locationSelectionIds) {
+			let ancestorId = getLocationSelectionNodeById(selectedId)?.parentId ?? null;
+			let hasSelectedAncestor = false;
+			while (ancestorId) {
+				if (selectedIds.has(ancestorId)) {
+					hasSelectedAncestor = true;
+					break;
+				}
+				ancestorId = getLocationSelectionNodeById(ancestorId)?.parentId ?? null;
+			}
+			if (hasSelectedAncestor) continue;
+
+			let parentId = getLocationSelectionNodeById(selectedId)?.parentId ?? null;
+			while (parentId) {
+				nextExpanded.add(parentId);
+				parentId = getLocationSelectionNodeById(parentId)?.parentId ?? null;
+			}
+		}
+		if (
+			nextExpanded.size !== expandedNodeIds.size ||
+			Array.from(nextExpanded).some((id) => !expandedNodeIds.has(id))
+		) {
+			expandedNodeIds = nextExpanded;
+		}
 	}
 
 	$: titleLen = title.length;
@@ -340,21 +348,54 @@
 		descriptionAssistOpenKey = descriptionAssistOpenKey === key ? '' : key;
 	}
 
-	function handleCountyChange(event: Event) {
-		const nextCountyId = (event.currentTarget as HTMLSelectElement).value;
-		if (nextCountyId !== locationCountyId) {
-			locationCountyId = nextCountyId;
-			locationLocalityId = '';
-			localitySearch = '';
+	function isNodeExpanded(nodeId: string) {
+		return expandedNodeIds.has(nodeId);
+	}
+
+	function toggleNodeExpanded(nodeId: string) {
+		const next = new Set(expandedNodeIds);
+		if (next.has(nodeId)) {
+			next.delete(nodeId);
+		} else {
+			next.add(nodeId);
 		}
+		expandedNodeIds = next;
 	}
 
-	function handleCountySearchInput(event: Event) {
-		countySearch = (event.currentTarget as HTMLInputElement).value;
+	function isNodeChecked(nodeId: string) {
+		if (selectedLocationSet.has(nodeId)) return true;
+		let parentId = getLocationSelectionNodeById(nodeId)?.parentId ?? null;
+		while (parentId) {
+			if (selectedLocationSet.has(parentId)) return true;
+			parentId = getLocationSelectionNodeById(parentId)?.parentId ?? null;
+		}
+		return false;
 	}
 
-	function handleLocalitySearchInput(event: Event) {
-		localitySearch = (event.currentTarget as HTMLInputElement).value;
+	function handleLocationNodeChange(nodeId: string, event: Event) {
+		const shouldSelect = (event.currentTarget as HTMLInputElement).checked;
+		const nextIds = new Set(locationSelectionIds);
+		const nextExpanded = new Set(expandedNodeIds);
+		const affectedIds = [nodeId, ...getLocationSelectionDescendantIds(nodeId)];
+
+		if (shouldSelect) {
+			for (const id of affectedIds) nextIds.add(id);
+			let parentId = getLocationSelectionNodeById(nodeId)?.parentId ?? null;
+			while (parentId) {
+				nextExpanded.add(parentId);
+				parentId = getLocationSelectionNodeById(parentId)?.parentId ?? null;
+			}
+		} else {
+			for (const id of affectedIds) nextIds.delete(id);
+			let parentId = getLocationSelectionNodeById(nodeId)?.parentId ?? null;
+			while (parentId) {
+				nextIds.delete(parentId);
+				parentId = getLocationSelectionNodeById(parentId)?.parentId ?? null;
+			}
+		}
+
+		expandedNodeIds = nextExpanded;
+		locationSelectionIds = normalizeLocationSelectionIds(Array.from(nextIds));
 	}
 </script>
 
@@ -376,82 +417,83 @@
 		</div>
 
 		<div class="location-panel">
-			<div class="field">
-				<label for="location-island">Island</label>
-				<input id="location-island" type="text" value={ISLAND_OPTION.name} readonly />
-			</div>
-			<div class="field">
-				<label for="location-province">Province</label>
-				<input
-					id="location-province"
-					type="text"
-					value={selectedProvince?.name ?? ''}
-					placeholder="Select county first"
-					readonly
-				/>
-			</div>
-			<div class="field">
-				<label for="location-county-search">County search</label>
-				<input
-					id="location-county-search"
-					type="search"
-					value={countySearch}
-					on:input={handleCountySearchInput}
-					placeholder="Type to filter counties"
-					disabled={loading}
-					autocomplete="address-level1"
-				/>
-			</div>
-			<div class="field">
-				<label for="location-county">County</label>
-				<select
-					id="location-county"
-					value={locationCountyId}
-					on:change={handleCountyChange}
-					disabled={loading}
-					aria-invalid={showErrors ? locationCountyInvalid : undefined}
-				>
-					<option value="" disabled selected hidden>Choose county…</option>
-					{#each filteredCountyOptions as county (county.id)}
-						<option value={county.id}>{county.name}</option>
-					{/each}
-				</select>
-				{#if locationCountyInvalid}
-					<small class="error-text">Choose a county.</small>
+			<p class="group-label">Location</p>
+			<div class="location-tree" role="tree" aria-label="Ireland location tree">
+				<div class="tree-row tree-row-country">
+					<button
+						type="button"
+						class="tree-toggle"
+						on:click={() => toggleNodeExpanded(locationTree.id)}
+						disabled={loading}
+						aria-label={isNodeExpanded(locationTree.id) ? 'Collapse Ireland' : 'Expand Ireland'}
+						aria-expanded={isNodeExpanded(locationTree.id)}
+					>
+						{isNodeExpanded(locationTree.id) ? '-' : '+'}
+					</button>
+					<label class="tree-check">
+						<input
+							id="location-root-checkbox"
+							type="checkbox"
+							checked={isNodeChecked(locationTree.id)}
+							on:change={(event) => handleLocationNodeChange(locationTree.id, event)}
+							disabled={loading}
+							aria-invalid={showErrors ? locationSelectionInvalid : undefined}
+						/>
+						<span>{locationTree.name}</span>
+					</label>
+				</div>
+				{#if isNodeExpanded(locationTree.id)}
+					<div class="tree-children">
+						{#each locationTree.children as province (province.id)}
+							<div class="tree-row tree-row-province">
+								<button
+									type="button"
+									class="tree-toggle"
+									on:click={() => toggleNodeExpanded(province.id)}
+									disabled={loading}
+									aria-label={isNodeExpanded(province.id)
+										? `Collapse ${province.name}`
+										: `Expand ${province.name}`}
+									aria-expanded={isNodeExpanded(province.id)}
+								>
+									{isNodeExpanded(province.id) ? '-' : '+'}
+								</button>
+								<label class="tree-check">
+									<input
+										type="checkbox"
+										checked={isNodeChecked(province.id)}
+										on:change={(event) => handleLocationNodeChange(province.id, event)}
+										disabled={loading}
+									/>
+									<span>{province.name}</span>
+								</label>
+							</div>
+							{#if isNodeExpanded(province.id)}
+								<div class="tree-children">
+									{#each province.children as county (county.id)}
+										<div class="tree-row tree-row-county">
+											<span class="tree-spacer" aria-hidden="true"></span>
+											<label class="tree-check">
+												<input
+													type="checkbox"
+													checked={isNodeChecked(county.id)}
+													on:change={(event) => handleLocationNodeChange(county.id, event)}
+													disabled={loading}
+												/>
+												<span>{county.name}</span>
+											</label>
+										</div>
+									{/each}
+								</div>
+							{/if}
+						{/each}
+					</div>
 				{/if}
 			</div>
-			<div class="field">
-				<label for="location-locality-search">Locality search</label>
-				<input
-					id="location-locality-search"
-					type="search"
-					value={localitySearch}
-					on:input={handleLocalitySearchInput}
-					placeholder={locationCountyId ? 'Type to filter localities' : 'Choose county first'}
-					disabled={loading || !locationCountyId}
-					autocomplete="address-level2"
-				/>
-			</div>
-			<div class="field">
-				<label for="location-locality">Locality</label>
-				<select
-					id="location-locality"
-					bind:value={locationLocalityId}
-					disabled={loading || !locationCountyId}
-					aria-invalid={showErrors ? locationLocalityInvalid : undefined}
-				>
-					<option value="" disabled selected hidden>Choose locality…</option>
-					{#each filteredLocalityOptions as locality (locality.id)}
-						<option value={locality.id}>{locality.name}</option>
-					{/each}
-				</select>
-				{#if !locationCountyId}
-					<small class="muted">Choose a county first.</small>
-				{/if}
-				{#if locationLocalityInvalid}
-					<small class="error-text">Choose a locality.</small>
-				{/if}
-			</div>
+			<small class="muted">Select Ireland, one or more provinces, or one or more counties.</small>
+			{#if locationSelectionInvalid}
+				<small class="error-text">Select at least one location.</small>
+			{/if}
 		</div>
 
 		{#if isBikes}
@@ -982,8 +1024,52 @@
 		gap: 10px;
 		background: color-mix(in srgb, var(--fg) 2%, var(--surface));
 	}
-	.location-panel input[readonly] {
-		background: color-mix(in srgb, var(--fg) 4%, var(--surface));
+	.location-tree {
+		display: grid;
+		gap: 6px;
+	}
+	.tree-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.tree-row-country {
+		font-weight: 700;
+	}
+	.tree-row-county {
+		padding-left: 24px;
+	}
+	.tree-children {
+		display: grid;
+		gap: 4px;
+		padding-left: 16px;
+		border-left: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+	}
+	.tree-toggle,
+	.tree-spacer {
+		width: 22px;
+		height: 22px;
+		display: grid;
+		place-items: center;
+	}
+	.tree-toggle {
+		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+		border-radius: 6px;
+		background: var(--surface);
+		font-weight: 700;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.tree-spacer {
+		border: 0;
+	}
+	.tree-check {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.tree-check input[type='checkbox'] {
+		margin: 0;
 	}
 	.pill-row {
 		display: flex;

@@ -19,11 +19,14 @@ export const E2E_MOCK_AD: ApiAdRow = {
 		knownIssues: 'No known issues'
 	},
 	location_profile_data: {
-		version: 1,
+		version: 2,
+		level: 'county',
+		primary: { id: 'ie/leinster/dublin', name: 'Dublin', type: 'county' },
+		selected: [{ id: 'ie/leinster/dublin', name: 'Dublin', type: 'county' }],
+		selectedNodeIds: ['ie/leinster/dublin'],
 		island: { id: 'ie', name: 'Ireland' },
 		province: { id: 'ie/leinster', name: 'Leinster' },
-		county: { id: 'ie/leinster/dublin', name: 'Dublin' },
-		locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Ard Na Gréine' }
+		county: { id: 'ie/leinster/dublin', name: 'Dublin' }
 	},
 	price: 12,
 	currency: 'EUR',

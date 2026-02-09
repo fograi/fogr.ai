@@ -648,8 +648,11 @@ export const POST: RequestHandler = async (event) => {
 				bikeSizeSet:
 					!!categoryProfileValidation.categoryProfileData?.sizePreset ||
 					!!categoryProfileValidation.categoryProfileData?.sizeManual,
-				locationCountyId: locationProfileValidation.locationProfileData?.county.id ?? null,
-				locationLocalityId: locationProfileValidation.locationProfileData?.locality.id ?? null,
+				locationLevel: locationProfileValidation.locationProfileData?.level ?? null,
+				locationPrimaryId: locationProfileValidation.locationProfileData?.primary.id ?? null,
+				locationCountyId: locationProfileValidation.locationProfileData?.county?.id ?? null,
+				locationSelectionCount:
+					locationProfileValidation.locationProfileData?.selectedNodeIds.length ?? 0,
 				usedPresetOnly: categoryProfileValidation.categoryProfileData ? usedPresetOnly : null
 			}
 		});

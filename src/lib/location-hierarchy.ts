@@ -1,6 +1,7 @@
 import rawIrelandLocationTree from '../../ireland_counties.json';
 
 export type LocationNodeType = 'country' | 'province' | 'county' | 'area';
+export type LocationSelectableType = 'country' | 'province' | 'county';
 
 type LocationTreeNode = {
 	id: string;
@@ -19,16 +20,38 @@ export type LocationProfileLevel = {
 	name: string;
 };
 
+export type LocationProfileSelection = LocationProfileLevel & {
+	type: LocationSelectableType;
+};
+
 export type LocationProfileData = {
-	version: 1;
+	version: 2;
+	level: LocationSelectableType;
+	primary: LocationProfileSelection;
+	selected: LocationProfileSelection[];
+	selectedNodeIds: string[];
 	island: LocationProfileLevel;
-	province: LocationProfileLevel;
-	county: LocationProfileLevel;
-	locality: LocationProfileLevel;
+	province: LocationProfileLevel | null;
+	county: LocationProfileLevel | null;
 	geo?: {
 		lat: number;
 		lng: number;
 	};
+};
+
+type LocationSelectionTreeNode = {
+	id: string;
+	name: string;
+	type: LocationSelectableType;
+	children: LocationSelectionTreeNode[];
+};
+
+type SelectionNodeRecord = {
+	id: string;
+	name: string;
+	type: LocationSelectableType;
+	parentId: string | null;
+	childIds: string[];
 };
 
 type CountyRecord = {
@@ -63,6 +86,41 @@ function byNameAsc(a: LocationOption, b: LocationOption) {
 	return a.name.localeCompare(b.name, 'en-IE');
 }
 
+function asId(value: unknown): string {
+	return typeof value === 'string' ? value.trim() : '';
+}
+
+function asFiniteNumber(value: unknown): number | null {
+	if (typeof value !== 'number') return null;
+	if (!Number.isFinite(value)) return null;
+	return value;
+}
+
+function asSelectionIdsFromInput(value: unknown): string[] {
+	if (!Array.isArray(value)) return [];
+	const ids: string[] = [];
+	for (const entry of value) {
+		if (typeof entry === 'string' && entry.trim()) {
+			ids.push(entry.trim());
+			continue;
+		}
+		if (isObject(entry)) {
+			const id = asId(entry.id);
+			if (id) ids.push(id);
+		}
+	}
+	return ids;
+}
+
+function getGeoFromInput(input: Record<string, unknown>): LocationProfileData['geo'] | undefined {
+	const geo = input.geo;
+	if (!isObject(geo)) return undefined;
+	const lat = asFiniteNumber(geo.lat);
+	const lng = asFiniteNumber(geo.lng);
+	if (lat === null || lng === null) return undefined;
+	return { lat, lng };
+}
+
 const rootTreeCandidate: unknown = rawIrelandLocationTree;
 if (!isTreeNode(rootTreeCandidate)) {
 	throw new Error('Invalid ireland_counties.json tree shape.');
@@ -88,76 +146,164 @@ const provinceOptions = provinceNodes
 const countyRecords = new Map<string, CountyRecord>();
 const localityRecords = new Map<string, LocalityRecord>();
 
-for (const provinceNode of provinceNodes) {
-	const provinceOption: LocationOption = {
-		id: provinceNode.id,
-		name: provinceNode.name
-	};
-	for (const countyNode of provinceNode.children) {
-		if (countyNode.type !== 'county') continue;
-		const countyOption: LocationOption = {
-			id: countyNode.id,
-			name: countyNode.name
-		};
-		const localities = countyNode.children
-			.filter((localityNode) => localityNode.type === 'area')
-			.map((localityNode) => ({
-				id: localityNode.id,
-				name: localityNode.name
-			}))
-			.sort(byNameAsc);
-		const localityById = new Map(localities.map((locality) => [locality.id, locality]));
+const selectionNodes = new Map<string, SelectionNodeRecord>();
+const addSelectionNode = (node: SelectionNodeRecord) => {
+	selectionNodes.set(node.id, node);
+};
 
-		countyRecords.set(countyOption.id, {
-			county: countyOption,
-			province: provinceOption,
-			localities,
-			localityById
+addSelectionNode({
+	id: LOCATION_ROOT.id,
+	name: LOCATION_ROOT.name,
+	type: 'country',
+	parentId: null,
+	childIds: provinceNodes.map((province) => province.id)
+});
+
+const selectionTree: LocationSelectionTreeNode = {
+	id: LOCATION_ROOT.id,
+	name: LOCATION_ROOT.name,
+	type: 'country',
+	children: provinceNodes.map((provinceNode) => {
+		const countyNodes = provinceNode.children.filter((countyNode) => countyNode.type === 'county');
+		addSelectionNode({
+			id: provinceNode.id,
+			name: provinceNode.name,
+			type: 'province',
+			parentId: LOCATION_ROOT.id,
+			childIds: countyNodes.map((countyNode) => countyNode.id)
 		});
 
-		for (const locality of localities) {
-			localityRecords.set(locality.id, {
-				province: provinceOption,
-				county: countyOption,
-				locality
+		const provinceOption: LocationOption = {
+			id: provinceNode.id,
+			name: provinceNode.name
+		};
+
+		for (const countyNode of countyNodes) {
+			addSelectionNode({
+				id: countyNode.id,
+				name: countyNode.name,
+				type: 'county',
+				parentId: provinceNode.id,
+				childIds: []
 			});
+
+			const countyOption: LocationOption = {
+				id: countyNode.id,
+				name: countyNode.name
+			};
+			const localities = countyNode.children
+				.filter((localityNode) => localityNode.type === 'area')
+				.map((localityNode) => ({
+					id: localityNode.id,
+					name: localityNode.name
+				}))
+				.sort(byNameAsc);
+			const localityById = new Map(localities.map((locality) => [locality.id, locality]));
+
+			countyRecords.set(countyOption.id, {
+				county: countyOption,
+				province: provinceOption,
+				localities,
+				localityById
+			});
+
+			for (const locality of localities) {
+				localityRecords.set(locality.id, {
+					province: provinceOption,
+					county: countyOption,
+					locality
+				});
+			}
 		}
-	}
-}
+
+		return {
+			id: provinceNode.id,
+			name: provinceNode.name,
+			type: 'province' as const,
+			children: countyNodes.map((countyNode) => ({
+				id: countyNode.id,
+				name: countyNode.name,
+				type: 'county' as const,
+				children: []
+			}))
+		};
+	})
+};
 
 const countyOptions = Array.from(countyRecords.values())
 	.map((entry) => entry.county)
 	.sort(byNameAsc);
 
-function asId(value: unknown): string {
-	return typeof value === 'string' ? value.trim() : '';
+function selectionRank(type: LocationSelectableType): number {
+	if (type === 'county') return 3;
+	if (type === 'province') return 2;
+	return 1;
 }
 
-function asFiniteNumber(value: unknown): number | null {
-	if (typeof value !== 'number') return null;
-	if (!Number.isFinite(value)) return null;
-	return value;
+function selectionByBreadthAndNameAsc(a: LocationProfileSelection, b: LocationProfileSelection) {
+	const rankDiff = selectionRank(a.type) - selectionRank(b.type);
+	if (rankDiff !== 0) return rankDiff;
+	return a.name.localeCompare(b.name, 'en-IE');
 }
 
-function getGeoFromInput(input: Record<string, unknown>): LocationProfileData['geo'] | undefined {
-	const geo = input.geo;
-	if (!isObject(geo)) return undefined;
-	const lat = asFiniteNumber(geo.lat);
-	const lng = asFiniteNumber(geo.lng);
-	if (lat === null || lng === null) return undefined;
-	return { lat, lng };
+function selectionByNameAsc(a: LocationProfileSelection, b: LocationProfileSelection) {
+	return a.name.localeCompare(b.name, 'en-IE');
 }
 
-function getCountyIdFromInput(input: Record<string, unknown>): string {
-	const nestedCounty = isObject(input.county) ? asId(input.county.id) : '';
-	if (nestedCounty) return nestedCounty;
-	return asId(input.countyId);
+function getSelectionFromRecord(node: SelectionNodeRecord): LocationProfileSelection {
+	return {
+		id: node.id,
+		name: node.name,
+		type: node.type
+	};
 }
 
-function getLocalityIdFromInput(input: Record<string, unknown>): string {
-	const nestedLocality = isObject(input.locality) ? asId(input.locality.id) : '';
-	if (nestedLocality) return nestedLocality;
-	return asId(input.localityId);
+function getProvinceForSelection(node: SelectionNodeRecord): LocationProfileLevel | null {
+	if (node.type === 'province') {
+		return { id: node.id, name: node.name };
+	}
+	if (node.type === 'county' && node.parentId) {
+		const province = selectionNodes.get(node.parentId);
+		if (province && province.type === 'province') {
+			return { id: province.id, name: province.name };
+		}
+	}
+	return null;
+}
+
+function normalizeSelectionIds(ids: readonly string[]): string[] {
+	const unique = new Set<string>();
+	for (const id of ids) {
+		if (!id || !selectionNodes.has(id)) continue;
+		unique.add(id);
+	}
+	return Array.from(unique).sort((a, b) => {
+		const aNode = selectionNodes.get(a);
+		const bNode = selectionNodes.get(b);
+		if (!aNode || !bNode) return a.localeCompare(b, 'en-IE');
+		const rankDiff = selectionRank(aNode.type) - selectionRank(bNode.type);
+		if (rankDiff !== 0) return rankDiff;
+		return aNode.name.localeCompare(bNode.name, 'en-IE');
+	});
+}
+
+function getLegacySelectionIds(input: Record<string, unknown>): string[] {
+	const ids: string[] = [];
+	if (isObject(input.county)) {
+		const countyId = asId(input.county.id);
+		if (countyId) ids.push(countyId);
+	}
+	if (ids.length > 0) return ids;
+	if (isObject(input.province)) {
+		const provinceId = asId(input.province.id);
+		if (provinceId) ids.push(provinceId);
+	}
+	if (ids.length > 0) return ids;
+	if (isObject(input.island)) {
+		const islandId = asId(input.island.id);
+		if (islandId) ids.push(islandId);
+	}
+	return ids;
 }
 
 export const ISLAND_OPTION: LocationOption = {
@@ -166,6 +312,35 @@ export const ISLAND_OPTION: LocationOption = {
 };
 
 export const PROVINCE_OPTIONS: readonly LocationOption[] = provinceOptions;
+
+export function getLocationSelectionTree(): LocationSelectionTreeNode {
+	return selectionTree;
+}
+
+export function getLocationSelectionNodeById(id: string | null | undefined): SelectionNodeRecord | null {
+	if (!id) return null;
+	return selectionNodes.get(id) ?? null;
+}
+
+export function getLocationSelectionDescendantIds(id: string | null | undefined): string[] {
+	if (!id) return [];
+	const node = selectionNodes.get(id);
+	if (!node) return [];
+	const descendants: string[] = [];
+	const stack = [...node.childIds];
+	while (stack.length > 0) {
+		const nextId = stack.pop() as string;
+		descendants.push(nextId);
+		const nextNode = selectionNodes.get(nextId);
+		if (!nextNode) continue;
+		stack.push(...nextNode.childIds);
+	}
+	return descendants;
+}
+
+export function normalizeLocationSelectionIds(ids: readonly string[]): string[] {
+	return normalizeSelectionIds(ids);
+}
 
 export function getCountyOptions(): readonly LocationOption[] {
 	return countyOptions;
@@ -204,31 +379,33 @@ export function getCountyIdForLocalityId(localityId: string | null | undefined):
 	return locality?.county.id ?? null;
 }
 
-export function buildLocationProfileData(
-	countyId: string,
-	localityId: string
-): LocationProfileData | null {
-	const countyRecord = countyRecords.get(countyId);
-	if (!countyRecord) return null;
-	const locality = countyRecord.localityById.get(localityId);
-	if (!locality) return null;
+export function buildLocationProfileData(selectedNodeIds: readonly string[]): LocationProfileData | null {
+	const normalizedIds = normalizeSelectionIds(selectedNodeIds);
+	if (normalizedIds.length === 0) return null;
 
-	return {
-		version: 1,
+	const selectedNodes = normalizedIds
+		.map((id) => selectionNodes.get(id))
+		.filter((node): node is SelectionNodeRecord => !!node)
+		.map((node) => getSelectionFromRecord(node))
+		.sort(selectionByNameAsc);
+	if (selectedNodes.length === 0) return null;
+
+	const primary = [...selectedNodes].sort(selectionByBreadthAndNameAsc)[0];
+	const primaryNode = selectionNodes.get(primary.id);
+	if (!primaryNode) return null;
+
+	const profile: LocationProfileData = {
+		version: 2,
+		level: primary.type,
+		primary,
+		selected: selectedNodes,
+		selectedNodeIds: normalizedIds,
 		island: { id: LOCATION_ROOT.id, name: LOCATION_ROOT.name },
-		province: {
-			id: countyRecord.province.id,
-			name: countyRecord.province.name
-		},
-		county: {
-			id: countyRecord.county.id,
-			name: countyRecord.county.name
-		},
-		locality: {
-			id: locality.id,
-			name: locality.name
-		}
+		province: getProvinceForSelection(primaryNode),
+		county: primaryNode.type === 'county' ? { id: primaryNode.id, name: primaryNode.name } : null
 	};
+
+	return profile;
 }
 
 export function validateAndNormalizeLocationProfileData(input: unknown): {
@@ -239,45 +416,33 @@ export function validateAndNormalizeLocationProfileData(input: unknown): {
 		return { error: 'Location details are required.', data: null };
 	}
 
-	const countyId = getCountyIdFromInput(input);
-	if (!countyId) {
-		return { error: 'County is required.', data: null };
+	const selectedNodeIds = [
+		...asSelectionIdsFromInput(input.selectedNodeIds),
+		...asSelectionIdsFromInput(input.selected)
+	];
+	if (isObject(input.primary)) {
+		const primaryId = asId(input.primary.id);
+		if (primaryId) selectedNodeIds.push(primaryId);
+	}
+	if (selectedNodeIds.length === 0) {
+		selectedNodeIds.push(...getLegacySelectionIds(input));
 	}
 
-	const countyRecord = countyRecords.get(countyId);
-	if (!countyRecord) {
-		return { error: 'Invalid county.', data: null };
+	const normalizedIds = normalizeSelectionIds(selectedNodeIds);
+	if (normalizedIds.length === 0) {
+		return { error: 'Select at least one location.', data: null };
+	}
+	if (normalizedIds.length > 200) {
+		return { error: 'Too many location selections.', data: null };
 	}
 
-	const localityId = getLocalityIdFromInput(input);
-	if (!localityId) {
-		return { error: 'Locality is required.', data: null };
+	const profile = buildLocationProfileData(normalizedIds);
+	if (!profile) {
+		return { error: 'Invalid location selection.', data: null };
 	}
-
-	const locality = countyRecord.localityById.get(localityId);
-	if (!locality) {
-		return { error: 'Invalid locality for selected county.', data: null };
-	}
-
-	const normalized: LocationProfileData = {
-		version: 1,
-		island: { id: LOCATION_ROOT.id, name: LOCATION_ROOT.name },
-		province: {
-			id: countyRecord.province.id,
-			name: countyRecord.province.name
-		},
-		county: {
-			id: countyRecord.county.id,
-			name: countyRecord.county.name
-		},
-		locality: {
-			id: locality.id,
-			name: locality.name
-		}
-	};
 
 	const geo = getGeoFromInput(input);
-	if (geo) normalized.geo = geo;
+	if (geo) profile.geo = geo;
 
-	return { error: null, data: normalized };
+	return { error: null, data: profile };
 }
