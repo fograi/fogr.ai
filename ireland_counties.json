@@ -2041,7 +2041,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 338
+          }
         },
         {
           "id": "ie/connacht/leitrim",
@@ -2462,7 +2465,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 69
+          }
         },
         {
           "id": "ie/connacht/mayo",
@@ -3747,7 +3753,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 213
+          }
         },
         {
           "id": "ie/connacht/roscommon",
@@ -4480,7 +4489,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 121
+          }
         },
         {
           "id": "ie/connacht/sligo",
@@ -5069,7 +5081,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 97
+          }
         }
       ]
     },
@@ -5425,7 +5440,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 57
+          }
         },
         {
           "id": "ie/leinster/dublin",
@@ -6764,7 +6782,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 222
+          }
         },
         {
           "id": "ie/leinster/kildare",
@@ -7341,7 +7362,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 95
+          }
         },
         {
           "id": "ie/leinster/kilkenny",
@@ -8056,7 +8080,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 118
+          }
         },
         {
           "id": "ie/leinster/laois",
@@ -8483,7 +8510,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 70
+          }
         },
         {
           "id": "ie/leinster/longford",
@@ -8772,7 +8802,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 47
+          }
         },
         {
           "id": "ie/leinster/louth",
@@ -9079,7 +9112,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 50
+          }
         },
         {
           "id": "ie/leinster/meath",
@@ -9740,7 +9776,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 109
+          }
         },
         {
           "id": "ie/leinster/offaly",
@@ -10227,7 +10266,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 80
+          }
         },
         {
           "id": "ie/leinster/westmeath",
@@ -10690,7 +10732,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 76
+          }
         },
         {
           "id": "ie/leinster/wexford",
@@ -11645,7 +11690,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 158
+          }
         },
         {
           "id": "ie/leinster/wicklow",
@@ -12228,7 +12276,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 96
+          }
         }
       ]
     },
@@ -13136,7 +13187,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 149
+          }
         },
         {
           "id": "ie/munster/cork",
@@ -15477,7 +15531,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 389
+          }
         },
         {
           "id": "ie/munster/kerry",
@@ -16444,7 +16501,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 160
+          }
         },
         {
           "id": "ie/munster/limerick",
@@ -17591,7 +17651,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 190
+          }
         },
         {
           "id": "ie/munster/tipperary",
@@ -18570,7 +18633,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 162
+          }
         },
         {
           "id": "ie/munster/waterford",
@@ -19063,7 +19129,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 81
+          }
         }
       ]
     },
@@ -20211,7 +20280,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 189
+          }
         },
         {
           "id": "ie/ulster/armagh",
@@ -20554,7 +20626,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 56
+          }
         },
         {
           "id": "ie/ulster/cavan",
@@ -20963,7 +21038,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 67
+          }
         },
         {
           "id": "ie/ulster/derry",
@@ -21282,7 +21360,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 52
+          }
         },
         {
           "id": "ie/ulster/donegal",
@@ -22645,7 +22726,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 226
+          }
         },
         {
           "id": "ie/ulster/down",
@@ -23504,7 +23588,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 142
+          }
         },
         {
           "id": "ie/ulster/fermanagh",
@@ -23811,7 +23898,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 50
+          }
         },
         {
           "id": "ie/ulster/monaghan",
@@ -24052,7 +24142,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 39
+          }
         },
         {
           "id": "ie/ulster/tyrone",
@@ -24389,7 +24482,10 @@
               "type": "area",
               "children": []
             }
-          ]
+          ],
+          "meta": {
+            "areas": 55
+          }
         }
       ]
     }
