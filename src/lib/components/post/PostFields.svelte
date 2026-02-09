@@ -438,6 +438,8 @@
 
 		expandedProvinceIds = nextExpanded;
 		locationSelectionIds = normalizeLocationSelectionIds(Array.from(nextIds));
+		// Keep the control input-like: apply selection and collapse menu so it cannot overlay later fields.
+		locationPickerOpen = false;
 	}
 </script>
 

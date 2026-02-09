@@ -18,8 +18,15 @@ async function goToPriceStep(page: Page) {
 }
 
 async function selectDefaultLocation(page: Page) {
-	await page.click('#location-tree-trigger');
+	const trigger = page.locator('#location-tree-trigger');
+	const menu = page.locator('#location-tree-menu');
+	await trigger.click();
+	if (!(await menu.isVisible())) {
+		await trigger.click();
+	}
+	await expect(menu).toBeVisible();
 	await page.check('#location-root-checkbox');
+	await expect(menu).toHaveCount(0);
 }
 
 test('login page loads the email form', async ({ page }) => {
