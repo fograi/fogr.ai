@@ -87,28 +87,6 @@
 	$: selectedLocationSet = new Set(locationSelectionIds);
 	$: locationSelectionInvalid = showErrors && locationSelectionIds.length === 0;
 	$: locationSummaryText = getLocationSummaryText(locationSelectionIds);
-	$: {
-		const nextExpanded = new Set(expandedProvinceIds);
-		for (const selectedId of locationSelectionIds) {
-			const node = getLocationSelectionNodeById(selectedId);
-			if (!node) continue;
-			if (node.type === 'country') {
-				for (const province of locationTree.children) {
-					nextExpanded.add(province.id);
-				}
-			} else if (node.type === 'province') {
-				nextExpanded.add(node.id);
-			} else if (node.type === 'county' && node.parentId) {
-				nextExpanded.add(node.parentId);
-			}
-		}
-		if (
-			nextExpanded.size !== expandedProvinceIds.size ||
-			Array.from(nextExpanded).some((id) => !expandedProvinceIds.has(id))
-		) {
-			expandedProvinceIds = nextExpanded;
-		}
-	}
 
 	$: titleLen = title.length;
 	$: descLen = description.length;
