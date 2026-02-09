@@ -18,15 +18,9 @@ async function goToPriceStep(page: Page) {
 }
 
 async function selectDefaultLocation(page: Page) {
-	const trigger = page.locator('#location-tree-trigger');
-	const menu = page.locator('#location-tree-menu');
-	await trigger.click();
-	if (!(await menu.isVisible())) {
-		await trigger.click();
-	}
-	await expect(menu).toBeVisible();
-	await page.check('#location-root-checkbox');
-	await expect(menu).toHaveCount(0);
+	await page.selectOption('#location-county', 'ie/leinster/dublin');
+	await expect(page.locator('#location-locality')).toBeEnabled();
+	await page.selectOption('#location-locality', 'ie/leinster/dublin/ard-na-greine');
 }
 
 test('login page loads the email form', async ({ page }) => {

@@ -177,7 +177,7 @@
 
 <section class="category-page">
 	<header class="head">
-		<a class="back" href={resolve('/')} rel="external">&lt;All listings</a>
+		<a class="back" href={resolve('/')} rel="external">&lt;&nbsp;All listings</a>
 		<h1>{data.category}</h1>
 	</header>
 

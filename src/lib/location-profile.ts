@@ -54,6 +54,15 @@ export function asLocationProfileData(value: unknown): LocationProfileData | nul
 export function formatLocationSummary(value: unknown, includeProvince = false): string {
 	const profile = asLocationProfileData(value);
 	if (!profile) return '';
+	if (profile.locality) {
+		if (includeProvince && profile.province && profile.county) {
+			return `${profile.locality.name}, ${profile.county.name}, ${profile.province.name}`;
+		}
+		if (profile.county) {
+			return `${profile.locality.name}, ${profile.county.name}`;
+		}
+		return profile.locality.name;
+	}
 
 	const displayIds = normalizeDisplayIds(profile).sort(sortByBreadthAndName);
 	if (displayIds.length === 0) return profile.primary.name;

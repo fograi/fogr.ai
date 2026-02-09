@@ -26,7 +26,8 @@ export const E2E_MOCK_AD: ApiAdRow = {
 		selectedNodeIds: ['ie/leinster/dublin'],
 		island: { id: 'ie', name: 'Ireland' },
 		province: { id: 'ie/leinster', name: 'Leinster' },
-		county: { id: 'ie/leinster/dublin', name: 'Dublin' }
+		county: { id: 'ie/leinster/dublin', name: 'Dublin' },
+		locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Ard Na Gréine' }
 	},
 	price: 12,
 	currency: 'EUR',

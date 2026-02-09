@@ -132,7 +132,8 @@
 	let bikeReasonForSelling = initialBikeProfile?.reasonForSelling ?? '';
 	let bikeUsageSummary = initialBikeProfile?.usageSummary ?? '';
 	let bikeKnownIssues = initialBikeProfile?.knownIssues ?? '';
-	let locationSelectionIds = initialLocationProfile?.selectedNodeIds ?? [];
+	let locationCountyId = initialLocationProfile?.county?.id ?? '';
+	let locationLocalityId = initialLocationProfile?.locality?.id ?? '';
 	let bikeSizeManualEdited = !!initialBikeManualSize.value;
 	let titleManuallyEdited = false;
 	let descriptionManuallyEdited =
@@ -269,7 +270,7 @@
 	}
 
 	function buildLocationProfileCandidate() {
-		return buildLocationProfileData(locationSelectionIds);
+		return buildLocationProfileData([locationCountyId], locationLocalityId);
 	}
 
 	function parseWholeEuro(value: number | '') {
@@ -281,8 +282,9 @@
 
 	function validateBasics() {
 		if (!category) return 'Choose a category.';
-		if (locationSelectionIds.length === 0) return 'Select at least one location.';
-		if (!buildLocationProfileCandidate()) return 'Choose a valid location selection.';
+		if (!locationCountyId) return 'Choose a county.';
+		if (!locationLocalityId) return 'Choose a locality.';
+		if (!buildLocationProfileCandidate()) return 'Choose a valid locality for that county.';
 		if (isBikes) {
 			const bikeProfileCheck = validateAndNormalizeBikesProfileData(buildBikeProfileCandidate());
 			if (bikeProfileCheck.error) return bikeProfileCheck.error;
@@ -400,7 +402,7 @@
 				: { data: null, error: null };
 			if (bikeProfileCheck.error) throw new Error(bikeProfileCheck.error);
 			const locationProfileCheck = buildLocationProfileCandidate();
-			if (!locationProfileCheck) throw new Error('Choose a valid location selection.');
+			if (!locationProfileCheck) throw new Error('Choose a valid locality for that county.');
 			const requestPayload = {
 				title: title.trim(),
 				description: description.trim(),
@@ -578,7 +580,8 @@
 				<PostFields
 					step={1}
 					bind:category
-					bind:locationSelectionIds
+					bind:locationCountyId
+					bind:locationLocalityId
 					bind:title
 					bind:description
 					bind:price
@@ -614,7 +617,8 @@
 				<PostFields
 					step={2}
 					bind:category
-					bind:locationSelectionIds
+					bind:locationCountyId
+					bind:locationLocalityId
 					bind:title
 					bind:description
 					bind:price
@@ -663,7 +667,8 @@
 				<PostFields
 					step={3}
 					bind:category
-					bind:locationSelectionIds
+					bind:locationCountyId
+					bind:locationLocalityId
 					bind:title
 					bind:description
 					bind:price

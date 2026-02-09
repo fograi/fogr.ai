@@ -33,6 +33,7 @@ export type LocationProfileData = {
 	island: LocationProfileLevel;
 	province: LocationProfileLevel | null;
 	county: LocationProfileLevel | null;
+	locality: LocationProfileLevel | null;
 	geo?: {
 		lat: number;
 		lng: number;
@@ -306,6 +307,14 @@ function getLegacySelectionIds(input: Record<string, unknown>): string[] {
 	return ids;
 }
 
+function getLocalityIdFromInput(input: Record<string, unknown>): string {
+	if (isObject(input.locality)) {
+		const localityId = asId(input.locality.id);
+		if (localityId) return localityId;
+	}
+	return asId(input.localityId);
+}
+
 export const ISLAND_OPTION: LocationOption = {
 	id: LOCATION_ROOT.id,
 	name: LOCATION_ROOT.name
@@ -379,7 +388,10 @@ export function getCountyIdForLocalityId(localityId: string | null | undefined):
 	return locality?.county.id ?? null;
 }
 
-export function buildLocationProfileData(selectedNodeIds: readonly string[]): LocationProfileData | null {
+export function buildLocationProfileData(
+	selectedNodeIds: readonly string[],
+	localityId?: string | null
+): LocationProfileData | null {
 	const normalizedIds = normalizeSelectionIds(selectedNodeIds);
 	if (normalizedIds.length === 0) return null;
 
@@ -402,8 +414,20 @@ export function buildLocationProfileData(selectedNodeIds: readonly string[]): Lo
 		selectedNodeIds: normalizedIds,
 		island: { id: LOCATION_ROOT.id, name: LOCATION_ROOT.name },
 		province: getProvinceForSelection(primaryNode),
-		county: primaryNode.type === 'county' ? { id: primaryNode.id, name: primaryNode.name } : null
+		county: primaryNode.type === 'county' ? { id: primaryNode.id, name: primaryNode.name } : null,
+		locality: null
 	};
+
+	const normalizedLocalityId = localityId?.trim() ?? '';
+	if (normalizedLocalityId && profile.county) {
+		const locality = getLocalityOptionById(profile.county.id, normalizedLocalityId);
+		if (locality) {
+			profile.locality = {
+				id: locality.id,
+				name: locality.name
+			};
+		}
+	}
 
 	return profile;
 }
@@ -427,6 +451,7 @@ export function validateAndNormalizeLocationProfileData(input: unknown): {
 	if (selectedNodeIds.length === 0) {
 		selectedNodeIds.push(...getLegacySelectionIds(input));
 	}
+	const localityId = getLocalityIdFromInput(input);
 
 	const normalizedIds = normalizeSelectionIds(selectedNodeIds);
 	if (normalizedIds.length === 0) {
@@ -436,9 +461,18 @@ export function validateAndNormalizeLocationProfileData(input: unknown): {
 		return { error: 'Too many location selections.', data: null };
 	}
 
-	const profile = buildLocationProfileData(normalizedIds);
+	const profile = buildLocationProfileData(normalizedIds, localityId);
 	if (!profile) {
 		return { error: 'Invalid location selection.', data: null };
+	}
+	if (localityId) {
+		const expectedCountyId = getCountyIdForLocalityId(localityId);
+		if (!expectedCountyId) {
+			return { error: 'Invalid locality.', data: null };
+		}
+		if (!profile.county || profile.county.id !== expectedCountyId || !profile.locality) {
+			return { error: 'Invalid locality for selected county.', data: null };
+		}
 	}
 
 	const geo = getGeoFromInput(input);

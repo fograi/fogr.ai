@@ -366,10 +366,11 @@ describe('validateCategoryProfileData (bikes)', () => {
 });
 
 describe('validateLocationProfileData', () => {
-	it('accepts selected county ids and normalizes labels', () => {
+	it('accepts selected county ids and matching locality ids', () => {
 		const result = validateLocationProfileData({
 			locationProfileDataRaw: {
-				selectedNodeIds: ['ie/leinster/dublin']
+				selectedNodeIds: ['ie/leinster/dublin'],
+				locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Wrong Locality Label' }
 			}
 		});
 		expect(result.error).toBeNull();
@@ -379,7 +380,8 @@ describe('validateLocationProfileData', () => {
 			primary: { id: 'ie/leinster/dublin', name: 'Dublin', type: 'county' },
 			island: { id: 'ie', name: 'Ireland' },
 			province: { id: 'ie/leinster', name: 'Leinster' },
-			county: { id: 'ie/leinster/dublin', name: 'Dublin' }
+			county: { id: 'ie/leinster/dublin', name: 'Dublin' },
+			locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Ard Na Gréine' }
 		});
 	});
 
@@ -396,7 +398,8 @@ describe('validateLocationProfileData', () => {
 			primary: { id: 'ie', name: 'Ireland', type: 'country' },
 			island: { id: 'ie', name: 'Ireland' },
 			province: null,
-			county: null
+			county: null,
+			locality: null
 		});
 	});
 
@@ -415,6 +418,17 @@ describe('validateLocationProfileData', () => {
 			}
 		});
 		expect(result.error).toBe('Select at least one location.');
+		expect(result.locationProfileData).toBeNull();
+	});
+
+	it('rejects locality that does not belong to selected county', () => {
+		const result = validateLocationProfileData({
+			locationProfileDataRaw: {
+				selectedNodeIds: ['ie/leinster/dublin'],
+				locality: { id: 'ie/munster/cork/ballincollig', name: 'Ballincollig' }
+			}
+		});
+		expect(result.error).toBe('Invalid locality for selected county.');
 		expect(result.locationProfileData).toBeNull();
 	});
 });
