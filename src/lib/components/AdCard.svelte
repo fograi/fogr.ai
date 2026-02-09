@@ -322,6 +322,7 @@
 		font-weight: 800;
 		line-height: 1.25;
 		display: -webkit-box;
+		line-clamp: 2;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
@@ -332,6 +333,7 @@
 		line-height: 1.35;
 		color: color-mix(in srgb, var(--fg) 70%, transparent);
 		display: -webkit-box;
+		line-clamp: 3;
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 3;
 		overflow: hidden;

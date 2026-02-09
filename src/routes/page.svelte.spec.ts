@@ -8,6 +8,8 @@ describe('/+page.svelte', () => {
 		render(Page, {
 			props: {
 				data: {
+					user: null,
+					isAdmin: false,
 					ads: [
 						{
 							id: 'ad-1',
@@ -22,7 +24,16 @@ describe('/+page.svelte', () => {
 					],
 					page: 1,
 					nextPage: null,
-					requestId: undefined
+					requestId: undefined,
+					q: '',
+					category: '',
+					priceState: '',
+					countyId: '',
+					localityId: '',
+					locationOptions: {
+						counties: [],
+						localities: []
+					}
 				}
 			}
 		});

@@ -320,6 +320,7 @@
 											<button
 												type="button"
 												on:click={() =>
+													moderationPreview.takedown &&
 													copyText(
 														moderationPreview.takedown.subject,
 														'Takedown subject copied.'
@@ -337,6 +338,7 @@
 											<button
 												type="button"
 												on:click={() =>
+													moderationPreview.takedown &&
 													copyText(
 														moderationPreview.takedown.body,
 														'Takedown body copied.'

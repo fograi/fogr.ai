@@ -88,7 +88,9 @@
 		err = '';
 		notice = '';
 		try {
-			await navigator.clipboard?.writeText(`${location.origin}${resolve('/ad/' + ad.id)}`);
+			await navigator.clipboard?.writeText(
+				`${location.origin}${resolve('/(public)/ad/[slug]', { slug: ad.id })}`
+			);
 			notice = 'Link copied.';
 		} catch {
 			err = 'Could not copy the link.';

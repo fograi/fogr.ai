@@ -340,6 +340,7 @@
 																	<button
 																		type="button"
 																		on:click={() =>
+																			preview.takedown &&
 																			copyText(
 																				preview.takedown.subject,
 																				'Takedown subject copied.'
@@ -357,6 +358,7 @@
 																	<button
 																		type="button"
 																		on:click={() =>
+																			preview.takedown &&
 																			copyText(preview.takedown.body, 'Takedown body copied.')
 																		}
 																	>

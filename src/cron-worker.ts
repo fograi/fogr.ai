@@ -206,17 +206,23 @@ async function deletePendingImages(pendingBucket: R2Bucket, keys: string[]): Pro
 async function retryPendingAds(env: Env): Promise<void> {
 	const publicBucket = env.ADS_BUCKET;
 	const pendingBucket = env.ADS_PENDING_BUCKET;
+	const publicSupabaseUrl = env.PUBLIC_SUPABASE_URL;
+	const supabaseServiceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+	const openAiApiKey = env.OPENAI_API_KEY;
 	const missing: string[] = [];
 	if (!publicBucket) missing.push('ADS_BUCKET');
 	if (!pendingBucket) missing.push('ADS_PENDING_BUCKET');
-		if (!env.PUBLIC_SUPABASE_URL) missing.push('PUBLIC_SUPABASE_URL');
-	if (!env.SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY');
-	if (!env.OPENAI_API_KEY) missing.push('OPENAI_API_KEY');
+	if (!publicSupabaseUrl) missing.push('PUBLIC_SUPABASE_URL');
+	if (!supabaseServiceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+	if (!openAiApiKey) missing.push('OPENAI_API_KEY');
 	if (missing.length > 0) {
 		throw new Error(`cron_missing_env: ${missing.join(', ')}`);
 	}
+	if (!publicBucket || !pendingBucket || !publicSupabaseUrl || !supabaseServiceRoleKey || !openAiApiKey) {
+		throw new Error('cron_missing_env');
+	}
 
-	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+	const openai = new OpenAI({ apiKey: openAiApiKey });
 	const pendingAds = await fetchPendingAds(env);
 	if (pendingAds.length === 0) return;
 

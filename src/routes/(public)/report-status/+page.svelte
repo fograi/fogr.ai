@@ -58,6 +58,7 @@
 				message?: string;
 				report?: any;
 				decision?: any;
+				decision_source?: string | null;
 			};
 			if (!res.ok || body.success === false) {
 				error = body.message || 'We could not find that report. Check the ID and email.';

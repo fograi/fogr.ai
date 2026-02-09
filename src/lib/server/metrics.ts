@@ -1,12 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '$lib/supabase.types';
+import type { Database, Json } from '$lib/supabase.types';
 
 type MetricEvent = {
 	eventName: string;
 	userId: string;
 	adId?: string | null;
 	conversationId?: string | null;
-	properties?: Record<string, unknown>;
+	properties?: Json;
 };
 
 export async function recordMetric(
