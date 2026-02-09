@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import {
 		CATEGORIES,
 		type Category,
@@ -69,10 +68,9 @@
 	export let loading = false;
 	type BikeMinOfferUnit = 'eur' | 'percent';
 	const locationTree = getLocationSelectionTree();
-	let expandedNodeIds = new Set<string>();
+	let expandedProvinceIds = new Set<string>();
 	let selectedLocationSet = new Set<string>();
 	let locationPickerOpen = false;
-	let locationPickerEl: HTMLDivElement | null = null;
 	let bikeMinOfferUnit: BikeMinOfferUnit = 'eur';
 	let bikeMinOfferDisplay = '';
 	let bikeMinOfferDisplaySignature = '';
@@ -90,31 +88,25 @@
 	$: locationSelectionInvalid = showErrors && locationSelectionIds.length === 0;
 	$: locationSummaryText = getLocationSummaryText(locationSelectionIds);
 	$: {
-		const nextExpanded = new Set(expandedNodeIds);
-		const selectedIds = new Set(locationSelectionIds);
+		const nextExpanded = new Set(expandedProvinceIds);
 		for (const selectedId of locationSelectionIds) {
-			let ancestorId = getLocationSelectionNodeById(selectedId)?.parentId ?? null;
-			let hasSelectedAncestor = false;
-			while (ancestorId) {
-				if (selectedIds.has(ancestorId)) {
-					hasSelectedAncestor = true;
-					break;
+			const node = getLocationSelectionNodeById(selectedId);
+			if (!node) continue;
+			if (node.type === 'country') {
+				for (const province of locationTree.children) {
+					nextExpanded.add(province.id);
 				}
-				ancestorId = getLocationSelectionNodeById(ancestorId)?.parentId ?? null;
-			}
-			if (hasSelectedAncestor) continue;
-
-			let parentId = getLocationSelectionNodeById(selectedId)?.parentId ?? null;
-			while (parentId) {
-				nextExpanded.add(parentId);
-				parentId = getLocationSelectionNodeById(parentId)?.parentId ?? null;
+			} else if (node.type === 'province') {
+				nextExpanded.add(node.id);
+			} else if (node.type === 'county' && node.parentId) {
+				nextExpanded.add(node.parentId);
 			}
 		}
 		if (
-			nextExpanded.size !== expandedNodeIds.size ||
-			Array.from(nextExpanded).some((id) => !expandedNodeIds.has(id))
+			nextExpanded.size !== expandedProvinceIds.size ||
+			Array.from(nextExpanded).some((id) => !expandedProvinceIds.has(id))
 		) {
-			expandedNodeIds = nextExpanded;
+			expandedProvinceIds = nextExpanded;
 		}
 	}
 
@@ -352,29 +344,6 @@
 		descriptionAssistOpenKey = descriptionAssistOpenKey === key ? '' : key;
 	}
 
-	onMount(() => {
-		const handlePointerDown = (event: MouseEvent | PointerEvent) => {
-			if (!locationPickerOpen) return;
-			const target = event.target as Node | null;
-			if (!target) return;
-			if (!locationPickerEl?.contains(target)) {
-				locationPickerOpen = false;
-			}
-		};
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				locationPickerOpen = false;
-			}
-		};
-
-		document.addEventListener('pointerdown', handlePointerDown);
-		document.addEventListener('keydown', handleKeyDown);
-		return () => {
-			document.removeEventListener('pointerdown', handlePointerDown);
-			document.removeEventListener('keydown', handleKeyDown);
-		};
-	});
-
 	function hasSelectedAncestor(nodeId: string, selectedIds: Set<string>) {
 		let parentId = getLocationSelectionNodeById(nodeId)?.parentId ?? null;
 		while (parentId) {
@@ -410,20 +379,42 @@
 	function toggleLocationPicker() {
 		if (loading) return;
 		locationPickerOpen = !locationPickerOpen;
-	}
-
-	function isNodeExpanded(nodeId: string) {
-		return expandedNodeIds.has(nodeId);
-	}
-
-	function toggleNodeExpanded(nodeId: string) {
-		const next = new Set(expandedNodeIds);
-		if (next.has(nodeId)) {
-			next.delete(nodeId);
-		} else {
-			next.add(nodeId);
+		if (!locationPickerOpen) return;
+		if (expandedProvinceIds.size > 0) return;
+		const nextExpanded = new Set<string>();
+		for (const selectedId of locationSelectionIds) {
+			const node = getLocationSelectionNodeById(selectedId);
+			if (!node) continue;
+			if (node.type === 'country') {
+				for (const province of locationTree.children) {
+					nextExpanded.add(province.id);
+				}
+			} else if (node.type === 'province') {
+				nextExpanded.add(node.id);
+			} else if (node.type === 'county' && node.parentId) {
+				nextExpanded.add(node.parentId);
+			}
 		}
-		expandedNodeIds = next;
+		expandedProvinceIds = nextExpanded;
+	}
+
+	function handleLocationPickerKeydown(event: KeyboardEvent) {
+		if (event.key !== 'Escape') return;
+		locationPickerOpen = false;
+	}
+
+	function isProvinceExpanded(provinceId: string) {
+		return expandedProvinceIds.has(provinceId);
+	}
+
+	function toggleProvinceExpanded(provinceId: string) {
+		const next = new Set(expandedProvinceIds);
+		if (next.has(provinceId)) {
+			next.delete(provinceId);
+		} else {
+			next.add(provinceId);
+		}
+		expandedProvinceIds = next;
 	}
 
 	function isNodeChecked(nodeId: string) {
@@ -439,26 +430,35 @@
 	function handleLocationNodeChange(nodeId: string, event: Event) {
 		const shouldSelect = (event.currentTarget as HTMLInputElement).checked;
 		const nextIds = new Set(locationSelectionIds);
-		const nextExpanded = new Set(expandedNodeIds);
+		const nextExpanded = new Set(expandedProvinceIds);
 		const affectedIds = [nodeId, ...getLocationSelectionDescendantIds(nodeId)];
 
 		if (shouldSelect) {
 			for (const id of affectedIds) nextIds.add(id);
-			let parentId = getLocationSelectionNodeById(nodeId)?.parentId ?? null;
-			while (parentId) {
-				nextExpanded.add(parentId);
-				parentId = getLocationSelectionNodeById(parentId)?.parentId ?? null;
+			const node = getLocationSelectionNodeById(nodeId);
+			if (node?.type === 'country') {
+				for (const province of locationTree.children) {
+					nextExpanded.add(province.id);
+				}
+			} else if (node?.type === 'province') {
+				nextExpanded.add(node.id);
+			} else if (node?.type === 'county' && node.parentId) {
+				nextExpanded.add(node.parentId);
 			}
 		} else {
 			for (const id of affectedIds) nextIds.delete(id);
-			let parentId = getLocationSelectionNodeById(nodeId)?.parentId ?? null;
+			const node = getLocationSelectionNodeById(nodeId);
+			let parentId = node?.parentId ?? null;
 			while (parentId) {
 				nextIds.delete(parentId);
 				parentId = getLocationSelectionNodeById(parentId)?.parentId ?? null;
 			}
+			if (node?.type === 'country') {
+				nextExpanded.clear();
+			}
 		}
 
-		expandedNodeIds = nextExpanded;
+		expandedProvinceIds = nextExpanded;
 		locationSelectionIds = normalizeLocationSelectionIds(Array.from(nextIds));
 	}
 </script>
@@ -482,13 +482,14 @@
 
 		<div class="field">
 			<label for="location-tree-trigger">Location</label>
-			<div class="location-picker" bind:this={locationPickerEl}>
+			<div class="location-picker">
 				<button
 					id="location-tree-trigger"
 					type="button"
 					class="location-picker-trigger"
 					class:invalid={showErrors && locationSelectionInvalid}
 					on:click={toggleLocationPicker}
+					on:keydown={handleLocationPickerKeydown}
 					disabled={loading}
 					aria-haspopup="tree"
 					aria-controls="location-tree-menu"
@@ -505,21 +506,10 @@
 					<div
 						id="location-tree-menu"
 						class="location-picker-menu"
-						role="tree"
-						aria-multiselectable="true"
+						role="group"
 						aria-label="Ireland location tree"
 					>
 						<div class="tree-row tree-row-country">
-							<button
-								type="button"
-								class="tree-toggle"
-								on:click={() => toggleNodeExpanded(locationTree.id)}
-								disabled={loading}
-								aria-label={isNodeExpanded(locationTree.id) ? 'Collapse Ireland' : 'Expand Ireland'}
-								aria-expanded={isNodeExpanded(locationTree.id)}
-							>
-								{isNodeExpanded(locationTree.id) ? '▾' : '▸'}
-							</button>
 							<label class="tree-check">
 								<input
 									id="location-root-checkbox"
@@ -532,21 +522,21 @@
 								<span>{locationTree.name}</span>
 							</label>
 						</div>
-						{#if isNodeExpanded(locationTree.id)}
-							<div class="tree-children">
-								{#each locationTree.children as province (province.id)}
+						<div class="tree-children tree-children-provinces">
+							{#each locationTree.children as province (province.id)}
+								<div class="tree-group">
 									<div class="tree-row tree-row-province">
 										<button
 											type="button"
 											class="tree-toggle"
-											on:click={() => toggleNodeExpanded(province.id)}
+											on:click={() => toggleProvinceExpanded(province.id)}
 											disabled={loading}
-											aria-label={isNodeExpanded(province.id)
+											aria-label={isProvinceExpanded(province.id)
 												? `Collapse ${province.name}`
 												: `Expand ${province.name}`}
-											aria-expanded={isNodeExpanded(province.id)}
+											aria-expanded={isProvinceExpanded(province.id)}
 										>
-											{isNodeExpanded(province.id) ? '▾' : '▸'}
+											{isProvinceExpanded(province.id) ? '▾' : '▸'}
 										</button>
 										<label class="tree-check">
 											<input
@@ -558,8 +548,8 @@
 											<span>{province.name}</span>
 										</label>
 									</div>
-									{#if isNodeExpanded(province.id)}
-										<div class="tree-children">
+									{#if isProvinceExpanded(province.id)}
+										<div class="tree-children tree-children-counties">
 											{#each province.children as county (county.id)}
 												<div class="tree-row tree-row-county">
 													<span class="tree-spacer" aria-hidden="true"></span>
@@ -576,9 +566,9 @@
 											{/each}
 										</div>
 									{/if}
-								{/each}
-							</div>
-						{/if}
+								</div>
+							{/each}
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -1166,6 +1156,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
+		min-height: 30px;
 	}
 	.tree-row-country {
 		font-weight: 700;
@@ -1173,26 +1164,39 @@
 	.tree-row-county {
 		padding-left: 24px;
 	}
+	.tree-group {
+		display: grid;
+		gap: 2px;
+	}
 	.tree-children {
 		display: grid;
 		gap: 4px;
 		padding-left: 16px;
 		border-left: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
 	}
+	.tree-children-provinces {
+		padding-top: 2px;
+	}
+	.tree-children-counties {
+		border-left-color: color-mix(in srgb, var(--fg) 10%, transparent);
+	}
 	.tree-toggle,
 	.tree-spacer {
-		width: 22px;
-		height: 22px;
+		width: 26px;
+		height: 26px;
 		display: grid;
 		place-items: center;
 	}
 	.tree-toggle {
-		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
-		border-radius: 6px;
-		background: var(--surface);
+		border: 0;
+		border-radius: 7px;
+		background: transparent;
 		font-size: 0.85rem;
 		line-height: 1;
 		cursor: pointer;
+	}
+	.tree-toggle:hover {
+		background: color-mix(in srgb, var(--fg) 9%, transparent);
 	}
 	.tree-spacer {
 		border: 0;
@@ -1201,6 +1205,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 8px;
+		min-width: 0;
 	}
 	.tree-check input[type='checkbox'] {
 		margin: 0;
