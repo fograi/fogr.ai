@@ -171,6 +171,7 @@ export type Database = {
 				Row: {
 					category: string;
 					category_profile_data: Json | null;
+					location_profile_data: Json | null;
 					cover_url: string | null;
 					created_at: string;
 					currency: string;
@@ -193,6 +194,7 @@ export type Database = {
 				Insert: {
 					category: string;
 					category_profile_data?: Json | null;
+					location_profile_data?: Json | null;
 					cover_url?: string | null;
 					created_at?: string;
 					currency?: string;
@@ -215,6 +217,7 @@ export type Database = {
 				Update: {
 					category?: string;
 					category_profile_data?: Json | null;
+					location_profile_data?: Json | null;
 					cover_url?: string | null;
 					created_at?: string;
 					currency?: string;

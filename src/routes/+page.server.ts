@@ -1,6 +1,12 @@
 import type { PageServerLoad } from './$types';
 import type { AdCard, ApiAdRow } from '../types/ad-types';
 import { getPagination } from '$lib/server/pagination';
+import {
+	getCountyOptionById,
+	getCountyOptions,
+	getLocalityOptionById,
+	getLocalityOptionsByCountyId
+} from '$lib/location-hierarchy';
 
 const DEFAULT_LIMIT = 24;
 
@@ -9,6 +15,10 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 	const q = (url.searchParams.get('q') ?? '').trim();
 	const category = (url.searchParams.get('category') ?? '').trim();
 	const priceState = (url.searchParams.get('price_state') ?? '').trim();
+	const rawCountyId = (url.searchParams.get('county_id') ?? '').trim();
+	const countyId = getCountyOptionById(rawCountyId)?.id ?? '';
+	const rawLocalityId = (url.searchParams.get('locality_id') ?? '').trim();
+	const localityId = countyId ? (getLocalityOptionById(countyId, rawLocalityId)?.id ?? '') : '';
 	const params = new URLSearchParams({
 		page: String(page),
 		limit: String(limit)
@@ -16,6 +26,8 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 	if (q) params.set('q', q);
 	if (category) params.set('category', category);
 	if (priceState) params.set('price_state', priceState);
+	if (countyId) params.set('county_id', countyId);
+	if (localityId) params.set('locality_id', localityId);
 
 	const res = await fetch(`/api/ads?${params.toString()}`);
 	if (!res.ok) {
@@ -28,7 +40,20 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 		} catch {
 			/* noop */
 		}
-		return { ads: [], page, q, category, error: { message, requestId } };
+		return {
+			ads: [],
+			page,
+			q,
+			category,
+			priceState,
+			countyId,
+			localityId,
+			locationOptions: {
+				counties: getCountyOptions(),
+				localities: countyId ? getLocalityOptionsByCountyId(countyId) : []
+			},
+			error: { message, requestId }
+		};
 	}
 
 	const { ads, nextPage, requestId } = (await res.json()) as {
@@ -45,10 +70,25 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 		description: ad.description ?? '',
 		category: ad.category ?? '',
 		categoryProfileData: ad.category_profile_data ?? null,
+		locationProfileData: ad.location_profile_data ?? null,
 		currency: ad.currency ?? undefined,
 		firmPrice: ad.firm_price ?? false,
 		minOffer: ad.min_offer ?? null
 	}));
 
-	return { ads: mapped, page, nextPage: nextPage ?? null, requestId, q, category, priceState };
+	return {
+		ads: mapped,
+		page,
+		nextPage: nextPage ?? null,
+		requestId,
+		q,
+		category,
+		priceState,
+		countyId,
+		localityId,
+		locationOptions: {
+			counties: getCountyOptions(),
+			localities: countyId ? getLocalityOptionsByCountyId(countyId) : []
+		}
+	};
 };

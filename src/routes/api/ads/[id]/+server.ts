@@ -19,7 +19,8 @@ import {
 	validateAdImages,
 	validateAdMeta,
 	validateOfferRules,
-	validateCategoryProfileData
+	validateCategoryProfileData,
+	validateLocationProfileData
 } from '$lib/server/ads-validation';
 const { default: filter } = await import('leo-profanity');
 const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = await import('obscenity');
@@ -181,7 +182,7 @@ export const GET: RequestHandler = async ({ params, locals, url, platform }) => 
 	const query = locals.supabase
 		.from('ads')
 		.select(
-			'id, user_id, title, description, category, category_profile_data, price, currency, image_keys, status, created_at, updated_at, expires_at, firm_price, min_offer, auto_decline_message'
+			'id, user_id, title, description, category, category_profile_data, location_profile_data, price, currency, image_keys, status, created_at, updated_at, expires_at, firm_price, min_offer, auto_decline_message'
 		)
 		.eq('id', id);
 	if (!authedUser) {
@@ -304,7 +305,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		const { data: ad, error: adError } = await locals.supabase
 			.from('ads')
 			.select(
-				'id,user_id,title,description,category,category_profile_data,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,expires_at'
+				'id,user_id,title,description,category,category_profile_data,location_profile_data,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,expires_at'
 			)
 			.eq('id', adId)
 			.maybeSingle();
@@ -378,6 +379,9 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		const categoryProfileRawValue = form
 			? form.get('category_profile_data')
 			: (body?.category_profile_data ?? null);
+		const locationProfileRawValue = form
+			? form.get('location_profile_data')
+			: (body?.location_profile_data ?? null);
 		let categoryProfilePayload: unknown = null;
 		if (typeof categoryProfileRawValue === 'string') {
 			if (categoryProfileRawValue.trim() !== '') {
@@ -389,6 +393,18 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 			}
 		} else if (categoryProfileRawValue && typeof categoryProfileRawValue === 'object') {
 			categoryProfilePayload = categoryProfileRawValue;
+		}
+		let locationProfilePayload: unknown = null;
+		if (typeof locationProfileRawValue === 'string') {
+			if (locationProfileRawValue.trim() !== '') {
+				try {
+					locationProfilePayload = JSON.parse(locationProfileRawValue);
+				} catch {
+					return errorResponse('Invalid location profile data.', 400);
+				}
+			}
+		} else if (locationProfileRawValue && typeof locationProfileRawValue === 'object') {
+			locationProfilePayload = locationProfileRawValue;
 		}
 
 		const imageFile = form ? form.get('image') : null;
@@ -419,6 +435,10 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 			categoryProfileDataRaw: categoryProfilePayload
 		});
 		if (categoryProfileValidation.error) return errorResponse(categoryProfileValidation.error, 400);
+		const locationProfileValidation = validateLocationProfileData({
+			locationProfileDataRaw: locationProfilePayload
+		});
+		if (locationProfileValidation.error) return errorResponse(locationProfileValidation.error, 400);
 
 		if (!isLostAndFound) {
 			const offerError = validateOfferRules({
@@ -568,6 +588,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 				description: descTrimmed,
 				category: categoryTrimmed,
 				category_profile_data: categoryProfileValidation.categoryProfileData,
+				location_profile_data: locationProfileValidation.locationProfileData,
 				price,
 				currency,
 				firm_price: firmPriceValue,

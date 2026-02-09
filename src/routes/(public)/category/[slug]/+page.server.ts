@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import type { AdCard, ApiAdRow } from '../../../../../types/ad-types';
+import type { AdCard, ApiAdRow } from '../../../../types/ad-types';
 import { getPagination } from '$lib/server/pagination';
 import {
 	asCategorySort,
@@ -21,6 +21,12 @@ import {
 	type BikeSubtype,
 	type BikeType
 } from '$lib/category-profiles';
+import {
+	getCountyOptionById,
+	getCountyOptions,
+	getLocalityOptionById,
+	getLocalityOptionsByCountyId
+} from '$lib/location-hierarchy';
 
 const DEFAULT_LIMIT = 24;
 const priceStateSet = new Set(['fixed', 'free', 'poa']);
@@ -54,6 +60,10 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 	const priceState = asPriceState(url.searchParams.get('price_state'));
 	const minPrice = asPositiveIntString(url.searchParams.get('min_price'));
 	const maxPrice = asPositiveIntString(url.searchParams.get('max_price'));
+	const rawCountyId = (url.searchParams.get('county_id') ?? '').trim();
+	const countyId = getCountyOptionById(rawCountyId)?.id ?? '';
+	const rawLocalityId = (url.searchParams.get('locality_id') ?? '').trim();
+	const localityId = countyId ? (getLocalityOptionById(countyId, rawLocalityId)?.id ?? '') : '';
 
 	const rawBikeSubtype = (url.searchParams.get('bike_subtype') ?? '').trim().toLowerCase();
 	const bikeSubtype = bikeSubtypeSet.has(rawBikeSubtype) ? (rawBikeSubtype as BikeSubtype) : '';
@@ -78,6 +88,8 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 	if (priceState) query.set('price_state', priceState);
 	if (minPrice) query.set('min_price', minPrice);
 	if (maxPrice) query.set('max_price', maxPrice);
+	if (countyId) query.set('county_id', countyId);
+	if (localityId) query.set('locality_id', localityId);
 	if (bikeSubtype) query.set('bike_subtype', bikeSubtype);
 	if (bikeType) query.set('bike_type', bikeType);
 	if (bikeCondition) query.set('bike_condition', bikeCondition);
@@ -108,6 +120,8 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 				priceState,
 				minPrice,
 				maxPrice,
+				countyId,
+				localityId,
 				bikeSubtype,
 				bikeType,
 				bikeCondition,
@@ -115,6 +129,8 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 			},
 			options: {
 				sort: CATEGORY_SORT_OPTIONS,
+				county: getCountyOptions(),
+				locality: countyId ? getLocalityOptionsByCountyId(countyId) : [],
 				bikeSubtype: BIKE_SUBTYPE_OPTIONS,
 				bikeType: bikeTypeOptions,
 				bikeCondition: BIKE_CONDITION_OPTIONS,
@@ -137,6 +153,7 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 		description: ad.description ?? '',
 		category: ad.category ?? '',
 		categoryProfileData: ad.category_profile_data ?? null,
+		locationProfileData: ad.location_profile_data ?? null,
 		currency: ad.currency ?? undefined,
 		firmPrice: ad.firm_price ?? false,
 		minOffer: ad.min_offer ?? null
@@ -156,6 +173,8 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 			priceState,
 			minPrice,
 			maxPrice,
+			countyId,
+			localityId,
 			bikeSubtype,
 			bikeType,
 			bikeCondition,
@@ -163,6 +182,8 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 		},
 		options: {
 			sort: CATEGORY_SORT_OPTIONS,
+			county: getCountyOptions(),
+			locality: countyId ? getLocalityOptionsByCountyId(countyId) : [],
 			bikeSubtype: BIKE_SUBTYPE_OPTIONS,
 			bikeType: bikeTypeOptions,
 			bikeCondition: BIKE_CONDITION_OPTIONS,

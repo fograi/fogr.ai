@@ -8,6 +8,7 @@
 		isBikesCategory
 	} from '$lib/category-profiles';
 	import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
+	import { formatLocationSummary } from '$lib/location-profile';
 
 	export let id: number | string;
 	export let title: string;
@@ -16,6 +17,7 @@
 	export let description: string;
 	export let category: string;
 	export let categoryProfileData: Record<string, unknown> | null = null;
+	export let locationProfileData: Record<string, unknown> | null = null;
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 	export let firmPrice = false;
@@ -54,6 +56,7 @@
 			})
 		: '';
 	$: displayDescription = bikeNarrative || description;
+	$: locationSummary = formatLocationSummary(locationProfileData);
 
 	let isPortrait = false;
 	let hasImageError = false;
@@ -136,6 +139,9 @@
 
 			<h3 class="title title--text">{title}</h3>
 			{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
+			{#if locationSummary}
+				<p class="location">{locationSummary}</p>
+			{/if}
 
 			<!-- Price pinned to bottom-right -->
 			{#if priceLabel}
@@ -155,6 +161,12 @@
 			inset 0 0 0 1px color-mix(in srgb, var(--fg) 6%, transparent),
 			/* plate edge */ 0 1px 0 color-mix(in srgb, var(--fg) 6%, transparent);
 		color: var(--fg);
+	}
+	.location {
+		margin: 6px 0 0;
+		font-size: 0.82rem;
+		font-weight: 700;
+		color: color-mix(in srgb, var(--fg) 68%, transparent);
 	}
 
 	/* Headlines feel printed */

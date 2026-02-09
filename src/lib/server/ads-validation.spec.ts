@@ -3,6 +3,7 @@ import {
 	validateAdImages,
 	validateAdMeta,
 	validateCategoryProfileData,
+	validateLocationProfileData,
 	validateOfferRules
 } from './ads-validation';
 import {
@@ -361,5 +362,54 @@ describe('validateCategoryProfileData (bikes)', () => {
 		expect(result.categoryProfileData?.reasonForSelling).toBe('Upgrading bike');
 		expect(result.categoryProfileData?.usageSummary).toBe('Weekend rides');
 		expect(result.categoryProfileData?.knownIssues).toBe('No known issues');
+	});
+});
+
+describe('validateLocationProfileData', () => {
+	it('accepts canonical county/locality ids and normalizes labels', () => {
+		const result = validateLocationProfileData({
+			locationProfileDataRaw: {
+				county: { id: 'ie/leinster/dublin', name: 'Wrong County Label' },
+				locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Wrong Locality Label' }
+			}
+		});
+		expect(result.error).toBeNull();
+		expect(result.locationProfileData).toMatchObject({
+			version: 1,
+			island: { id: 'ie', name: 'Ireland' },
+			province: { id: 'ie/leinster', name: 'Leinster' },
+			county: { id: 'ie/leinster/dublin', name: 'Dublin' },
+			locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Ard Na Gréine' }
+		});
+	});
+
+	it('rejects missing location payload', () => {
+		const result = validateLocationProfileData({
+			locationProfileDataRaw: null
+		});
+		expect(result.error).toBe('Location details are required.');
+		expect(result.locationProfileData).toBeNull();
+	});
+
+	it('rejects invalid county id', () => {
+		const result = validateLocationProfileData({
+			locationProfileDataRaw: {
+				county: { id: 'ie/leinster/not-a-county', name: 'Nowhere' },
+				locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Ard Na Gréine' }
+			}
+		});
+		expect(result.error).toBe('Invalid county.');
+		expect(result.locationProfileData).toBeNull();
+	});
+
+	it('rejects locality that does not belong to county', () => {
+		const result = validateLocationProfileData({
+			locationProfileDataRaw: {
+				county: { id: 'ie/leinster/dublin', name: 'Dublin' },
+				locality: { id: 'ie/munster/cork/ballincollig', name: 'Ballincollig' }
+			}
+		});
+		expect(result.error).toBe('Invalid locality for selected county.');
+		expect(result.locationProfileData).toBeNull();
 	});
 });

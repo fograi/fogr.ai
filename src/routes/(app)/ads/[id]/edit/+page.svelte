@@ -26,10 +26,15 @@
 		type BikeSubtype,
 		type BikeType
 	} from '$lib/category-profiles';
+	import {
+		buildLocationProfileData,
+		validateAndNormalizeLocationProfileData
+	} from '$lib/location-hierarchy';
 	import PostFields from '$lib/components/post/PostFields.svelte';
 	import ImageDrop from '$lib/components/post/ImageDrop.svelte';
 	import { createModerationClient } from '$lib/clients/moderationClient';
 	import { formatPriceLabel } from '$lib/utils/price';
+	import { formatLocationSummary } from '$lib/location-profile';
 
 	type EditAdRow = {
 		id: string;
@@ -37,6 +42,7 @@
 		description: string;
 		category: Category;
 		category_profile_data: Record<string, unknown> | null;
+		location_profile_data: Record<string, unknown> | null;
 		price: number | null;
 		currency: string | null;
 		image_keys: string[] | null;
@@ -65,6 +71,9 @@
 	const initialBikeProfile = isBikesCategory(ad.category)
 		? validateAndNormalizeBikesProfileData(ad.category_profile_data).data
 		: null;
+	const initialLocationProfile = validateAndNormalizeLocationProfileData(
+		ad.location_profile_data
+	).data;
 	const parseManualBikeSize = (raw?: string) => {
 		const trimmed = (raw ?? '').trim();
 		if (!trimmed) return { value: '', unit: '' as 'cm' | 'in' | '' };
@@ -123,6 +132,8 @@
 	let bikeReasonForSelling = initialBikeProfile?.reasonForSelling ?? '';
 	let bikeUsageSummary = initialBikeProfile?.usageSummary ?? '';
 	let bikeKnownIssues = initialBikeProfile?.knownIssues ?? '';
+	let locationCountyId = initialLocationProfile?.county.id ?? '';
+	let locationLocalityId = initialLocationProfile?.locality.id ?? '';
 	let bikeSizeManualEdited = !!initialBikeManualSize.value;
 	let titleManuallyEdited = false;
 	let descriptionManuallyEdited =
@@ -258,6 +269,10 @@
 		};
 	}
 
+	function buildLocationProfileCandidate() {
+		return buildLocationProfileData(locationCountyId, locationLocalityId);
+	}
+
 	function parseWholeEuro(value: number | '') {
 		if (value === '') return null;
 		const parsed = Number(value);
@@ -267,6 +282,9 @@
 
 	function validateBasics() {
 		if (!category) return 'Choose a category.';
+		if (!locationCountyId) return 'Choose a county.';
+		if (!locationLocalityId) return 'Choose a locality.';
+		if (!buildLocationProfileCandidate()) return 'Choose a valid locality for that county.';
 		if (isBikes) {
 			const bikeProfileCheck = validateAndNormalizeBikesProfileData(buildBikeProfileCandidate());
 			if (bikeProfileCheck.error) return bikeProfileCheck.error;
@@ -383,11 +401,14 @@
 				? validateAndNormalizeBikesProfileData(buildBikeProfileCandidate())
 				: { data: null, error: null };
 			if (bikeProfileCheck.error) throw new Error(bikeProfileCheck.error);
+			const locationProfileCheck = buildLocationProfileCandidate();
+			if (!locationProfileCheck) throw new Error('Choose a valid county and locality.');
 			const requestPayload = {
 				title: title.trim(),
 				description: description.trim(),
 				category: category as string,
 				category_profile_data: bikeProfileCheck.data,
+				location_profile_data: locationProfileCheck,
 				price_type: priceType,
 				firm_price: priceType === 'fixed' && firmPrice ? '1' : '0',
 				min_offer: priceType === 'fixed' && minOffer !== '' ? String(minOffer) : undefined,
@@ -413,7 +434,10 @@
 				const form = new FormData();
 				Object.entries(requestPayload).forEach(([key, value]) => {
 					if (value === undefined || value === null) return;
-					if (key === 'category_profile_data' && typeof value === 'object') {
+					if (
+						(key === 'category_profile_data' || key === 'location_profile_data') &&
+						typeof value === 'object'
+					) {
 						form.append(key, JSON.stringify(value));
 						return;
 					}
@@ -505,6 +529,7 @@
 		locale,
 		showRewardWhenMissing: true
 	});
+	$: previewLocation = formatLocationSummary(buildLocationProfileCandidate());
 </script>
 
 {#if !editable}
@@ -555,6 +580,8 @@
 				<PostFields
 					step={1}
 					bind:category
+					bind:locationCountyId
+					bind:locationLocalityId
 					bind:title
 					bind:description
 					bind:price
@@ -590,6 +617,8 @@
 				<PostFields
 					step={2}
 					bind:category
+					bind:locationCountyId
+					bind:locationLocalityId
 					bind:title
 					bind:description
 					bind:price
@@ -638,6 +667,8 @@
 				<PostFields
 					step={3}
 					bind:category
+					bind:locationCountyId
+					bind:locationLocalityId
 					bind:title
 					bind:description
 					bind:price
@@ -710,6 +741,9 @@
 						<h3>{title || 'Your title'}</h3>
 						{#if previewPrice}
 							<div class="preview-price">{previewPrice}</div>
+						{/if}
+						{#if previewLocation}
+							<div class="preview-location">{previewLocation}</div>
 						{/if}
 						<p>{description || 'Your description will appear here.'}</p>
 					</div>
@@ -918,6 +952,10 @@
 	.preview-price {
 		font-weight: 800;
 		font-size: 1.1rem;
+	}
+	.preview-location {
+		font-weight: 700;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
 	}
 	.preview-confirm {
 		display: flex;

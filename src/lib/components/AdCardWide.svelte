@@ -9,6 +9,7 @@
 	} from '$lib/category-profiles';
 	import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 	import { CATEGORY_ICON_MAP, DefaultCategoryIcon, ShareIcon } from '$lib/icons';
+	import { formatLocationSummary } from '$lib/location-profile';
 
 	// Props
 	export let title: string;
@@ -17,6 +18,7 @@
 	export let description: string;
 	export let category: string;
 	export let categoryProfileData: Record<string, unknown> | null = null;
+	export let locationProfileData: Record<string, unknown> | null = null;
 	export let currency = 'EUR';
 	export let locale = 'en-IE';
 	export let email: string = '';
@@ -60,6 +62,7 @@
 			})
 		: '';
 	$: displayDescription = bikeNarrative || description;
+	$: locationSummary = formatLocationSummary(locationProfileData);
 
 	$: expiresLabel = expiresAt
 		? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(expiresAt))
@@ -184,6 +187,9 @@
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
+				{#if locationSummary}
+					<p class="meta-line">Location: {locationSummary}</p>
+				{/if}
 				{#if expiresLabel && showExpires}
 					<p class="meta-line">
 						{status === 'expired' ? 'Expired on' : 'Expires on'}
@@ -233,6 +239,9 @@
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
+				{#if locationSummary}
+					<p class="meta-line">Location: {locationSummary}</p>
+				{/if}
 				{#if expiresLabel && showExpires}
 					<p class="meta-line">
 						{status === 'expired' ? 'Expired on' : 'Expires on'}

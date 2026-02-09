@@ -32,9 +32,17 @@
 		type BikeSubtype,
 		type BikeType
 	} from '$lib/category-profiles';
+	import {
+		ISLAND_OPTION,
+		getCountyOptions,
+		getLocalityOptionsByCountyId,
+		getProvinceForCountyId
+	} from '$lib/location-hierarchy';
 
 	// two-way bind from parent
 	export let category: Category | '' = '';
+	export let locationCountyId = '';
+	export let locationLocalityId = '';
 	export let title = '';
 	export let description = '';
 	export let price: number | '' = '';
@@ -60,9 +68,43 @@
 	// validation messages from parent (optional)
 	export let loading = false;
 	type BikeMinOfferUnit = 'eur' | 'percent';
+	const countyOptions = getCountyOptions();
+	let countySearch = '';
+	let localitySearch = '';
 	let bikeMinOfferUnit: BikeMinOfferUnit = 'eur';
 	let bikeMinOfferDisplay = '';
 	let bikeMinOfferDisplaySignature = '';
+
+	$: normalizedCountySearch = countySearch.trim().toLowerCase();
+	$: normalizedLocalitySearch = localitySearch.trim().toLowerCase();
+	$: filteredCountyOptions = normalizedCountySearch
+		? countyOptions.filter((county) => county.name.toLowerCase().includes(normalizedCountySearch))
+		: countyOptions;
+	$: localityOptions = getLocalityOptionsByCountyId(locationCountyId);
+	$: filteredLocalityOptions = normalizedLocalitySearch
+		? localityOptions.filter((locality) =>
+				locality.name.toLowerCase().includes(normalizedLocalitySearch)
+			)
+		: localityOptions;
+	$: selectedProvince = getProvinceForCountyId(locationCountyId);
+	$: locationCountyInvalid = showErrors && !locationCountyId;
+	$: locationLocalityInvalid = showErrors && !locationLocalityId;
+	$: if (locationCountyId && !countyOptions.some((county) => county.id === locationCountyId)) {
+		locationCountyId = '';
+	}
+	$: if (
+		locationCountyId &&
+		locationLocalityId &&
+		!localityOptions.some((locality) => locality.id === locationLocalityId)
+	) {
+		locationLocalityId = '';
+	}
+	$: if (!locationCountyId && locationLocalityId) {
+		locationLocalityId = '';
+	}
+	$: if (!locationCountyId && localitySearch) {
+		localitySearch = '';
+	}
 
 	$: titleLen = title.length;
 	$: descLen = description.length;
@@ -297,6 +339,23 @@
 	function toggleDescriptionAssist(key: BikeDescriptionAssistKey) {
 		descriptionAssistOpenKey = descriptionAssistOpenKey === key ? '' : key;
 	}
+
+	function handleCountyChange(event: Event) {
+		const nextCountyId = (event.currentTarget as HTMLSelectElement).value;
+		if (nextCountyId !== locationCountyId) {
+			locationCountyId = nextCountyId;
+			locationLocalityId = '';
+			localitySearch = '';
+		}
+	}
+
+	function handleCountySearchInput(event: Event) {
+		countySearch = (event.currentTarget as HTMLInputElement).value;
+	}
+
+	function handleLocalitySearchInput(event: Event) {
+		localitySearch = (event.currentTarget as HTMLInputElement).value;
+	}
 </script>
 
 <section class="fields" aria-busy={loading}>
@@ -314,6 +373,85 @@
 					<option value={c}>{c}</option>
 				{/each}
 			</select>
+		</div>
+
+		<div class="location-panel">
+			<div class="field">
+				<label for="location-island">Island</label>
+				<input id="location-island" type="text" value={ISLAND_OPTION.name} readonly />
+			</div>
+			<div class="field">
+				<label for="location-province">Province</label>
+				<input
+					id="location-province"
+					type="text"
+					value={selectedProvince?.name ?? ''}
+					placeholder="Select county first"
+					readonly
+				/>
+			</div>
+			<div class="field">
+				<label for="location-county-search">County search</label>
+				<input
+					id="location-county-search"
+					type="search"
+					value={countySearch}
+					on:input={handleCountySearchInput}
+					placeholder="Type to filter counties"
+					disabled={loading}
+					autocomplete="address-level1"
+				/>
+			</div>
+			<div class="field">
+				<label for="location-county">County</label>
+				<select
+					id="location-county"
+					value={locationCountyId}
+					on:change={handleCountyChange}
+					disabled={loading}
+					aria-invalid={showErrors ? locationCountyInvalid : undefined}
+				>
+					<option value="" disabled selected hidden>Choose county…</option>
+					{#each filteredCountyOptions as county (county.id)}
+						<option value={county.id}>{county.name}</option>
+					{/each}
+				</select>
+				{#if locationCountyInvalid}
+					<small class="error-text">Choose a county.</small>
+				{/if}
+			</div>
+			<div class="field">
+				<label for="location-locality-search">Locality search</label>
+				<input
+					id="location-locality-search"
+					type="search"
+					value={localitySearch}
+					on:input={handleLocalitySearchInput}
+					placeholder={locationCountyId ? 'Type to filter localities' : 'Choose county first'}
+					disabled={loading || !locationCountyId}
+					autocomplete="address-level2"
+				/>
+			</div>
+			<div class="field">
+				<label for="location-locality">Locality</label>
+				<select
+					id="location-locality"
+					bind:value={locationLocalityId}
+					disabled={loading || !locationCountyId}
+					aria-invalid={showErrors ? locationLocalityInvalid : undefined}
+				>
+					<option value="" disabled selected hidden>Choose locality…</option>
+					{#each filteredLocalityOptions as locality (locality.id)}
+						<option value={locality.id}>{locality.name}</option>
+					{/each}
+				</select>
+				{#if !locationCountyId}
+					<small class="muted">Choose a county first.</small>
+				{/if}
+				{#if locationLocalityInvalid}
+					<small class="error-text">Choose a locality.</small>
+				{/if}
+			</div>
 		</div>
 
 		{#if isBikes}
@@ -834,6 +972,17 @@
 		padding: 12px;
 		display: grid;
 		gap: 12px;
+		background: color-mix(in srgb, var(--fg) 4%, var(--surface));
+	}
+	.location-panel {
+		border: 1px solid var(--hairline);
+		border-radius: 14px;
+		padding: 12px;
+		display: grid;
+		gap: 10px;
+		background: color-mix(in srgb, var(--fg) 2%, var(--surface));
+	}
+	.location-panel input[readonly] {
 		background: color-mix(in srgb, var(--fg) 4%, var(--surface));
 	}
 	.pill-row {

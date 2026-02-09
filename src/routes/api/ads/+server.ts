@@ -21,7 +21,8 @@ import {
 	validateAdImages,
 	validateAdMeta,
 	validateOfferRules,
-	validateCategoryProfileData
+	validateCategoryProfileData,
+	validateLocationProfileData
 } from '$lib/server/ads-validation';
 import { isSameOrigin } from '$lib/server/csrf';
 import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
@@ -36,8 +37,11 @@ import {
 	BIKE_KIDS_SIZE_PRESETS,
 	BIKE_SUBTYPES,
 	BIKE_TYPES,
-	getBikeSubtypeOptions
+	getBikeSubtypeOptions,
+	type BikeSubtype,
+	type BikeType
 } from '$lib/category-profiles';
+import { getCountyOptionById, getLocalityOptionById } from '$lib/location-hierarchy';
 import type { Database } from '$lib/supabase.types';
 
 filter.add(bannedWords);
@@ -317,6 +321,7 @@ export const POST: RequestHandler = async (event) => {
 		const minOfferStr = form.get('min_offer')?.toString() ?? null;
 		const autoDeclineMessageRaw = form.get('auto_decline_message')?.toString() ?? null;
 		const categoryProfileDataRaw = form.get('category_profile_data')?.toString() ?? null;
+		const locationProfileDataRaw = form.get('location_profile_data')?.toString() ?? null;
 		const usedPresetOnly = form.get('used_preset_only')?.toString() === '1';
 		const autoDeclineMessage =
 			autoDeclineMessageRaw && autoDeclineMessageRaw.trim().length > 0
@@ -379,6 +384,19 @@ export const POST: RequestHandler = async (event) => {
 		});
 		if (categoryProfileValidation.error)
 			return errorResponse(categoryProfileValidation.error, 400, requestId);
+		let locationProfilePayload: unknown = null;
+		if (locationProfileDataRaw) {
+			try {
+				locationProfilePayload = JSON.parse(locationProfileDataRaw);
+			} catch {
+				return errorResponse('Invalid location profile data.', 400, requestId);
+			}
+		}
+		const locationProfileValidation = validateLocationProfileData({
+			locationProfileDataRaw: locationProfilePayload
+		});
+		if (locationProfileValidation.error)
+			return errorResponse(locationProfileValidation.error, 400, requestId);
 		if (!isLostAndFound) {
 			const offerError = validateOfferRules({
 				priceType,
@@ -526,6 +544,7 @@ export const POST: RequestHandler = async (event) => {
 				description,
 				category,
 				category_profile_data: categoryProfileValidation.categoryProfileData,
+				location_profile_data: locationProfileValidation.locationProfileData,
 				price,
 				currency,
 				image_keys: [],
@@ -629,6 +648,8 @@ export const POST: RequestHandler = async (event) => {
 				bikeSizeSet:
 					!!categoryProfileValidation.categoryProfileData?.sizePreset ||
 					!!categoryProfileValidation.categoryProfileData?.sizeManual,
+				locationCountyId: locationProfileValidation.locationProfileData?.county.id ?? null,
+				locationLocalityId: locationProfileValidation.locationProfileData?.locality.id ?? null,
 				usedPresetOnly: categoryProfileValidation.categoryProfileData ? usedPresetOnly : null
 			}
 		});
@@ -669,10 +690,16 @@ export const GET: RequestHandler = async (event) => {
 	const rawBikeType = (url.searchParams.get('bike_type') ?? '').trim().toLowerCase();
 	const rawBikeCondition = (url.searchParams.get('bike_condition') ?? '').trim().toLowerCase();
 	const rawBikeSizePreset = (url.searchParams.get('bike_size') ?? '').trim().toUpperCase();
-	const bikeSubtype = bikeSubtypeSet.has(rawBikeSubtype) ? rawBikeSubtype : '';
+	const rawCountyId = (url.searchParams.get('county_id') ?? '').trim();
+	const rawLocalityId = (url.searchParams.get('locality_id') ?? '').trim();
+	const countyId = getCountyOptionById(rawCountyId)?.id ?? '';
+	const localityId = countyId ? (getLocalityOptionById(countyId, rawLocalityId)?.id ?? '') : '';
+	const bikeSubtype: BikeSubtype | '' = bikeSubtypeSet.has(rawBikeSubtype)
+		? (rawBikeSubtype as BikeSubtype)
+		: '';
 	const bikeCondition = bikeConditionSet.has(rawBikeCondition) ? rawBikeCondition : '';
 	const bikeSizePreset = bikePresetSizeSet.has(rawBikeSizePreset) ? rawBikeSizePreset : '';
-	let bikeType = bikeTypeSet.has(rawBikeType) ? rawBikeType : '';
+	let bikeType: BikeType | '' = bikeTypeSet.has(rawBikeType) ? (rawBikeType as BikeType) : '';
 	if (bikeSubtype && bikeType) {
 		const scopedTypes = new Set(getBikeSubtypeOptions(bikeSubtype).map((option) => option.value));
 		if (!scopedTypes.has(bikeType)) bikeType = '';
@@ -701,6 +728,28 @@ export const GET: RequestHandler = async (event) => {
 			!bikeCondition || (mockProfile?.condition as string | undefined) === bikeCondition;
 		const matchesBikeSize =
 			!bikeSizePreset || (mockProfile?.sizePreset as string | undefined) === bikeSizePreset;
+		const mockLocation =
+			E2E_MOCK_AD.location_profile_data && typeof E2E_MOCK_AD.location_profile_data === 'object'
+				? (E2E_MOCK_AD.location_profile_data as Record<string, unknown>)
+				: null;
+		const mockCountyId =
+			mockLocation &&
+			typeof mockLocation.county === 'object' &&
+			mockLocation.county &&
+			'id' in mockLocation.county &&
+			typeof (mockLocation.county as Record<string, unknown>).id === 'string'
+				? ((mockLocation.county as Record<string, unknown>).id as string)
+				: '';
+		const mockLocalityId =
+			mockLocation &&
+			typeof mockLocation.locality === 'object' &&
+			mockLocation.locality &&
+			'id' in mockLocation.locality &&
+			typeof (mockLocation.locality as Record<string, unknown>).id === 'string'
+				? ((mockLocation.locality as Record<string, unknown>).id as string)
+				: '';
+		const matchesCounty = !countyId || mockCountyId === countyId;
+		const matchesLocality = !localityId || mockLocalityId === localityId;
 		const shouldInclude =
 			matchesCategory &&
 			matchesPriceState &&
@@ -709,7 +758,9 @@ export const GET: RequestHandler = async (event) => {
 			matchesBikeSubtype &&
 			matchesBikeType &&
 			matchesBikeCondition &&
-			matchesBikeSize;
+			matchesBikeSize &&
+			matchesCounty &&
+			matchesLocality;
 
 		return json(
 			{
@@ -743,7 +794,7 @@ export const GET: RequestHandler = async (event) => {
 	let query = locals.supabase
 		.from('ads')
 		.select(
-			'id,title,description,price,currency,category,category_profile_data,image_keys,created_at,firm_price,min_offer'
+			'id,title,description,price,currency,category,category_profile_data,location_profile_data,image_keys,created_at,firm_price,min_offer'
 		)
 		.eq('status', PUBLIC_AD_STATUS)
 		.gt('expires_at', nowIso);
@@ -758,6 +809,8 @@ export const GET: RequestHandler = async (event) => {
 	if (priceState === 'fixed') query = query.gt('price', 0);
 	if (minPrice !== null) query = query.gte('price', minPrice);
 	if (maxPrice !== null) query = query.lte('price', maxPrice);
+	if (countyId) query = query.filter('location_profile_data->county->>id', 'eq', countyId);
+	if (localityId) query = query.filter('location_profile_data->locality->>id', 'eq', localityId);
 
 	if (category === 'Bikes') {
 		if (bikeSubtype) query = query.filter('category_profile_data->>subtype', 'eq', bikeSubtype);

@@ -25,6 +25,8 @@
 		type BikeSubtype,
 		type BikeType
 	} from '$lib/category-profiles';
+	import { buildLocationProfileData } from '$lib/location-hierarchy';
+	import { formatLocationSummary } from '$lib/location-profile';
 
 	import PostFields from '$lib/components/post/PostFields.svelte';
 	import ImageDrop from '$lib/components/post/ImageDrop.svelte';
@@ -51,6 +53,8 @@
 	let bikeReasonForSelling = '';
 	let bikeUsageSummary = '';
 	let bikeKnownIssues = '';
+	let locationCountyId = '';
+	let locationLocalityId = '';
 	let bikeSizeManualEdited = false;
 	let titleManuallyEdited = false;
 	let descriptionManuallyEdited = false;
@@ -189,6 +193,10 @@
 		};
 	}
 
+	function buildLocationProfileCandidate() {
+		return buildLocationProfileData(locationCountyId, locationLocalityId);
+	}
+
 	function parseWholeEuro(value: number | '') {
 		if (value === '') return null;
 		const parsed = Number(value);
@@ -198,6 +206,9 @@
 
 	function validateBasics() {
 		if (!category) return 'Choose a category.';
+		if (!locationCountyId) return 'Choose a county.';
+		if (!locationLocalityId) return 'Choose a locality.';
+		if (!buildLocationProfileCandidate()) return 'Choose a valid locality for that county.';
 		if (isBikes) {
 			const bikeProfileCheck = validateAndNormalizeBikesProfileData(buildBikeProfileCandidate());
 			if (bikeProfileCheck.error) return bikeProfileCheck.error;
@@ -314,6 +325,11 @@
 			form.append('title', title.trim());
 			form.append('description', description.trim());
 			form.append('category', category as string);
+			const locationProfile = buildLocationProfileCandidate();
+			if (!locationProfile) {
+				throw new Error('Choose a valid county and locality.');
+			}
+			form.append('location_profile_data', JSON.stringify(locationProfile));
 			if (isBikes) {
 				const bikeProfileCheck = validateAndNormalizeBikesProfileData(buildBikeProfileCandidate());
 				if (bikeProfileCheck.error || !bikeProfileCheck.data) {
@@ -386,6 +402,8 @@
 			title = '';
 			description = '';
 			category = '';
+			locationCountyId = '';
+			locationLocalityId = '';
 			price = '';
 			firmPrice = false;
 			minOffer = '';
@@ -446,6 +464,7 @@
 		locale,
 		showRewardWhenMissing: true
 	});
+	$: previewLocation = formatLocationSummary(buildLocationProfileCandidate());
 </script>
 
 <form class="post" on:submit|preventDefault={handleFormSubmit} aria-busy={loading}>
@@ -486,6 +505,8 @@
 			<PostFields
 				step={1}
 				bind:category
+				bind:locationCountyId
+				bind:locationLocalityId
 				bind:title
 				bind:description
 				bind:price
@@ -521,6 +542,8 @@
 			<PostFields
 				step={2}
 				bind:category
+				bind:locationCountyId
+				bind:locationLocalityId
 				bind:title
 				bind:description
 				bind:price
@@ -567,6 +590,8 @@
 			<PostFields
 				step={3}
 				bind:category
+				bind:locationCountyId
+				bind:locationLocalityId
 				bind:title
 				bind:description
 				bind:price
@@ -636,6 +661,9 @@
 						<h3>{title || 'Your title'}</h3>
 						{#if previewPrice}
 							<div class="preview-price">{previewPrice}</div>
+						{/if}
+						{#if previewLocation}
+							<div class="preview-location">{previewLocation}</div>
 						{/if}
 						<p>{description || 'Your description will appear here.'}</p>
 					</div>
@@ -840,6 +868,10 @@
 	.preview-price {
 		font-weight: 800;
 		font-size: 1.1rem;
+	}
+	.preview-location {
+		font-weight: 700;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
 	}
 	.preview-confirm {
 		display: flex;

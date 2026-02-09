@@ -15,6 +15,8 @@
 		priceState: string;
 		minPrice: string;
 		maxPrice: string;
+		countyId: string;
+		localityId: string;
 		bikeSubtype: string;
 		bikeType: string;
 		bikeCondition: string;
@@ -28,6 +30,8 @@
 			priceState: data.filters?.priceState ?? '',
 			minPrice: data.filters?.minPrice ?? '',
 			maxPrice: data.filters?.maxPrice ?? '',
+			countyId: data.filters?.countyId ?? '',
+			localityId: data.filters?.localityId ?? '',
 			bikeSubtype: data.filters?.bikeSubtype ?? '',
 			bikeType: data.filters?.bikeType ?? '',
 			bikeCondition: data.filters?.bikeCondition ?? '',
@@ -62,6 +66,8 @@
 		pushParam('price_state', next.priceState);
 		pushParam('min_price', next.minPrice);
 		pushParam('max_price', next.maxPrice);
+		pushParam('county_id', next.countyId);
+		pushParam('locality_id', next.localityId);
 		pushParam('bike_subtype', next.bikeSubtype);
 		pushParam('bike_type', next.bikeType);
 		pushParam('bike_condition', next.bikeCondition);
@@ -78,6 +84,17 @@
 	function optionLabel(options: ReadonlyArray<{ value: string; label: string }>, value: string) {
 		if (!value) return '';
 		return options.find((option) => option.value === value)?.label ?? value;
+	}
+
+	function locationOptionLabel(options: ReadonlyArray<{ id: string; name: string }>, value: string) {
+		if (!value) return '';
+		return options.find((option) => option.id === value)?.name ?? value;
+	}
+
+	function handleCountyChange() {
+		const localitySelect = filtersForm?.querySelector('#cat-locality') as HTMLSelectElement | null;
+		if (localitySelect) localitySelect.value = '';
+		submitFilters();
 	}
 
 	const activeFilterChips = $derived.by(() => {
@@ -109,6 +126,20 @@
 				id: `price:${currentFilters.minPrice}:${currentFilters.maxPrice}`,
 				label: rangeLabel,
 				href: buildFilterHref({ minPrice: '', maxPrice: '' })
+			});
+		}
+		if (currentFilters.countyId) {
+			chips.push({
+				id: `county:${currentFilters.countyId}`,
+				label: `County: ${locationOptionLabel(data.options.county, currentFilters.countyId)}`,
+				href: buildFilterHref({ countyId: '', localityId: '' })
+			});
+		}
+		if (currentFilters.localityId) {
+			chips.push({
+				id: `locality:${currentFilters.localityId}`,
+				label: `Locality: ${locationOptionLabel(data.options.locality, currentFilters.localityId)}`,
+				href: buildFilterHref({ localityId: '' })
 			});
 		}
 		if (currentFilters.bikeType) {
@@ -201,6 +232,38 @@
 							placeholder="Max"
 						/>
 					</div>
+				</div>
+			</div>
+
+			<div class="filters-main filters-main--location">
+				<div class="field">
+					<label for="cat-county">County</label>
+					<select
+						id="cat-county"
+						name="county_id"
+						value={data.filters.countyId}
+						onchange={handleCountyChange}
+					>
+						<option value="">All counties</option>
+						{#each data.options.county as option (option.id)}
+							<option value={option.id}>{option.name}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="field">
+					<label for="cat-locality">Locality</label>
+					<select
+						id="cat-locality"
+						name="locality_id"
+						value={data.filters.localityId}
+						disabled={!data.filters.countyId}
+						onchange={submitFilters}
+					>
+						<option value="">All localities</option>
+						{#each data.options.locality as option (option.id)}
+							<option value={option.id}>{option.name}</option>
+						{/each}
+					</select>
 				</div>
 			</div>
 
@@ -390,6 +453,9 @@
 	.filters-main--price {
 		grid-template-columns: minmax(240px, 1fr);
 	}
+	.filters-main--location {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 	.field {
 		display: grid;
 		gap: 6px;
@@ -554,7 +620,8 @@
 
 	@media (max-width: 1000px) {
 		.filters-main--core,
-		.filters-main--price {
+		.filters-main--price,
+		.filters-main--location {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 		.bike-grid {
@@ -566,7 +633,8 @@
 	}
 	@media (max-width: 640px) {
 		.filters-main--core,
-		.filters-main--price {
+		.filters-main--price,
+		.filters-main--location {
 			grid-template-columns: 1fr;
 		}
 		.bike-grid {
@@ -589,6 +657,7 @@
 			overscroll-behavior: contain;
 		}
 		.filters-main--core,
+		.filters-main--location,
 		.bike-grid {
 			grid-template-columns: 1fr;
 		}

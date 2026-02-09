@@ -13,6 +13,10 @@ import {
 	validateAndNormalizeBikesProfileData,
 	type BikesProfileData
 } from '$lib/category-profiles';
+import {
+	validateAndNormalizeLocationProfileData,
+	type LocationProfileData
+} from '$lib/location-hierarchy';
 
 type AdValidationInput = {
 	category: string;
@@ -154,4 +158,23 @@ export function validateCategoryProfileData({
 		return { error: result.error, categoryProfileData: null };
 	}
 	return { error: null, categoryProfileData: result.data };
+}
+
+type LocationProfileValidationInput = {
+	locationProfileDataRaw: unknown;
+};
+
+type LocationProfileValidationResult = {
+	error: string | null;
+	locationProfileData: LocationProfileData | null;
+};
+
+export function validateLocationProfileData({
+	locationProfileDataRaw
+}: LocationProfileValidationInput): LocationProfileValidationResult {
+	const result = validateAndNormalizeLocationProfileData(locationProfileDataRaw);
+	if (result.error) {
+		return { error: result.error, locationProfileData: null };
+	}
+	return { error: null, locationProfileData: result.data };
 }

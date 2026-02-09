@@ -6,6 +6,7 @@ export interface AdCard {
 	description: string;
 	category: string;
 	categoryProfileData?: Record<string, unknown> | null;
+	locationProfileData?: Record<string, unknown> | null;
 	currency?: string;
 	locale?: string;
 	status?: string;
@@ -31,6 +32,7 @@ export type ApiAdRow = {
 	description: string;
 	category: string;
 	category_profile_data?: Record<string, unknown> | null;
+	location_profile_data?: Record<string, unknown> | null;
 	price: number | null;
 	firm_price?: boolean | null;
 	min_offer?: number | null;

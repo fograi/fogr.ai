@@ -14,6 +14,10 @@
 	const q = $derived(data?.q ?? '');
 	const category = $derived(data?.category ?? '');
 	const priceState = $derived(data?.priceState ?? '');
+	const countyId = $derived(data?.countyId ?? '');
+	const localityId = $derived(data?.localityId ?? '');
+	const countyOptions = $derived(data?.locationOptions?.counties ?? []);
+	const localityOptions = $derived(data?.locationOptions?.localities ?? []);
 	const categoryOptions = CATEGORIES.map((cat) => ({
 		name: cat,
 		slug: categoryToSlug(cat)
@@ -28,6 +32,38 @@
 				slug
 			})
 		);
+	}
+
+	function submitSearchForm(form: HTMLFormElement | null | undefined) {
+		if (!form) return;
+		if (typeof form.requestSubmit === 'function') {
+			form.requestSubmit();
+		} else {
+			form.submit();
+		}
+	}
+
+	function onCountyChange(event: Event) {
+		const countySelect = event.currentTarget as HTMLSelectElement;
+		const form = countySelect.form;
+		const localitySelect = form?.querySelector('#browse-locality') as HTMLSelectElement | null;
+		if (localitySelect) localitySelect.value = '';
+		submitSearchForm(form);
+	}
+
+	function onLocalityChange(event: Event) {
+		const localitySelect = event.currentTarget as HTMLSelectElement;
+		submitSearchForm(localitySelect.form);
+	}
+
+	function buildPageHref(targetPage: number) {
+		const params = new URLSearchParams({ page: String(targetPage) });
+		if (q) params.set('q', q);
+		if (category) params.set('category', category);
+		if (priceState) params.set('price_state', priceState);
+		if (countyId) params.set('county_id', countyId);
+		if (localityId) params.set('locality_id', localityId);
+		return `${resolve('/')}?${params.toString()}`;
 	}
 
 	function layout() {
@@ -96,7 +132,27 @@
 					<option value={option.slug}>{option.name}</option>
 				{/each}
 			</select>
-			{#if q || category || priceState}
+			<label class="sr-only" for="browse-county">Filter by county</label>
+			<select id="browse-county" name="county_id" value={countyId} onchange={onCountyChange}>
+				<option value="">All counties</option>
+				{#each countyOptions as option (option.id)}
+					<option value={option.id}>{option.name}</option>
+				{/each}
+			</select>
+			<label class="sr-only" for="browse-locality">Filter by locality</label>
+			<select
+				id="browse-locality"
+				name="locality_id"
+				value={localityId}
+				disabled={!countyId}
+				onchange={onLocalityChange}
+			>
+				<option value="">All localities</option>
+				{#each localityOptions as option (option.id)}
+					<option value={option.id}>{option.name}</option>
+				{/each}
+			</select>
+			{#if q || category || priceState || countyId || localityId}
 				<a class="clear" href={resolve('/')} rel="external">Clear</a>
 			{/if}
 		</form>
@@ -121,20 +177,12 @@
 
 <nav class="pager" aria-label="Pagination">
 	{#if data.page > 1}
-		<a
-			class="pager__link"
-			href={`${resolve('/')}?page=${data.page - 1}${q ? `&q=${encodeURIComponent(q)}` : ''}${category ? `&category=${encodeURIComponent(category)}` : ''}${priceState ? `&price_state=${encodeURIComponent(priceState)}` : ''}`}
-			rel="external"
-		>
+		<a class="pager__link" href={buildPageHref(data.page - 1)} rel="external">
 			Prev
 		</a>
 	{/if}
 	{#if data.nextPage}
-		<a
-			class="pager__link"
-			href={`${resolve('/')}?page=${data.nextPage}${q ? `&q=${encodeURIComponent(q)}` : ''}${category ? `&category=${encodeURIComponent(category)}` : ''}${priceState ? `&price_state=${encodeURIComponent(priceState)}` : ''}`}
-			rel="external"
-		>
+		<a class="pager__link" href={buildPageHref(data.nextPage)} rel="external">
 			Next
 		</a>
 	{/if}
@@ -163,11 +211,17 @@
 	}
 	.search__form {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto minmax(160px, 220px) auto;
+		grid-template-columns:
+			minmax(0, 2fr)
+			auto
+			minmax(140px, 1fr)
+			minmax(150px, 1fr)
+			minmax(150px, 1fr)
+			auto;
 		gap: 10px;
 		align-items: center;
 		width: 100%;
-		max-width: 720px;
+		max-width: 980px;
 		justify-self: start;
 	}
 	.search__form input,
@@ -214,6 +268,8 @@
 			grid-template-areas:
 				'q btn'
 				'browse browse'
+				'county county'
+				'locality locality'
 				'clear clear';
 			max-width: 100%;
 		}
@@ -222,6 +278,12 @@
 		}
 		#browse-category {
 			grid-area: browse;
+		}
+		#browse-county {
+			grid-area: county;
+		}
+		#browse-locality {
+			grid-area: locality;
 		}
 		.search__form button {
 			grid-area: btn;
@@ -244,7 +306,7 @@
 		}
 		.search__form {
 			justify-self: end;
-			max-width: 640px;
+			max-width: 980px;
 			padding: 12px;
 			border-radius: 16px;
 			border: 1px solid var(--hairline);

@@ -7,6 +7,7 @@ const MAX_AD_PRICE_VALIDATION_MESSAGE =
 
 async function goToPriceStep(page: Page) {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 	await page.selectOption('#category', 'Services & Gigs');
 	await page.fill('#title', 'E2E Listing Title');
 	await page.fill(
@@ -14,6 +15,12 @@ async function goToPriceStep(page: Page) {
 		'E2E listing description that is long enough to pass validation.'
 	);
 	await page.getByRole('button', { name: 'Continue' }).click();
+}
+
+async function selectDefaultLocation(page: Page) {
+	await page.selectOption('#location-county', 'ie/leinster/dublin');
+	await expect(page.locator('#location-locality')).toBeEnabled();
+	await page.selectOption('#location-locality', 'ie/leinster/dublin/ard-na-greine');
 }
 
 test('login page loads the email form', async ({ page }) => {
@@ -71,6 +78,7 @@ test('post price step rejects values above max integer range', async ({ page }) 
 
 test('bike subtype resets when bike type changes to a different branch', async ({ page }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Kids bike' }).click();
@@ -88,6 +96,7 @@ test('bike subtype resets when bike type changes to a different branch', async (
 
 test('bike subtype options are scoped to selected bike type', async ({ page }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Kids bike' }).click();
@@ -110,6 +119,7 @@ test('bike subtype options are scoped to selected bike type', async ({ page }) =
 
 test('kids bike requires age-range size before continuing', async ({ page }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Kids bike' }).click();
@@ -130,6 +140,7 @@ test('adult bike with subtype, condition, and size can continue to price step', 
 	page
 }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Adult bike' }).click();
@@ -148,6 +159,7 @@ test('adult bike with subtype, condition, and size can continue to price step', 
 
 test('adult manual size is numeric-only and uses inline unit selector', async ({ page }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Adult bike' }).click();
@@ -166,6 +178,7 @@ test('electric bike with subtype, condition, and size can continue to price step
 	page
 }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Electric bike' }).click();
@@ -184,6 +197,7 @@ test('electric bike with subtype, condition, and size can continue to price step
 
 test('bike min-offer preset submits expected offer rules payload', async ({ page }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Adult bike' }).click();
@@ -243,6 +257,7 @@ test('bike min-offer preset submits expected offer rules payload', async ({ page
 
 test('bike min-offer percent input submits EUR value', async ({ page }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Adult bike' }).click();
@@ -290,6 +305,7 @@ test('bike min-offer percent input submits EUR value', async ({ page }) => {
 
 test('bike description assist pills populate profile payload', async ({ page }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Adult bike' }).click();
@@ -349,6 +365,7 @@ test('bike description assist pills populate profile payload', async ({ page }) 
 
 test('bike description stays empty until description assist is used', async ({ page }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: 'Adult bike' }).click();
@@ -369,6 +386,7 @@ test('bike description assist keeps sub-pill and custom input in sync across pro
 	page
 }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 
 	await page.selectOption('#category', 'Bikes');
 	await page.getByRole('button', { name: /Reason for selling/i }).click();
@@ -398,6 +416,7 @@ test('bike description assist keeps sub-pill and custom input in sync across pro
 
 test('navbar shows Post ad and Logout when signed in (mocked)', async ({ page }) => {
 	await page.goto('/post');
+	await selectDefaultLocation(page);
 	await expect(page.getByRole('link', { name: 'Post ad' })).toBeVisible();
 	await page.getByRole('button', { name: 'Toggle navigation' }).click();
 	await expect(page.getByRole('link', { name: 'My ads' })).toBeVisible();
