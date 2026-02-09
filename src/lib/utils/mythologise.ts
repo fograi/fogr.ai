@@ -19,6 +19,11 @@ type IrishHandleOptions = {
 	separator?: string;
 };
 
+const SHA256_DIGEST_BYTES = 32;
+const TAG_SOURCE_OFFSET_BYTES = 2;
+const MIN_TAG_CHARS = 2;
+const MAX_TAG_CHARS = Math.floor(((SHA256_DIGEST_BYTES - TAG_SOURCE_OFFSET_BYTES) * 8) / 5);
+
 /**
  * APPEND ONLY. Never reorder, or existing users’ names will change.
  * gender: "m" | "f"
@@ -176,7 +181,20 @@ function seimhiu(word: string): string {
 
 function makeTag(h: Uint8Array, tagChars: number): string {
 	const bytesNeeded = Math.max(2, Math.ceil((tagChars * 5) / 8));
-	return base32Crockford(h.subarray(2, 2 + bytesNeeded)).slice(0, tagChars);
+	return base32Crockford(h.subarray(TAG_SOURCE_OFFSET_BYTES, TAG_SOURCE_OFFSET_BYTES + bytesNeeded)).slice(
+		0,
+		tagChars
+	);
+}
+
+function validateTagChars(tagChars: number): number {
+	if (!Number.isFinite(tagChars) || !Number.isInteger(tagChars)) {
+		throw new TypeError('tagChars must be a whole number.');
+	}
+	if (tagChars < MIN_TAG_CHARS || tagChars > MAX_TAG_CHARS) {
+		throw new RangeError(`tagChars must be between ${MIN_TAG_CHARS} and ${MAX_TAG_CHARS}.`);
+	}
+	return tagChars;
 }
 
 function getByte(bytes: Uint8Array, index: number): number {
@@ -196,11 +214,12 @@ function pickAt<T>(values: readonly T[], index: number): T {
  * - uid: UUID string
  * - secret: server-side secret (env var); NEVER ship to client
  */
-export function fogrIrishHandle(
+export function mythologise(
 	uid: string,
 	secret: crypto.BinaryLike,
 	{ tagChars = 4, separator = '-' }: IrishHandleOptions = {}
 ): string {
+	const safeTagChars = validateTagChars(tagChars);
 	const h = crypto.createHmac('sha256', secret).update(uid).digest();
 
 	// deterministic “reroll”: if denylist hit, shift indices using later bytes
@@ -213,7 +232,7 @@ export function fogrIrishHandle(
 
 		const adj = noun.gender === 'f' ? (adjEntry.fem ?? seimhiu(adjEntry.lemma)) : adjEntry.lemma;
 
-		const tag = makeTag(h, tagChars);
+		const tag = makeTag(h, safeTagChars);
 
 		const out = `${noun.w}${separator}${adj}${separator}${tag}`.toLocaleLowerCase('ga-IE');
 
@@ -233,7 +252,7 @@ export function fogrIrishHandle(
 		noun.gender === 'f'
 			? seimhiu(pickAt(ADJ, getByte(h, 1) % ADJ.length).lemma)
 			: pickAt(ADJ, getByte(h, 1) % ADJ.length).lemma;
-	return `${noun.w}${separator}${adj}${separator}${makeTag(h, tagChars)}`.toLocaleLowerCase(
+	return `${noun.w}${separator}${adj}${separator}${makeTag(h, safeTagChars)}`.toLocaleLowerCase(
 		'ga-IE'
 	);
 }
