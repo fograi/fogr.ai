@@ -99,10 +99,70 @@ function extractCounts(sourceText) {
 
 	const nounMatches = [...nounArray.matchAll(/\bw\s*:\s*['"`]/g)];
 	const adjectiveMatches = [...adjectiveArray.matchAll(/\blemma\s*:\s*['"`]/g)];
+	const adjectiveEntries = parseAdjectiveEntries(adjectiveArray);
+	const coreAdjectives = adjectiveEntries.filter((entry) => entry.role === 'core');
+	const qualifierAdjectives = adjectiveEntries.filter((entry) => entry.role === 'qualifier');
+	const adjectivePairStats = countEffectiveAdjectivePairs(coreAdjectives, qualifierAdjectives);
 
 	return {
 		nouns: nounMatches.length,
-		adjectives: adjectiveMatches.length
+		adjectives: adjectiveMatches.length,
+		coreAdjectives: coreAdjectives.length,
+		qualifierAdjectives: qualifierAdjectives.length,
+		rawAdjectivePairs: adjectivePairStats.rawPairs,
+		effectiveAdjectivePairs: adjectivePairStats.effectivePairs,
+		rootConflictPairs: adjectivePairStats.rootConflicts
+	};
+}
+
+function parseAdjectiveEntries(adjectiveArrayText) {
+	const entries = [];
+	const pattern =
+		/\{\s*lemma\s*:\s*(['"`])([^'"`]+)\1\s*,\s*role\s*:\s*(['"`])(core|qualifier)\3(?:\s*,\s*fem\s*:\s*(['"`])([^'"`]+)\5)?\s*\}/g;
+	let match;
+	while ((match = pattern.exec(adjectiveArrayText)) !== null) {
+		entries.push({
+			lemma: match[2],
+			role: match[4],
+			fem: match[6] || null
+		});
+	}
+	return entries;
+}
+
+function adjRoot(lemma) {
+	return lemma.toLocaleLowerCase('ga-IE').replace(/^fíor/, '').replace(/^sár/, '').trim();
+}
+
+function countEffectiveAdjectivePairs(coreAdjectives, qualifierAdjectives) {
+	if (coreAdjectives.length === 0 || qualifierAdjectives.length === 0) {
+		return {
+			rawPairs: 0,
+			effectivePairs: 0,
+			rootConflicts: 0
+		};
+	}
+
+	const pairSet = new Set();
+	let rootConflicts = 0;
+
+	for (let coreIndex = 0; coreIndex < coreAdjectives.length; coreIndex++) {
+		const coreRoot = adjRoot(coreAdjectives[coreIndex].lemma);
+		for (let qualifierIndex = 0; qualifierIndex < qualifierAdjectives.length; qualifierIndex++) {
+			let effectiveQualifierIndex = qualifierIndex;
+			const qualifierRoot = adjRoot(qualifierAdjectives[qualifierIndex].lemma);
+			if (qualifierRoot === coreRoot) {
+				rootConflicts += 1;
+				effectiveQualifierIndex = (qualifierIndex + 1) % qualifierAdjectives.length;
+			}
+			pairSet.add(`${coreIndex}:${effectiveQualifierIndex}`);
+		}
+	}
+
+	return {
+		rawPairs: coreAdjectives.length * qualifierAdjectives.length,
+		effectivePairs: pairSet.size,
+		rootConflicts
 	};
 }
 
@@ -235,14 +295,28 @@ function main() {
 	const options = parseArgs(process.argv.slice(2));
 	const sourcePath = path.resolve(options.source);
 	const sourceText = fs.readFileSync(sourcePath, 'utf8');
-	const { nouns, adjectives } = extractCounts(sourceText);
-	if (nouns === 0 || adjectives === 0) {
+	const {
+		nouns,
+		adjectives,
+		coreAdjectives,
+		qualifierAdjectives,
+		rawAdjectivePairs,
+		effectiveAdjectivePairs,
+		rootConflictPairs
+	} = extractCounts(sourceText);
+	if (
+		nouns === 0 ||
+		adjectives === 0 ||
+		coreAdjectives === 0 ||
+		qualifierAdjectives === 0 ||
+		effectiveAdjectivePairs === 0
+	) {
 		throw new Error(
-			`Parsed invalid counts from source (nouns=${nouns}, adjectives=${adjectives}). ` +
+			`Parsed invalid counts from source (nouns=${nouns}, adjectives=${adjectives}, core=${coreAdjectives}, qualifier=${qualifierAdjectives}, effectivePairs=${effectiveAdjectivePairs}). ` +
 				'Check NOUNS/ADJ array shape and parser assumptions.'
 		);
 	}
-	const combos = nouns * adjectives;
+	const combos = nouns * effectiveAdjectivePairs;
 
 	const rows = [];
 	for (const tagChars of options.tagChars) {
@@ -275,7 +349,16 @@ function main() {
 			JSON.stringify(
 				{
 					sourcePath,
-					counts: { nouns, adjectives, combinations: combos },
+					counts: {
+						nouns,
+						adjectives,
+						coreAdjectives,
+						qualifierAdjectives,
+						rawAdjectivePairs,
+						effectiveAdjectivePairs,
+						rootConflictPairs,
+						combinations: combos
+					},
 					targetProbability: options.targetProbability,
 					rows,
 					recommendations
@@ -291,7 +374,12 @@ function main() {
 	console.log(`source: ${sourcePath}`);
 	console.log(`nouns: ${nouns}`);
 	console.log(`adjectives: ${adjectives}`);
-	console.log(`noun/adjective combinations: ${combos}`);
+	console.log(`core adjectives: ${coreAdjectives}`);
+	console.log(`qualifier adjectives: ${qualifierAdjectives}`);
+	console.log(`raw core×qualifier pairs: ${rawAdjectivePairs}`);
+	console.log(`effective core/qualifier pairs: ${effectiveAdjectivePairs}`);
+	console.log(`root-conflict pairs remapped: ${rootConflictPairs}`);
+	console.log(`noun/(core+qualifier) combinations: ${combos}`);
 	console.log(`target max collision probability: ${formatPercent(options.targetProbability)}`);
 	console.log('');
 	console.log(

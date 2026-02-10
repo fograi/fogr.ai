@@ -459,7 +459,8 @@ function pickAt<T>(values: readonly T[], index: number): T {
 
 /**
  * Creates a deterministic Irish-style pseudonym for a stable user identifier.
- * Output format is `noun{separator}adjective{separator}tag` (lowercased with `ga-IE`).
+ * Output format is `noun{separator}coreAdj{separator}qualAdj{separator}tag`
+ * (lowercased with `ga-IE`).
  *
  * @param uid Stable user identifier (for example, a UUID string).
  * @param secret Server-side HMAC secret; never expose this to clients.
