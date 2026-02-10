@@ -16,6 +16,7 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "svelte-kit sync && playwright test",
+		"mythologise:collisions": "node scripts/mythologise-collision-report.mjs",
 		"deploy": "npm run build && wrangler deploy",
 		"cf-typegen": "wrangler types ./src/worker-configuration.d.ts"
 	},

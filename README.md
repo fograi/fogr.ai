@@ -68,6 +68,18 @@ Unit tests:
 npm run test:unit
 ```
 
+Collision risk report for pseudonym handles:
+
+```sh
+npm run mythologise:collisions
+```
+
+Custom scenarios:
+
+```sh
+npm run mythologise:collisions -- --users 100000,1000000 --tag-chars 4,6,8,12 --target-prob 0.01
+```
+
 E2E tests:
 
 ```sh

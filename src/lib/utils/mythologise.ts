@@ -57,6 +57,20 @@ export const NOUNS: readonly NounEntry[] = [
 	{ w: 'Oscar', gender: 'm', type: 'myth' },
 	{ w: 'Diarmaid', gender: 'm', type: 'myth' },
 	{ w: 'Cú Chulainn', gender: 'm', type: 'myth' },
+	{ w: 'Danu', gender: 'f', type: 'myth' },
+	{ w: 'Dian Cécht', gender: 'm', type: 'myth' },
+	{ w: 'Airmid', gender: 'f', type: 'myth' },
+	{ w: 'Miach', gender: 'm', type: 'myth' },
+	{ w: 'Credne', gender: 'm', type: 'myth' },
+	{ w: 'Luchta', gender: 'm', type: 'myth' },
+	{ w: 'Bres', gender: 'm', type: 'myth' },
+	{ w: 'Delbaeth', gender: 'm', type: 'myth' },
+	{ w: 'Étan', gender: 'f', type: 'myth' },
+	{ w: 'Midir', gender: 'm', type: 'myth' },
+	{ w: 'Bóand', gender: 'f', type: 'myth' }, // alt spelling sometimes used; keep if you want variants
+	{ w: 'Ailill', gender: 'm', type: 'myth' },
+	{ w: 'Conall', gender: 'm', type: 'myth' },
+	{ w: 'Cormac', gender: 'm', type: 'myth' },
 
 	// --- Nature nouns (common nouns; gender per standard Irish usage)
 	{ w: 'Abhainn', gender: 'f', type: 'nature' },
@@ -69,7 +83,15 @@ export const NOUNS: readonly NounEntry[] = [
 	{ w: 'Trá', gender: 'f', type: 'nature' },
 	{ w: 'Bá', gender: 'f', type: 'nature' },
 	{ w: 'Cloch', gender: 'f', type: 'nature' },
-
+	{ w: 'Dair', gender: 'f', type: 'nature' }, // oak tree
+	{ w: 'Iúir', gender: 'f', type: 'nature' }, // yew
+	{ w: 'Giúis', gender: 'f', type: 'nature' }, // pine/fir
+	{ w: 'Crann Creathach', gender: 'm', type: 'nature' }, // aspen (lit. shaking tree)
+	{ w: 'Rós', gender: 'm', type: 'nature' },
+	{ w: 'Fraoch', gender: 'm', type: 'nature' },
+	{ w: 'Neantóg', gender: 'f', type: 'nature' },
+	{ w: 'Seamair', gender: 'f', type: 'nature' },
+	{ w: 'Lus', gender: 'm', type: 'nature' },
 	{ w: 'Loch', gender: 'm', type: 'nature' },
 	{ w: 'Sliabh', gender: 'm', type: 'nature' },
 	{ w: 'Gleann', gender: 'm', type: 'nature' },
@@ -79,11 +101,42 @@ export const NOUNS: readonly NounEntry[] = [
 	{ w: 'Ceo', gender: 'm', type: 'nature' },
 	{ w: 'Sneachta', gender: 'm', type: 'nature' },
 	{ w: 'Lá', gender: 'm', type: 'nature' },
+	{ w: 'Fia', gender: 'm', type: 'nature' },
+	{ w: 'Rón', gender: 'm', type: 'nature' },
+	{ w: 'Iolar', gender: 'm', type: 'nature' },
+	{ w: 'Mac Tíre', gender: 'm', type: 'nature' },
+	{ w: 'Madra Rua', gender: 'm', type: 'nature' }, // fox (lit. red dog)
+	{ w: 'Dobharchú', gender: 'm', type: 'nature' },
+	{ w: 'Broc', gender: 'm', type: 'nature' },
+	{ w: 'Faoileán', gender: 'm', type: 'nature' },
+	{ w: 'Corr', gender: 'm', type: 'nature' },
+	{ w: 'Eala', gender: 'f', type: 'nature' },
+	{ w: 'Ulchabhán', gender: 'm', type: 'nature' },
+	{ w: 'Lacha', gender: 'f', type: 'nature' },
+	{ w: 'Coinín', gender: 'm', type: 'nature' },
+	{ w: 'Gráinneog', gender: 'f', type: 'nature' },
+	{ w: 'Dreoilín', gender: 'm', type: 'nature' },
 
 	// --- Place nouns (generic place-words; safe + consistent)
 	{ w: 'Inis', gender: 'f', type: 'place' },
 	{ w: 'Cathair', gender: 'f', type: 'place' },
-
+	{ w: 'Port', gender: 'm', type: 'place' },
+	{ w: 'Droichead', gender: 'm', type: 'place' },
+	{ w: 'Cuan', gender: 'm', type: 'place' },
+	{ w: 'Oileán', gender: 'm', type: 'place' },
+	{ w: 'Cladach', gender: 'm', type: 'place' },
+	{ w: 'Carraig', gender: 'f', type: 'place' },
+	{ w: 'Lios', gender: 'm', type: 'place' },
+	{ w: 'Ráth', gender: 'm', type: 'place' },
+	{ w: 'Dúnfort', gender: 'm', type: 'place' },
+	{ w: 'Crosbhóthar', gender: 'm', type: 'place' },
+	{ w: 'Machaire', gender: 'm', type: 'place' },
+	{ w: 'Móinéar', gender: 'm', type: 'place' },
+	{ w: 'Foraois', gender: 'f', type: 'place' },
+	{ w: 'Coillte', gender: 'f', type: 'place' },
+	{ w: 'Uaimh', gender: 'f', type: 'place' },
+	{ w: 'Aill', gender: 'f', type: 'place' },
+	{ w: 'Ceann Tíre', gender: 'm', type: 'place' },
 	{ w: 'Dún', gender: 'm', type: 'place' },
 	{ w: 'Caisleán', gender: 'm', type: 'place' },
 	{ w: 'Túr', gender: 'm', type: 'place' },
@@ -119,7 +172,30 @@ export const ADJ: readonly AdjectiveEntry[] = [
 	{ lemma: 'críonna' },
 	{ lemma: 'beo' },
 	{ lemma: 'fíor' },
-	{ lemma: 'fionnuar' }
+	{ lemma: 'fionnuar' },
+	{ lemma: 'álainn' },
+	{ lemma: 'cumhachtach' },
+	{ lemma: 'draíochtúil' },
+	{ lemma: 'mistéireach' },
+	{ lemma: 'uaigneach' },
+	{ lemma: 'glé' },
+	{ lemma: 'lonnrach' },
+	{ lemma: 'sóisialta' },
+	{ lemma: 'físiúil' },
+	{ lemma: 'dúthrachtach' },
+	{ lemma: 'flaithiúil' },
+	{ lemma: 'stuama' },
+	{ lemma: 'fiáin' },
+	{ lemma: 'ceansa' },
+	{ lemma: 'binbeach' },
+	{ lemma: 'síochmhar' },
+	{ lemma: 'mórtasach' },
+	{ lemma: 'léannta' },
+	{ lemma: 'grinniúil' },
+	{ lemma: 'sármhaith' },
+	{ lemma: 'fairsing' },
+	{ lemma: 'uaibhreach' },
+	{ lemma: 'iontach' }
 ];
 
 // Keep this small + targeted. You can expand later.
@@ -205,10 +281,9 @@ function seimhiu(word: string): string {
  */
 function makeTag(h: Uint8Array, tagChars: number): string {
 	const bytesNeeded = Math.max(2, Math.ceil((tagChars * 5) / 8));
-	return base32Crockford(h.subarray(TAG_SOURCE_OFFSET_BYTES, TAG_SOURCE_OFFSET_BYTES + bytesNeeded)).slice(
-		0,
-		tagChars
-	);
+	return base32Crockford(
+		h.subarray(TAG_SOURCE_OFFSET_BYTES, TAG_SOURCE_OFFSET_BYTES + bytesNeeded)
+	).slice(0, tagChars);
 }
 
 /**
@@ -265,6 +340,7 @@ function pickAt<T>(values: readonly T[], index: number): T {
  * @param secret Server-side HMAC secret; never expose this to clients.
  * @param options Optional output controls.
  * @param options.tagChars Number of Base32 characters in the suffix tag.
+ * Defaults to `12`; use higher values to further reduce collision risk at scale.
  * @param options.separator Delimiter between noun, adjective, and tag.
  * @returns Deterministic pseudonym string.
  * @throws {TypeError|RangeError} When `options.tagChars` is invalid.
@@ -272,7 +348,7 @@ function pickAt<T>(values: readonly T[], index: number): T {
 export function mythologise(
 	uid: string,
 	secret: crypto.BinaryLike,
-	{ tagChars = 4, separator = '-' }: IrishHandleOptions = {}
+	{ tagChars = 12, separator = '-' }: IrishHandleOptions = {}
 ): string {
 	const safeTagChars = validateTagChars(tagChars);
 	const h = crypto.createHmac('sha256', secret).update(uid).digest();
