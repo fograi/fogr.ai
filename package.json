@@ -17,6 +17,7 @@
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "svelte-kit sync && playwright test",
 		"mythologise:collisions": "node scripts/mythologise-collision-report.mjs",
+		"openmoji:avatar-map": "node scripts/generate-openmoji-avatar-map.mjs",
 		"deploy": "npm run build && wrangler deploy",
 		"cf-typegen": "wrangler types ./src/worker-configuration.d.ts"
 	},
@@ -35,6 +36,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.14.0",
 		"globals": "^17.3.0",
+		"openmoji": "^16.0.0",
 		"playwright": "^1.58.2",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.4.1",
