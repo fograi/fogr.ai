@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import { createHmac, type BinaryLike } from 'node:crypto';
 
 type NounGender = 'm' | 'f';
 type NounType = 'myth' | 'nature' | 'place';
@@ -10,7 +10,7 @@ type NounEntry = {
 };
 
 type AdjRole = 'core' | 'qualifier';
-type AdjectiveEntry = { lemma: string; role: AdjRole };
+type AdjectiveEntry = { lemma: string; role: AdjRole; fem?: string };
 
 type IrishHandleOptions = {
 	tagChars?: number;
@@ -289,10 +289,44 @@ export const ADJ: readonly AdjectiveEntry[] = [
 	{ lemma: 'níomhach', role: 'qualifier' }
 ];
 
+const CORE_ADJ = ADJ.filter((a) => a.role === 'core');
+const QUAL_ADJ = ADJ.filter((a) => a.role === 'qualifier');
+
 // Keep this small + targeted. You can expand later.
 const DENY = new Set<string>([
 	// add any substrings you want to block in final output (lowercase)
 ]);
+
+function adjRoot(lemma: string): string {
+	// crude but effective: treat these as intensifier prefixes
+	return lemma.toLocaleLowerCase('ga-IE').replace(/^fíor/, '').replace(/^sár/, '').trim();
+}
+
+function inflectAdj(noun: NounEntry, adj: AdjectiveEntry): string {
+	return noun.gender === 'f' ? (adj.fem ?? seimhiu(adj.lemma)) : adj.lemma;
+}
+
+function pickAdjPair(
+	h: Uint8Array,
+	attempt: number
+): { core: AdjectiveEntry; qual: AdjectiveEntry } {
+	// Use different byte lanes so the two picks are independent.
+	const coreIdx = (getByte(h, 1) + getByte(h, 18 + attempt)) % CORE_ADJ.length;
+	const qualIdx0 = (getByte(h, 2) + getByte(h, 26 + attempt)) % QUAL_ADJ.length;
+
+	const core = pickAt(CORE_ADJ, coreIdx);
+
+	// Avoid same-ish root (e.g., tapa vs fíorthapa)
+	let qualIdx = qualIdx0;
+	let qual = pickAt(QUAL_ADJ, qualIdx);
+
+	if (adjRoot(qual.lemma) === adjRoot(core.lemma)) {
+		qualIdx = (qualIdx + 1) % QUAL_ADJ.length;
+		qual = pickAt(QUAL_ADJ, qualIdx);
+	}
+
+	return { core, qual };
+}
 
 /**
  * Encodes bytes with the Crockford Base32 alphabet.
@@ -438,25 +472,27 @@ function pickAt<T>(values: readonly T[], index: number): T {
  */
 export function mythologise(
 	uid: string,
-	secret: crypto.BinaryLike,
+	secret: BinaryLike,
 	{ tagChars = 12, separator = '-' }: IrishHandleOptions = {}
 ): string {
 	const safeTagChars = validateTagChars(tagChars);
-	const h = crypto.createHmac('sha256', secret).update(uid).digest();
+	const h = createHmac('sha256', secret).update(uid).digest();
 
 	// deterministic “reroll”: if denylist hit, shift indices using later bytes
 	for (let attempt = 0; attempt < 8; attempt++) {
 		const nIdx = (getByte(h, 0) + getByte(h, 10 + attempt)) % NOUNS.length;
-		const aIdx = (getByte(h, 1) + getByte(h, 18 + attempt)) % ADJ.length;
-
 		const noun = pickAt(NOUNS, nIdx);
-		const adjEntry = pickAt(ADJ, aIdx);
+		const { core, qual } = pickAdjPair(h, attempt);
 
-		const adj = noun.gender === 'f' ? (adjEntry.fem ?? seimhiu(adjEntry.lemma)) : adjEntry.lemma;
+		const adj1 = inflectAdj(noun, core);
+		const adj2 = inflectAdj(noun, qual);
 
 		const tag = makeTag(h, safeTagChars);
 
-		const out = `${noun.w}${separator}${adj}${separator}${tag}`.toLocaleLowerCase('ga-IE');
+		const out =
+			`${noun.w}${separator}${adj1}${separator}${adj2}${separator}${tag}`.toLocaleLowerCase(
+				'ga-IE'
+			);
 
 		let blocked = false;
 		for (const bad of DENY) {
@@ -470,11 +506,12 @@ export function mythologise(
 
 	// fallback (should be rare unless DENY is aggressive)
 	const noun = pickAt(NOUNS, getByte(h, 0) % NOUNS.length);
-	const adj =
-		noun.gender === 'f'
-			? seimhiu(pickAt(ADJ, getByte(h, 1) % ADJ.length).lemma)
-			: pickAt(ADJ, getByte(h, 1) % ADJ.length).lemma;
-	return `${noun.w}${separator}${adj}${separator}${makeTag(h, safeTagChars)}`.toLocaleLowerCase(
+	const { core, qual } = pickAdjPair(h, 0);
+
+	const adj1 = inflectAdj(noun, core);
+	const adj2 = inflectAdj(noun, qual);
+
+	return `${noun.w}${separator}${adj1}${separator}${adj2}${separator}${makeTag(h, safeTagChars)}`.toLocaleLowerCase(
 		'ga-IE'
 	);
 }
