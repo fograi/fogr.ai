@@ -3,6 +3,7 @@
 	import { formatPriceLabel } from '$lib/utils/price';
 	import InlineSpinner from '$lib/components/loading/InlineSpinner.svelte';
 	import SkeletonBlock from '$lib/components/loading/SkeletonBlock.svelte';
+	import { tagToAvatar } from '$lib/utils/tag-to-avatar';
 
 	type MessageView = {
 		id: string;
@@ -18,6 +19,7 @@
 			id: string;
 			adId: string;
 			counterpartyName: string;
+			counterpartyTag: string;
 			adTitle: string;
 			adPrice: number | null;
 			adCurrency: string | null;
@@ -106,6 +108,15 @@
 			locale: 'en-IE',
 			showRewardWhenMissing: true
 		});
+	$: counterpartyAvatar = tagToAvatar(data.conversation.counterpartyTag, {
+		format: 'svg',
+		size: 40,
+		label: `${data.conversation.counterpartyName} avatar`
+	});
+	$: counterpartyAvatarDataUri =
+		counterpartyAvatar.format === 'svg'
+			? `data:image/svg+xml;utf8,${encodeURIComponent(counterpartyAvatar.svg)}`
+			: '';
 
 	async function send() {
 		err = '';
@@ -157,7 +168,16 @@
 		<div>
 			<a class="back" href={resolve('/(app)/messages')}>&lt;&nbsp;Messages</a>
 			<h1>{data.conversation.adTitle}</h1>
-			<p class="counterparty-name">Chat with {data.conversation.counterpartyName}</p>
+			<div class="counterparty">
+				<span class="avatar" aria-hidden="true">
+					{#if counterpartyAvatarDataUri}
+						<img src={counterpartyAvatarDataUri} alt="" width="40" height="40" />
+					{:else}
+						<span class="avatar-emoji">{counterpartyAvatar.emoji}</span>
+					{/if}
+				</span>
+				<p class="counterparty-name">Chat with {data.conversation.counterpartyName}</p>
+			</div>
 			<details class="ad-summary">
 				<summary>
 					<span class="summary-label">Listing details</span>
@@ -210,12 +230,21 @@
 			{#each items as item (item.id)}
 				{#if item.type === 'divider'}
 					<div class="divider">{item.label}</div>
-				{:else}
-					<div class={`bubble ${item.msg.isMine ? 'mine' : 'theirs'}`}>
-						{#if !item.msg.isMine}
-							<p class="sender">{data.conversation.counterpartyName}</p>
-						{/if}
-						<p class="body">{item.msg.body}</p>
+					{:else}
+						<div class={`bubble ${item.msg.isMine ? 'mine' : 'theirs'}`}>
+							{#if !item.msg.isMine}
+								<div class="sender-row">
+									<span class="avatar tiny" aria-hidden="true">
+										{#if counterpartyAvatarDataUri}
+											<img src={counterpartyAvatarDataUri} alt="" width="24" height="24" />
+										{:else}
+											<span class="avatar-emoji">{counterpartyAvatar.emoji}</span>
+										{/if}
+									</span>
+									<p class="sender">{data.conversation.counterpartyName}</p>
+								</div>
+							{/if}
+							<p class="body">{item.msg.body}</p>
 						{#if item.msg.kind === 'offer' && item.msg.autoDeclined}
 							<p class="auto-decline">
 								Offer auto-declined{data.autoDeclineMessage ? `: ${data.autoDeclineMessage}` : '.'}
@@ -283,10 +312,42 @@
 		font-size: 1.5rem;
 		font-weight: 800;
 	}
+	.counterparty {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 6px;
+	}
 	.counterparty-name {
-		margin: 0 0 6px;
+		margin: 0;
 		font-weight: 600;
 		color: color-mix(in srgb, var(--fg) 62%, transparent);
+	}
+	.avatar {
+		width: 40px;
+		height: 40px;
+		flex: 0 0 40px;
+		display: grid;
+		place-items: center;
+		border-radius: 12px;
+		border: 1px solid var(--hairline);
+		background: color-mix(in srgb, var(--fg) 4%, var(--bg));
+		overflow: hidden;
+	}
+	.avatar.tiny {
+		width: 24px;
+		height: 24px;
+		flex-basis: 24px;
+		border-radius: 8px;
+	}
+	.avatar img {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+	.avatar-emoji {
+		font-size: 1rem;
+		line-height: 1;
 	}
 	.ad-summary {
 		margin-top: 6px;
@@ -394,6 +455,11 @@
 		font-weight: 700;
 		letter-spacing: 0.02em;
 		color: color-mix(in srgb, var(--fg) 62%, transparent);
+	}
+	.sender-row {
+		display: flex;
+		align-items: center;
+		gap: 6px;
 	}
 	.auto-decline {
 		margin: 0;

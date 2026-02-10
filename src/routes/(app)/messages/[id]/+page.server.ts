@@ -7,7 +7,7 @@ import {
 	isE2eMock
 } from '$lib/server/e2e-mocks';
 import { hasPaidPrice } from '$lib/utils/price';
-import { chatDisplayNameFromUserId } from '$lib/server/chat-display-name';
+import { chatIdentityFromUserId } from '$lib/server/chat-display-name';
 
 const formatMoney = (value: number, currency = 'EUR') =>
 	new Intl.NumberFormat('en-IE', {
@@ -66,11 +66,13 @@ async function loadConversationMessages(
 
 export const load: PageServerLoad = async ({ params, locals, url, platform }) => {
 	if (isE2eMock(platform)) {
+		const identity = chatIdentityFromUserId(E2E_MOCK_CONVERSATION.seller_id, platform);
 		return {
 			conversation: {
 				id: E2E_MOCK_CONVERSATION.id,
 				adId: E2E_MOCK_AD.id,
-				counterpartyName: chatDisplayNameFromUserId(E2E_MOCK_CONVERSATION.seller_id, platform),
+				counterpartyName: identity.displayName,
+				counterpartyTag: identity.tag,
 				adTitle: E2E_MOCK_AD.title,
 				adPrice: E2E_MOCK_AD.price ?? null,
 				adCurrency: E2E_MOCK_AD.currency ?? null,
@@ -118,6 +120,7 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 
 	const isSeller = convo.seller_id === user.id;
 	const counterpartyId = isSeller ? convo.buyer_id : convo.seller_id;
+	const counterpartyIdentity = chatIdentityFromUserId(counterpartyId, platform);
 	const nowIso = new Date().toISOString();
 	const updateData = isSeller ? { seller_last_read_at: nowIso } : { buyer_last_read_at: nowIso };
 	await locals.supabase.from('conversations').update(updateData).eq('id', convo.id);
@@ -134,7 +137,8 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 		conversation: {
 			id: convo.id,
 			adId: convo.ad_id,
-			counterpartyName: chatDisplayNameFromUserId(counterpartyId, platform),
+			counterpartyName: counterpartyIdentity.displayName,
+			counterpartyTag: counterpartyIdentity.tag,
 			adTitle: ad?.title ?? 'Listing',
 			adPrice: ad?.price ?? null,
 			adCurrency: ad?.currency ?? null,

@@ -2,13 +2,14 @@
 	import { onDestroy } from 'svelte';
 	import InlineSpinner from '$lib/components/loading/InlineSpinner.svelte';
 	import ProgressBar from '$lib/components/loading/ProgressBar.svelte';
+	import { tagToAvatar } from '$lib/utils/tag-to-avatar';
 	import {
 		getExportStageTarget,
 		stepTowardPercent,
 		type ExportStage
 	} from '$lib/utils/loading';
 
-	export let data: { user: { id: string; email?: string | null } };
+	export let data: { user: { id: string; email?: string | null; displayName: string; tag: string } };
 
 	let exporting = false;
 	let deleting = false;
@@ -27,6 +28,13 @@
 					: exportStage === 'complete'
 						? 'Export ready.'
 						: '';
+	$: userAvatar = tagToAvatar(data.user.tag, {
+		format: 'svg',
+		size: 72,
+		label: `${data.user.displayName} avatar`
+	});
+	$: userAvatarDataUri =
+		userAvatar.format === 'svg' ? `data:image/svg+xml;utf8,${encodeURIComponent(userAvatar.svg)}` : '';
 
 	function stopExportTicker() {
 		if (!exportTicker) return;
@@ -114,11 +122,27 @@
 <section class="account">
 	<header class="head">
 		<h1>Account</h1>
-	<p class="sub">Manage your data or delete your account.</p>
+		<p class="sub">Manage your data or delete your account.</p>
 	</header>
 
 	<div class="card">
 		<div class="row">
+			<div class="identity">
+				<div class="avatar" aria-hidden="true">
+					{#if userAvatar.format === 'svg'}
+						<img src={userAvatarDataUri} alt="" width="72" height="72" />
+					{:else}
+						<span>{userAvatar.emoji}</span>
+					{/if}
+				</div>
+				<div>
+					<p class="label">Chat display name</p>
+					<p class="value">{data.user.displayName}</p>
+					<p class="helper">
+						People can recognize you in chats while your real identity stays private.
+					</p>
+				</div>
+			</div>
 			<div>
 				<p class="label">Signed in as</p>
 				<p class="value">{data.user.email ?? 'Unknown email'}</p>
@@ -199,10 +223,35 @@
 	.row {
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
+		align-items: flex-start;
 		gap: 12px;
 		flex-wrap: wrap;
 		min-width: 0;
+	}
+	.identity {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		min-width: 0;
+	}
+	.avatar {
+		width: 72px;
+		height: 72px;
+		flex: 0 0 72px;
+		display: grid;
+		place-items: center;
+		border-radius: 16px;
+		border: 1px solid var(--hairline);
+		background: color-mix(in srgb, var(--fg) 4%, var(--bg));
+		overflow: hidden;
+	}
+	.avatar img {
+		display: block;
+		width: 72px;
+		height: 72px;
+	}
+	.avatar span {
+		font-size: 1.9rem;
 	}
 	.label {
 		margin: 0;
@@ -214,6 +263,11 @@
 		font-weight: 700;
 		overflow-wrap: anywhere;
 		word-break: break-word;
+	}
+	.helper {
+		margin: 4px 0 0;
+		font-size: 0.88rem;
+		color: color-mix(in srgb, var(--fg) 63%, transparent);
 	}
 	button {
 		border: 0;

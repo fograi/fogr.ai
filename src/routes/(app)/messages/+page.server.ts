@@ -6,7 +6,7 @@ import {
 	E2E_MOCK_MESSAGES,
 	isE2eMock
 } from '$lib/server/e2e-mocks';
-import { chatDisplayNameFromUserId } from '$lib/server/chat-display-name';
+import { chatIdentityFromUserId } from '$lib/server/chat-display-name';
 
 type ConversationView = {
 	id: string;
@@ -16,6 +16,7 @@ type ConversationView = {
 	adCurrency: string | null;
 	counterpartyId: string;
 	counterpartyName: string;
+	counterpartyTag: string;
 	role: 'buyer' | 'seller';
 	lastMessageAt: string;
 	preview: string;
@@ -25,6 +26,10 @@ type ConversationView = {
 
 const buildE2eConversations = (platform?: App.Platform) => {
 	const now = Date.now();
+	const sellerIdentity = chatIdentityFromUserId(E2E_MOCK_CONVERSATION.seller_id, platform);
+	const seller2Identity = chatIdentityFromUserId('22222222-2222-2222-2222-222222222222', platform);
+	const seller3Identity = chatIdentityFromUserId('33333333-3333-3333-3333-333333333333', platform);
+	const buyerIdentity = chatIdentityFromUserId('44444444-4444-4444-4444-444444444444', platform);
 	return [
 		{
 			id: E2E_MOCK_CONVERSATION.id,
@@ -33,7 +38,8 @@ const buildE2eConversations = (platform?: App.Platform) => {
 			adPrice: E2E_MOCK_AD.price,
 			adCurrency: E2E_MOCK_AD.currency,
 			counterpartyId: E2E_MOCK_CONVERSATION.seller_id,
-			counterpartyName: chatDisplayNameFromUserId(E2E_MOCK_CONVERSATION.seller_id, platform),
+			counterpartyName: sellerIdentity.displayName,
+			counterpartyTag: sellerIdentity.tag,
 			role: 'buyer',
 			lastMessageAt: E2E_MOCK_CONVERSATION.last_message_at,
 			preview: E2E_MOCK_MESSAGES[E2E_MOCK_MESSAGES.length - 1]?.body ?? '',
@@ -47,7 +53,8 @@ const buildE2eConversations = (platform?: App.Platform) => {
 			adPrice: 220,
 			adCurrency: 'EUR',
 			counterpartyId: '22222222-2222-2222-2222-222222222222',
-			counterpartyName: chatDisplayNameFromUserId('22222222-2222-2222-2222-222222222222', platform),
+			counterpartyName: seller2Identity.displayName,
+			counterpartyTag: seller2Identity.tag,
 			role: 'seller',
 			lastMessageAt: new Date(now - 1000 * 60 * 3).toISOString(),
 			preview: 'Could you do a better price if I collect today?',
@@ -61,7 +68,8 @@ const buildE2eConversations = (platform?: App.Platform) => {
 			adPrice: 220,
 			adCurrency: 'EUR',
 			counterpartyId: '33333333-3333-3333-3333-333333333333',
-			counterpartyName: chatDisplayNameFromUserId('33333333-3333-3333-3333-333333333333', platform),
+			counterpartyName: seller3Identity.displayName,
+			counterpartyTag: seller3Identity.tag,
 			role: 'seller',
 			lastMessageAt: new Date(now - 1000 * 60 * 14).toISOString(),
 			preview: 'Thanks, I will confirm pickup tomorrow.',
@@ -75,7 +83,8 @@ const buildE2eConversations = (platform?: App.Platform) => {
 			adPrice: 85,
 			adCurrency: 'EUR',
 			counterpartyId: '44444444-4444-4444-4444-444444444444',
-			counterpartyName: chatDisplayNameFromUserId('44444444-4444-4444-4444-444444444444', platform),
+			counterpartyName: buyerIdentity.displayName,
+			counterpartyTag: buyerIdentity.tag,
 			role: 'buyer',
 			lastMessageAt: new Date(now - 1000 * 60 * 26).toISOString(),
 			preview: 'Still available if needed.',
@@ -155,6 +164,7 @@ async function loadConversations(
 		const ad = adMap.get(c.ad_id);
 		const isSeller = c.seller_id === userId;
 		const counterpartyId = isSeller ? c.buyer_id : c.seller_id;
+		const counterpartyIdentity = chatIdentityFromUserId(counterpartyId, platform);
 		const lastReadAt = isSeller ? c.seller_last_read_at : c.buyer_last_read_at;
 		const unreadCount = unreadCounts[idx] ?? 0;
 		const unread = unreadCount > 0 || !lastReadAt || c.last_message_at > lastReadAt;
@@ -165,7 +175,8 @@ async function loadConversations(
 			adPrice: ad?.price ?? null,
 			adCurrency: ad?.currency ?? null,
 			counterpartyId,
-			counterpartyName: chatDisplayNameFromUserId(counterpartyId, platform),
+			counterpartyName: counterpartyIdentity.displayName,
+			counterpartyTag: counterpartyIdentity.tag,
 			role: isSeller ? 'seller' : 'buyer',
 			lastMessageAt: c.last_message_at,
 			preview: previewMap.get(c.id) ?? '',

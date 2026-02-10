@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import InlineSpinner from '$lib/components/loading/InlineSpinner.svelte';
 	import SkeletonBlock from '$lib/components/loading/SkeletonBlock.svelte';
+	import { tagToAvatar } from '$lib/utils/tag-to-avatar';
 
 	type ConversationView = {
 		id: string;
@@ -13,6 +14,7 @@
 		adCurrency: string | null;
 		counterpartyId: string;
 		counterpartyName: string;
+		counterpartyTag: string;
 		role: 'buyer' | 'seller';
 		lastMessageAt: string;
 		preview: string;
@@ -87,6 +89,14 @@
 			currency: currency ?? 'EUR',
 			maximumFractionDigits: 0
 		}).format(value);
+	};
+	const avatarFor = (tag: string, name: string, size = 34) => {
+		const avatar = tagToAvatar(tag, { format: 'svg', size, label: `${name} avatar` });
+		return {
+			emoji: avatar.emoji,
+			dataUri:
+				avatar.format === 'svg' ? `data:image/svg+xml;utf8,${encodeURIComponent(avatar.svg)}` : ''
+		};
 	};
 
 	const toRoleBucket = (role: ConversationView['role']): RoleBucket =>
@@ -335,19 +345,29 @@
 														<span class="badge">{group.unreadCount}</span>
 													{/if}
 												</summary>
-												<ul class="threads nested">
-													{#each group.conversations as convo (convo.id)}
-														<li>
-															<a
-																class="thread nested-thread"
-																href={resolve('/(app)/messages/[id]', { id: convo.id })}
-															>
-																<div class="meta">
-																	<h3>{convo.counterpartyName}</h3>
-																	<span class="role"
-																		>{convo.role === 'seller' ? 'Selling' : 'Buying'}</span
-																	>
-																</div>
+													<ul class="threads nested">
+														{#each group.conversations as convo (convo.id)}
+															{@const avatar = avatarFor(convo.counterpartyTag, convo.counterpartyName, 34)}
+															<li>
+																<a
+																	class="thread nested-thread"
+																	href={resolve('/(app)/messages/[id]', { id: convo.id })}
+																>
+																	<div class="meta">
+																		<div class="person">
+																			<span class="avatar" aria-hidden="true">
+																				{#if avatar.dataUri}
+																					<img src={avatar.dataUri} alt="" width="34" height="34" />
+																				{:else}
+																					<span class="avatar-emoji">{avatar.emoji}</span>
+																				{/if}
+																			</span>
+																			<h3>{convo.counterpartyName}</h3>
+																		</div>
+																		<span class="role"
+																			>{convo.role === 'seller' ? 'Selling' : 'Buying'}</span
+																		>
+																	</div>
 																<div class="submeta">
 																	<span class="time">{fmt(convo.lastMessageAt)}</span>
 																	{#if convo.preview}
@@ -384,18 +404,28 @@
 									<p>{section.conversations.length} chats</p>
 								</header>
 							{/if}
-							<ul class="threads">
-								{#each section.conversations as convo (convo.id)}
-									<li>
-										<a class="thread" href={resolve('/(app)/messages/[id]', { id: convo.id })}>
-											<div class="meta">
-												<h2>{convo.adTitle}</h2>
-												<span class="role">{convo.role === 'seller' ? 'Selling' : 'Buying'}</span>
-											</div>
-											<div class="submeta">
-												<span class="counterparty">{convo.counterpartyName}</span>
-												<span class="time">{fmt(convo.lastMessageAt)}</span>
-											</div>
+								<ul class="threads">
+									{#each section.conversations as convo (convo.id)}
+										{@const avatar = avatarFor(convo.counterpartyTag, convo.counterpartyName, 34)}
+										<li>
+											<a class="thread" href={resolve('/(app)/messages/[id]', { id: convo.id })}>
+												<div class="meta">
+													<h2>{convo.adTitle}</h2>
+													<span class="role">{convo.role === 'seller' ? 'Selling' : 'Buying'}</span>
+												</div>
+												<div class="submeta">
+													<div class="person">
+														<span class="avatar" aria-hidden="true">
+															{#if avatar.dataUri}
+																<img src={avatar.dataUri} alt="" width="34" height="34" />
+															{:else}
+																<span class="avatar-emoji">{avatar.emoji}</span>
+															{/if}
+														</span>
+														<span class="counterparty">{convo.counterpartyName}</span>
+													</div>
+													<span class="time">{fmt(convo.lastMessageAt)}</span>
+												</div>
 											{#if convo.preview}
 												<div class="submeta">
 													<span class="preview">{convo.preview}</span>
@@ -561,6 +591,12 @@
 		justify-content: space-between;
 		gap: 10px;
 	}
+	.person {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		min-width: 0;
+	}
 	.meta h2,
 	.meta h3 {
 		margin: 0;
@@ -587,6 +623,26 @@
 	.counterparty,
 	.price {
 		font-weight: 600;
+	}
+	.avatar {
+		width: 34px;
+		height: 34px;
+		flex: 0 0 34px;
+		display: grid;
+		place-items: center;
+		border-radius: 10px;
+		border: 1px solid var(--hairline);
+		overflow: hidden;
+		background: color-mix(in srgb, var(--fg) 4%, var(--bg));
+	}
+	.avatar img {
+		display: block;
+		width: 34px;
+		height: 34px;
+	}
+	.avatar-emoji {
+		font-size: 1.1rem;
+		line-height: 1;
 	}
 	.preview {
 		overflow: hidden;
