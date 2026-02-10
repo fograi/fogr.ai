@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import type { AdCard, ApiAdRow } from '../types/ad-types';
 import { getPagination } from '$lib/server/pagination';
+import { asCategory } from '$lib/category-browse';
 import {
 	getCountyOptionById,
 	getCountyOptions,
@@ -13,7 +14,7 @@ const DEFAULT_LIMIT = 24;
 export const load: PageServerLoad = async ({ fetch, url }) => {
 	const { page, limit } = getPagination(url.searchParams, DEFAULT_LIMIT, 100);
 	const q = (url.searchParams.get('q') ?? '').trim();
-	const category = (url.searchParams.get('category') ?? '').trim();
+	const category = asCategory(url.searchParams.get('category'));
 	const priceState = (url.searchParams.get('price_state') ?? '').trim();
 	const rawCountyId = (url.searchParams.get('county_id') ?? '').trim();
 	const countyId = getCountyOptionById(rawCountyId)?.id ?? '';

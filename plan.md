@@ -613,6 +613,46 @@
 - Store both canonical IDs and display labels for stable filtering and rendering.
 - Support autocomplete semantics for address-like fields for accessibility and browser assist.
 
+#### Home discovery bar UX spec (search + navigation clarity)
+
+- Problem context:
+  - Home currently mixes two mental models: search/filter controls and category-page navigation.
+  - This increases cognitive load because users cannot tell if controls refine current results or route elsewhere.
+- Locked interaction model:
+  - Home uses one primary discovery form with shared result semantics.
+  - `Search` (text intent) and `Category/Location` (scope intent) all operate on the same listing results.
+  - Category-page navigation stays available elsewhere (global nav/links), not as a competing control inside the discovery form.
+- Field contract:
+  - `q`: free-text listing search.
+  - `category`: category scope with default `All categories`.
+  - `county_id`: county scope with default `All counties`.
+  - `locality_id`: locality scope with default `All localities`, disabled until county is selected.
+- Progressive behavior:
+  - Changing county clears locality to avoid invalid combinations.
+  - Locality options remain county-scoped.
+  - Form state is URL-driven and reload-safe.
+- Desktop layout contract:
+  - Row 1: search input + explicit `Search` submit action.
+  - Row 2: scope filters (`Category`, `County`, `Locality`) with visible labels.
+- Mobile layout contract:
+  - Search row remains primary and full-width.
+  - Filters stack below in single column to reduce scan friction.
+  - No icon-only ambiguous primary controls.
+- Robustness contract:
+  - Server sanitizes `category`, `county_id`, and `locality_id`.
+  - Invalid URL params fall back to safe defaults without runtime errors.
+  - `Clear filters` resets to canonical unfiltered home URL.
+
+#### Task 9A - Home discovery bar rollout checklist
+
+- [x] Update `src/routes/+page.svelte` to unified discovery form semantics (`q + category + location`).
+- [x] Remove category dropdown direct-navigation behavior from home search bar.
+- [x] Ensure visible labels and explicit primary submit control for accessibility and clarity.
+- [x] Keep county -> locality progressive behavior with deterministic reset.
+- [x] Sanitize category URL param in `src/routes/+page.server.ts` and return stable values to UI.
+- [x] Update e2e coverage in `e2e/home.test.ts` for unified discovery behavior.
+- [x] Add/expand component-level tests in `src/routes/page.svelte.spec.ts` for rendered control contract.
+
 #### Delivery checklist
 
 - [ ] Define `location_profile_data` contract (`island`, `province`, `county`, `locality`, optional geo).

@@ -11,22 +11,42 @@ test('home page renders the main nav', async ({ page }) => {
 	await expect(footer.getByRole('link', { name: 'Privacy' })).toBeVisible();
 });
 
-test('home page category dropdown navigates directly to category page', async ({ page }) => {
+test('home page category filter refines home results instead of navigating', async ({ page }) => {
 	await page.goto('/');
-	await page.selectOption('#browse-category', 'electronics');
-	await expect(page).toHaveURL(/\/category\/electronics/);
-	await expect(page.getByRole('heading', { name: 'Electronics' })).toBeVisible();
+	await page.selectOption('#search-category', 'Electronics');
+	await page.getByRole('button', { name: 'Search' }).click();
+	await expect(page).toHaveURL(/category=Electronics/);
+	expect(page.url()).not.toContain('/category/');
 });
 
-test('home page search is simplified to query only', async ({ page }) => {
+test('home page search bar keeps query and scope filters in one form', async ({ page }) => {
 	await page.goto('/');
-	await expect(page.locator('#search-category')).toHaveCount(0);
-	await expect(page.locator('#search-price-state')).toHaveCount(0);
+	await expect(page.locator('#search-category')).toBeVisible();
+	await expect(page.locator('#search-county')).toBeVisible();
+	await expect(page.locator('#search-locality')).toBeDisabled();
+
 	await page.fill('#search-q', 'bike');
+	await page.selectOption('#search-category', 'Bikes');
 	await page.getByRole('button', { name: 'Search' }).click();
 	await expect(page).toHaveURL(/q=bike/);
-	await page.getByRole('link', { name: 'Clear' }).click();
+	await expect(page).toHaveURL(/category=Bikes/);
+
+	await page.getByRole('link', { name: 'Clear filters' }).click();
 	await expect(page).not.toHaveURL(/q=/);
+	await expect(page).not.toHaveURL(/category=/);
+});
+
+test('home page county selection progressively enables locality', async ({ page }) => {
+	await page.goto('/');
+	await expect(page.locator('#search-locality')).toBeDisabled();
+
+	await page.selectOption('#search-county', 'ie/leinster/dublin');
+	await expect(page).toHaveURL(/county_id=ie%2Fleinster%2Fdublin/);
+	await expect(page.locator('#search-locality')).toBeEnabled();
+
+	await page.selectOption('#search-locality', 'ie/leinster/dublin/ard-na-greine');
+	await page.getByRole('button', { name: 'Search' }).click();
+	await expect(page).toHaveURL(/locality_id=ie%2Fleinster%2Fdublin%2Fard-na-greine/);
 });
 
 test('bikes category page supports sorting, range, and bike filters', async ({ page }) => {
