@@ -2,8 +2,10 @@ import fs from 'fs';
 import path from 'path';
 
 const DEFAULT_SOURCE = 'src/lib/utils/mythologise.ts';
-const DEFAULT_USER_COUNTS = [10_000, 50_000, 100_000, 1_000_000];
-const DEFAULT_TAG_CHARS = [4, 6, 8, 12];
+const DEFAULT_USER_COUNTS = [
+	10, 100, 1_000, 10_000, 50_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000
+];
+const DEFAULT_TAG_CHARS = [0, 2, 4, 6, 8, 12];
 const DEFAULT_TARGET_PROBABILITY = 0.01; // 1%
 const SHA256_DIGEST_BYTES = 32;
 const TAG_SOURCE_OFFSET_BYTES = 2;
@@ -38,7 +40,9 @@ function parseArgs(argv) {
 			if (!value) throw new Error('--tag-chars requires a comma-separated list.');
 			opts.tagChars = parseNumberList(value, '--tag-chars').map((n) => {
 				if (!Number.isInteger(n) || n < MIN_TAG_CHARS || n > MAX_TAG_CHARS) {
-					throw new Error(`--tag-chars values must be integers between ${MIN_TAG_CHARS} and ${MAX_TAG_CHARS}.`);
+					throw new Error(
+						`--tag-chars values must be integers between ${MIN_TAG_CHARS} and ${MAX_TAG_CHARS}.`
+					);
 				}
 				return n;
 			});
