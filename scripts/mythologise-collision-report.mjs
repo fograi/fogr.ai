@@ -94,17 +94,114 @@ Options:
 }
 
 function extractCounts(sourceText) {
-	const nounMatches = [
-		...sourceText.matchAll(
-			/\{\s*w:\s*'([^']+)'\s*,\s*gender:\s*'(m|f)'\s*,\s*type:\s*'(myth|nature|place)'\s*\}/g
-		)
-	];
-	const adjectiveMatches = [...sourceText.matchAll(/\{\s*lemma:\s*'([^']+)'(?:\s*,\s*fem:\s*'([^']+)')?\s*\}/g)];
+	const nounArray = extractArrayBody(sourceText, 'NOUNS');
+	const adjectiveArray = extractArrayBody(sourceText, 'ADJ');
+
+	const nounMatches = [...nounArray.matchAll(/\bw\s*:\s*['"`]/g)];
+	const adjectiveMatches = [...adjectiveArray.matchAll(/\blemma\s*:\s*['"`]/g)];
 
 	return {
 		nouns: nounMatches.length,
 		adjectives: adjectiveMatches.length
 	};
+}
+
+function extractArrayBody(sourceText, constantName) {
+	const exportIndex = sourceText.indexOf(`export const ${constantName}`);
+	if (exportIndex === -1) {
+		throw new Error(`Could not find export const ${constantName} in source file.`);
+	}
+
+	const assignmentIndex = sourceText.indexOf('=', exportIndex);
+	if (assignmentIndex === -1) {
+		throw new Error(`Could not find assignment for ${constantName}.`);
+	}
+
+	const arrayStart = sourceText.indexOf('[', assignmentIndex);
+	if (arrayStart === -1) {
+		throw new Error(`Could not find array start for ${constantName}.`);
+	}
+
+	let depth = 0;
+	let inSingle = false;
+	let inDouble = false;
+	let inTemplate = false;
+	let inLineComment = false;
+	let inBlockComment = false;
+	let escaped = false;
+
+	for (let i = arrayStart; i < sourceText.length; i++) {
+		const ch = sourceText[i];
+		const next = sourceText[i + 1];
+
+		if (inLineComment) {
+			if (ch === '\n') inLineComment = false;
+			continue;
+		}
+		if (inBlockComment) {
+			if (ch === '*' && next === '/') {
+				inBlockComment = false;
+				i += 1;
+			}
+			continue;
+		}
+
+		if (inSingle) {
+			if (!escaped && ch === "'") inSingle = false;
+			escaped = ch === '\\' && !escaped;
+			continue;
+		}
+		if (inDouble) {
+			if (!escaped && ch === '"') inDouble = false;
+			escaped = ch === '\\' && !escaped;
+			continue;
+		}
+		if (inTemplate) {
+			if (!escaped && ch === '`') inTemplate = false;
+			escaped = ch === '\\' && !escaped;
+			continue;
+		}
+
+		if (ch === '/' && next === '/') {
+			inLineComment = true;
+			i += 1;
+			continue;
+		}
+		if (ch === '/' && next === '*') {
+			inBlockComment = true;
+			i += 1;
+			continue;
+		}
+
+		if (ch === "'") {
+			inSingle = true;
+			escaped = false;
+			continue;
+		}
+		if (ch === '"') {
+			inDouble = true;
+			escaped = false;
+			continue;
+		}
+		if (ch === '`') {
+			inTemplate = true;
+			escaped = false;
+			continue;
+		}
+
+		if (ch === '[') {
+			depth += 1;
+			continue;
+		}
+		if (ch === ']') {
+			depth -= 1;
+			if (depth === 0) {
+				return sourceText.slice(arrayStart + 1, i);
+			}
+		}
+	}
+
+	throw new Error(`Could not find array end for ${constantName}.`);
 }
 
 function birthdayStats(spaceSize, nUsers) {
@@ -139,6 +236,12 @@ function main() {
 	const sourcePath = path.resolve(options.source);
 	const sourceText = fs.readFileSync(sourcePath, 'utf8');
 	const { nouns, adjectives } = extractCounts(sourceText);
+	if (nouns === 0 || adjectives === 0) {
+		throw new Error(
+			`Parsed invalid counts from source (nouns=${nouns}, adjectives=${adjectives}). ` +
+				'Check NOUNS/ADJ array shape and parser assumptions.'
+		);
+	}
 	const combos = nouns * adjectives;
 
 	const rows = [];
