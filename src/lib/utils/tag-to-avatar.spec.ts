@@ -10,12 +10,19 @@ describe('tagToAvatar', () => {
 		const tag = '6JN3V2CD6XQQ';
 		const first = tagToAvatar(tag, { format: 'svg', size: 72, label: 'Chat Avatar' });
 		const second = tagToAvatar(tag, { format: 'svg', size: 72, label: 'Chat Avatar' });
+		const [centerEmoji] = Array.from(first.emoji);
 
 		expect(first.format).toBe('svg');
 		expect(second.format).toBe('svg');
 		expect(first.value).toBe(second.value);
 		expect(first.svg).toContain('<svg');
 		expect(first.svg).toContain('aria-label="Chat Avatar"');
+		expect(first.svg).toContain('class="identicon-grid"');
+		expect(first.svg).toContain('class="badge-ring"');
+		expect(first.svg).toContain('class="badge-core"');
+		expect(first.svg).toContain('class="center-emoji"');
+		expect(first.svg).toContain('<feDropShadow');
+		expect(first.svg).toContain(centerEmoji ?? '');
 		expect(first.emoji.length).toBeGreaterThan(0);
 	});
 

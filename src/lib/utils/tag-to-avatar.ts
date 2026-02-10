@@ -53,6 +53,7 @@ export function tagToAvatar(tag: string, options: TagToAvatarOptions = {}): TagA
 	const normalizedTag = normalizeTag(tag);
 	const bytes = deterministicBytes(normalizedTag);
 	const emoji = emojiFromBytes(bytes);
+	const centerEmoji = primaryEmojiFromBytes(bytes);
 	const preferredFormat = options.format ?? 'auto';
 	const safeSize = normalizeAvatarSize(options.size);
 
@@ -66,7 +67,7 @@ export function tagToAvatar(tag: string, options: TagToAvatarOptions = {}): TagA
 	}
 
 	const label = options.label?.trim() || `Avatar for ${normalizedTag}`;
-	const svg = buildIdenticonSvg(bytes, safeSize, label);
+	const svg = buildIdenticonSvg(bytes, safeSize, label, centerEmoji);
 
 	return {
 		format: 'svg',
@@ -94,35 +95,59 @@ function normalizeAvatarSize(size: number | undefined): number | null {
 }
 
 function emojiFromBytes(bytes: Uint8Array): string {
-	const first = EMOJI_PRIMARY[(bytes[0] ?? 0) % EMOJI_PRIMARY.length];
+	const first = primaryEmojiFromBytes(bytes);
 	const second = EMOJI_SECONDARY[(bytes[1] ?? 0) % EMOJI_SECONDARY.length];
 	return `${first}${second}`;
 }
 
-function buildIdenticonSvg(bytes: Uint8Array, size: number, label: string): string {
-	const padding = Math.max(2, Math.floor(size * 0.1));
+function primaryEmojiFromBytes(bytes: Uint8Array): string {
+	return EMOJI_PRIMARY[(bytes[0] ?? 0) % EMOJI_PRIMARY.length];
+}
+
+function buildIdenticonSvg(
+	bytes: Uint8Array,
+	size: number,
+	label: string,
+	centerEmoji: string
+): string {
+	const padding = Math.max(2, Math.floor(size * 0.09));
 	const drawable = Math.max(1, size - padding * 2);
 	const cell = Math.max(1, Math.floor(drawable / GRID_SIZE));
 	const iconSize = cell * GRID_SIZE;
 	const offset = Math.floor((size - iconSize) / 2);
-	const radius = Math.max(1, Math.floor(cell * 0.2));
+	const radius = Math.max(1, Math.floor(cell * 0.27));
+	const center = offset + iconSize / 2;
+	const ringRadius = Math.max(Math.floor(iconSize * 0.44), Math.floor(cell * 1.15));
+	const ringWidth = Math.max(2, Math.floor(cell * 0.4));
+	const badgeRadius = Math.max(7, Math.floor(iconSize * 0.22));
+	const emojiFontSize = Math.max(12, Math.floor(iconSize * 0.28));
+	const useShadow = getBit(bytes, 146) === 1;
 
 	const primaryHue = (((bytes[2] ?? 0) << 8) | (bytes[3] ?? 0)) % 360;
 	const accentHue = (primaryHue + 70 + ((bytes[4] ?? 0) % 180)) % 360;
-	const primary = hslToHex(primaryHue, 62 + ((bytes[5] ?? 0) % 24), 38 + ((bytes[6] ?? 0) % 18));
-	const accent = hslToHex(accentHue, 68 + ((bytes[7] ?? 0) % 20), 42 + ((bytes[8] ?? 0) % 18));
+	const primary = hslToHex(primaryHue, 62 + ((bytes[5] ?? 0) % 24), 34 + ((bytes[6] ?? 0) % 20));
+	const accent = hslToHex(accentHue, 66 + ((bytes[7] ?? 0) % 24), 40 + ((bytes[8] ?? 0) % 20));
 	const bgA = hslToHex(
 		(primaryHue + 180) % 360,
-		30 + ((bytes[9] ?? 0) % 20),
-		92 - ((bytes[10] ?? 0) % 8)
+		34 + ((bytes[9] ?? 0) % 22),
+		90 - ((bytes[10] ?? 0) % 8)
 	);
 	const bgB = hslToHex(
 		(accentHue + 180) % 360,
-		35 + ((bytes[11] ?? 0) % 18),
-		86 - ((bytes[12] ?? 0) % 12)
+		38 + ((bytes[11] ?? 0) % 18),
+		82 - ((bytes[12] ?? 0) % 12)
 	);
+	const ringA = hslToHex(primaryHue, 60 + ((bytes[13] ?? 0) % 18), 62 + ((bytes[14] ?? 0) % 12));
+	const ringB = hslToHex(accentHue, 58 + ((bytes[15] ?? 0) % 20), 55 + ((bytes[16] ?? 0) % 14));
+	const badgeA = hslToHex(accentHue, 64 + ((bytes[17] ?? 0) % 18), 56 + ((bytes[18] ?? 0) % 14));
+	const badgeB = hslToHex(primaryHue, 58 + ((bytes[19] ?? 0) % 20), 44 + ((bytes[20] ?? 0) % 16));
+	const shadowColor = hslToHex((primaryHue + accentHue) / 2, 45, 24);
 	const seedHex = bytesToHex(bytes);
-	const gradientId = `g-${seedHex.slice(0, 12)}`;
+	const bgGradientId = `g-bg-${seedHex.slice(0, 10)}`;
+	const glowGradientId = `g-glow-${seedHex.slice(10, 20)}`;
+	const ringGradientId = `g-ring-${seedHex.slice(20, 30)}`;
+	const badgeGradientId = `g-badge-${seedHex.slice(30, 40)}`;
+	const shadowId = `g-shadow-${seedHex.slice(40, 50)}`;
 
 	let rects = '';
 	let fillBitIndex = 0;
@@ -130,6 +155,8 @@ function buildIdenticonSvg(bytes: Uint8Array, size: number, label: string): stri
 		for (let col = 0; col < LEFT_GRID_COLUMNS; col++) {
 			const active = getBit(bytes, 16 + fillBitIndex) === 1;
 			const useAccent = getBit(bytes, 80 + fillBitIndex) === 1;
+			const variant = getBit(bytes, 112 + fillBitIndex) === 1 ? 'round' : 'square';
+			const opacity = getBit(bytes, 144 + fillBitIndex) === 1 ? 0.92 : 0.76;
 			fillBitIndex += 1;
 			if (!active) continue;
 
@@ -139,7 +166,9 @@ function buildIdenticonSvg(bytes: Uint8Array, size: number, label: string): stri
 				y: offset + row * cell,
 				size: cell,
 				radius,
-				fill: useAccent ? accent : primary
+				fill: useAccent ? accent : primary,
+				variant,
+				opacity
 			});
 			if (mirrorCol !== col) {
 				rects += drawCell({
@@ -147,20 +176,19 @@ function buildIdenticonSvg(bytes: Uint8Array, size: number, label: string): stri
 					y: offset + row * cell,
 					size: cell,
 					radius,
-					fill: useAccent ? accent : primary
+					fill: useAccent ? accent : primary,
+					variant,
+					opacity
 				});
 			}
 		}
 	}
 
-	const centerCircle =
-		getBit(bytes, 145) === 1
-			? `<circle cx="${offset + iconSize / 2}" cy="${offset + iconSize / 2}" r="${Math.max(2, Math.floor(cell * 0.35))}" fill="${accent}" />`
-			: '';
-
 	const safeLabel = escapeXml(label);
+	const safeEmoji = escapeXml(centerEmoji);
+	const shadowAttr = useShadow ? ` filter="url(#${shadowId})"` : '';
 
-	return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${safeLabel}"><defs><linearGradient id="${gradientId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${bgA}" /><stop offset="100%" stop-color="${bgB}" /></linearGradient></defs><rect x="0" y="0" width="${size}" height="${size}" rx="${Math.max(4, Math.floor(size * 0.12))}" fill="url(#${gradientId})" />${rects}${centerCircle}<rect x="${offset}" y="${offset}" width="${iconSize}" height="${iconSize}" rx="${Math.max(2, Math.floor(radius * 1.5))}" fill="none" stroke="${primary}" stroke-opacity="0.28" /></svg>`;
+	return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${safeLabel}"><defs><linearGradient id="${bgGradientId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${bgA}" /><stop offset="100%" stop-color="${bgB}" /></linearGradient><radialGradient id="${glowGradientId}" cx="30%" cy="25%" r="75%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.38" /><stop offset="100%" stop-color="#ffffff" stop-opacity="0" /></radialGradient><linearGradient id="${ringGradientId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${ringA}" /><stop offset="100%" stop-color="${ringB}" /></linearGradient><radialGradient id="${badgeGradientId}" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="${badgeA}" /><stop offset="100%" stop-color="${badgeB}" /></radialGradient><filter id="${shadowId}" x="-35%" y="-35%" width="170%" height="170%"><feDropShadow dx="0" dy="${Math.max(1, Math.floor(size * 0.015))}" stdDeviation="${Math.max(1, Math.floor(size * 0.03))}" flood-color="${shadowColor}" flood-opacity="0.35" /></filter></defs><rect x="0" y="0" width="${size}" height="${size}" rx="${Math.max(4, Math.floor(size * 0.12))}" fill="url(#${bgGradientId})" /><rect x="0" y="0" width="${size}" height="${size}" rx="${Math.max(4, Math.floor(size * 0.12))}" fill="url(#${glowGradientId})" /><g class="identicon-grid">${rects}</g><circle class="badge-ring" cx="${center}" cy="${center}" r="${ringRadius}" fill="none" stroke="url(#${ringGradientId})" stroke-width="${ringWidth}" stroke-opacity="0.72" /><g class="badge-layer"${shadowAttr}><circle class="badge-core" cx="${center}" cy="${center}" r="${badgeRadius}" fill="url(#${badgeGradientId})" stroke="${ringB}" stroke-width="${Math.max(1, Math.floor(cell * 0.22))}" /><circle class="badge-highlight" cx="${center - Math.floor(badgeRadius * 0.35)}" cy="${center - Math.floor(badgeRadius * 0.35)}" r="${Math.max(2, Math.floor(badgeRadius * 0.25))}" fill="#ffffff" fill-opacity="0.3" /><text class="center-emoji" x="${center}" y="${center}" text-anchor="middle" dominant-baseline="central" font-size="${emojiFontSize}" font-family="system-ui, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Noto Color Emoji&quot;, sans-serif">${safeEmoji}</text></g><rect class="outer-frame" x="${offset}" y="${offset}" width="${iconSize}" height="${iconSize}" rx="${Math.max(2, Math.floor(radius * 1.5))}" fill="none" stroke="${primary}" stroke-opacity="0.25" /></svg>`;
 }
 
 function drawCell({
@@ -168,15 +196,23 @@ function drawCell({
 	y,
 	size,
 	radius,
-	fill
+	fill,
+	variant,
+	opacity
 }: {
 	x: number;
 	y: number;
 	size: number;
 	radius: number;
 	fill: string;
+	variant: 'round' | 'square';
+	opacity: number;
 }): string {
-	return `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="${radius}" fill="${fill}" />`;
+	if (variant === 'round') {
+		const circleRadius = Math.max(1, Math.floor(size * 0.45));
+		return `<circle class="cell cell-round" cx="${x + size / 2}" cy="${y + size / 2}" r="${circleRadius}" fill="${fill}" fill-opacity="${opacity.toFixed(2)}" />`;
+	}
+	return `<rect class="cell" x="${x}" y="${y}" width="${size}" height="${size}" rx="${radius}" fill="${fill}" fill-opacity="${opacity.toFixed(2)}" />`;
 }
 
 function bytesToHex(bytes: Uint8Array): string {
