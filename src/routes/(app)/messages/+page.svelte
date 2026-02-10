@@ -12,6 +12,7 @@
 		adPrice: number | null;
 		adCurrency: string | null;
 		counterpartyId: string;
+		counterpartyName: string;
 		role: 'buyer' | 'seller';
 		lastMessageAt: string;
 		preview: string;
@@ -92,13 +93,6 @@
 		role === 'seller' ? 'selling' : 'buying';
 
 	const roleLabel = (role: RoleBucket) => (role === 'selling' ? 'Selling' : 'Buying');
-
-	const shortCounterparty = (id: string) => id.replace(/-/g, '').slice(0, 8);
-
-	const counterpartyLabel = (conversation: ConversationView) =>
-		`${conversation.role === 'seller' ? 'Buyer' : 'Seller'} ${shortCounterparty(
-			conversation.counterpartyId
-		)}`;
 
 	const hasMixedRoles = (conversations: ConversationView[]) => {
 		const hasSelling = conversations.some((conversation) => conversation.role === 'seller');
@@ -349,7 +343,7 @@
 																href={resolve('/(app)/messages/[id]', { id: convo.id })}
 															>
 																<div class="meta">
-																	<h3>{counterpartyLabel(convo)}</h3>
+																	<h3>{convo.counterpartyName}</h3>
 																	<span class="role"
 																		>{convo.role === 'seller' ? 'Selling' : 'Buying'}</span
 																	>
@@ -399,7 +393,7 @@
 												<span class="role">{convo.role === 'seller' ? 'Selling' : 'Buying'}</span>
 											</div>
 											<div class="submeta">
-												<span class="counterparty">{counterpartyLabel(convo)}</span>
+												<span class="counterparty">{convo.counterpartyName}</span>
 												<span class="time">{fmt(convo.lastMessageAt)}</span>
 											</div>
 											{#if convo.preview}

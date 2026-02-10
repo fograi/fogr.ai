@@ -17,13 +17,18 @@
 		conversation: {
 			id: string;
 			adId: string;
+			counterpartyName: string;
 			adTitle: string;
 			adPrice: number | null;
 			adCurrency: string | null;
 			adCategory: string | null;
 			adStatus: string | null;
 		};
-		readMeta: { viewerRole: 'buyer' | 'seller'; otherLastReadAt: string | null; viewerLastReadAt: string };
+		readMeta: {
+			viewerRole: 'buyer' | 'seller';
+			otherLastReadAt: string | null;
+			viewerLastReadAt: string;
+		};
 		autoDeclineMessage?: string;
 		streamed: { messages: Promise<MessageView[]> };
 	};
@@ -152,6 +157,7 @@
 		<div>
 			<a class="back" href={resolve('/(app)/messages')}>&lt;&nbsp;Messages</a>
 			<h1>{data.conversation.adTitle}</h1>
+			<p class="counterparty-name">Chat with {data.conversation.counterpartyName}</p>
 			<details class="ad-summary">
 				<summary>
 					<span class="summary-label">Listing details</span>
@@ -252,28 +258,33 @@
 	</form>
 </section>
 
-	<style>
-		.thread {
-			max-width: 840px;
-			margin: 0 auto;
-			padding: 24px var(--page-pad) 80px;
-			display: grid;
-			gap: 16px;
-		}
-		.head {
-			display: grid;
-			gap: 4px;
-		}
-		.back {
-			font-size: 0.9rem;
-			text-decoration: none;
-			font-weight: 600;
-		}
-		.head h1 {
-			margin: 0 0 4px;
-			font-size: 1.5rem;
-			font-weight: 800;
-		}
+<style>
+	.thread {
+		max-width: 840px;
+		margin: 0 auto;
+		padding: 24px var(--page-pad) 80px;
+		display: grid;
+		gap: 16px;
+	}
+	.head {
+		display: grid;
+		gap: 4px;
+	}
+	.back {
+		font-size: 0.9rem;
+		text-decoration: none;
+		font-weight: 600;
+	}
+	.head h1 {
+		margin: 0 0 4px;
+		font-size: 1.5rem;
+		font-weight: 800;
+	}
+	.counterparty-name {
+		margin: 0 0 6px;
+		font-weight: 600;
+		color: color-mix(in srgb, var(--fg) 62%, transparent);
+	}
 	.ad-summary {
 		margin-top: 6px;
 	}

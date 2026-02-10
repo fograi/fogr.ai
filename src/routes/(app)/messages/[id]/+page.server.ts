@@ -1,7 +1,13 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { E2E_MOCK_AD, E2E_MOCK_CONVERSATION, E2E_MOCK_MESSAGES, isE2eMock } from '$lib/server/e2e-mocks';
+import {
+	E2E_MOCK_AD,
+	E2E_MOCK_CONVERSATION,
+	E2E_MOCK_MESSAGES,
+	isE2eMock
+} from '$lib/server/e2e-mocks';
 import { hasPaidPrice } from '$lib/utils/price';
+import { chatDisplayNameFromUserId } from '$lib/server/chat-display-name';
 
 const formatMoney = (value: number, currency = 'EUR') =>
 	new Intl.NumberFormat('en-IE', {
@@ -64,6 +70,7 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 			conversation: {
 				id: E2E_MOCK_CONVERSATION.id,
 				adId: E2E_MOCK_AD.id,
+				counterpartyName: chatDisplayNameFromUserId(E2E_MOCK_CONVERSATION.seller_id, platform),
 				adTitle: E2E_MOCK_AD.title,
 				adPrice: E2E_MOCK_AD.price ?? null,
 				adCurrency: E2E_MOCK_AD.currency ?? null,
@@ -110,13 +117,16 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 	if (convo.buyer_id !== user.id && convo.seller_id !== user.id) throw error(403, 'Not allowed.');
 
 	const isSeller = convo.seller_id === user.id;
+	const counterpartyId = isSeller ? convo.buyer_id : convo.seller_id;
 	const nowIso = new Date().toISOString();
 	const updateData = isSeller ? { seller_last_read_at: nowIso } : { buyer_last_read_at: nowIso };
 	await locals.supabase.from('conversations').update(updateData).eq('id', convo.id);
 
 	const { data: ad } = await locals.supabase
 		.from('ads')
-		.select('id, title, price, currency, category, status, firm_price, min_offer, auto_decline_message')
+		.select(
+			'id, title, price, currency, category, status, firm_price, min_offer, auto_decline_message'
+		)
 		.eq('id', convo.ad_id)
 		.maybeSingle();
 
@@ -124,6 +134,7 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 		conversation: {
 			id: convo.id,
 			adId: convo.ad_id,
+			counterpartyName: chatDisplayNameFromUserId(counterpartyId, platform),
 			adTitle: ad?.title ?? 'Listing',
 			adPrice: ad?.price ?? null,
 			adCurrency: ad?.currency ?? null,
@@ -132,7 +143,9 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 		},
 		readMeta: {
 			viewerRole: isSeller ? 'seller' : 'buyer',
-			otherLastReadAt: isSeller ? convo.buyer_last_read_at ?? null : convo.seller_last_read_at ?? null,
+			otherLastReadAt: isSeller
+				? (convo.buyer_last_read_at ?? null)
+				: (convo.seller_last_read_at ?? null),
 			viewerLastReadAt: nowIso
 		},
 		autoDeclineMessage: ad ? buildAutoDeclineMessage(ad) : '',
