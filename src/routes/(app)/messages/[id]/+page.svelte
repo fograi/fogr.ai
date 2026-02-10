@@ -230,21 +230,21 @@
 			{#each items as item (item.id)}
 				{#if item.type === 'divider'}
 					<div class="divider">{item.label}</div>
-					{:else}
-						<div class={`bubble ${item.msg.isMine ? 'mine' : 'theirs'}`}>
-							{#if !item.msg.isMine}
-								<div class="sender-row">
-									<span class="avatar tiny" aria-hidden="true">
-										{#if counterpartyAvatarDataUri}
-											<img src={counterpartyAvatarDataUri} alt="" width="24" height="24" />
-										{:else}
-											<span class="avatar-emoji">{counterpartyAvatar.emoji}</span>
-										{/if}
-									</span>
-									<p class="sender">{data.conversation.counterpartyName}</p>
-								</div>
-							{/if}
-							<p class="body">{item.msg.body}</p>
+				{:else}
+					<div class={`bubble ${item.msg.isMine ? 'mine' : 'theirs'}`}>
+						{#if !item.msg.isMine}
+							<div class="sender-row">
+								<span class="avatar tiny" aria-hidden="true">
+									{#if counterpartyAvatarDataUri}
+										<img src={counterpartyAvatarDataUri} alt="" width="24" height="24" />
+									{:else}
+										<span class="avatar-emoji">{counterpartyAvatar.emoji}</span>
+									{/if}
+								</span>
+								<p class="sender">{data.conversation.counterpartyName}</p>
+							</div>
+						{/if}
+						<p class="body">{item.msg.body}</p>
 						{#if item.msg.kind === 'offer' && item.msg.autoDeclined}
 							<p class="auto-decline">
 								Offer auto-declined{data.autoDeclineMessage ? `: ${data.autoDeclineMessage}` : '.'}

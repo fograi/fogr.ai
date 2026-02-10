@@ -3,13 +3,11 @@
 	import InlineSpinner from '$lib/components/loading/InlineSpinner.svelte';
 	import ProgressBar from '$lib/components/loading/ProgressBar.svelte';
 	import { tagToAvatar } from '$lib/utils/tag-to-avatar';
-	import {
-		getExportStageTarget,
-		stepTowardPercent,
-		type ExportStage
-	} from '$lib/utils/loading';
+	import { getExportStageTarget, stepTowardPercent, type ExportStage } from '$lib/utils/loading';
 
-	export let data: { user: { id: string; email?: string | null; displayName: string; tag: string } };
+	export let data: {
+		user: { id: string; email?: string | null; displayName: string; tag: string };
+	};
 
 	let exporting = false;
 	let deleting = false;
@@ -34,7 +32,9 @@
 		label: `${data.user.displayName} avatar`
 	});
 	$: userAvatarDataUri =
-		userAvatar.format === 'svg' ? `data:image/svg+xml;utf8,${encodeURIComponent(userAvatar.svg)}` : '';
+		userAvatar.format === 'svg'
+			? `data:image/svg+xml;utf8,${encodeURIComponent(userAvatar.svg)}`
+			: '';
 
 	function stopExportTicker() {
 		if (!exportTicker) return;
