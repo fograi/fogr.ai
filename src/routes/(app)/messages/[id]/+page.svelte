@@ -212,6 +212,9 @@
 					<div class="divider">{item.label}</div>
 				{:else}
 					<div class={`bubble ${item.msg.isMine ? 'mine' : 'theirs'}`}>
+						{#if !item.msg.isMine}
+							<p class="sender">{data.conversation.counterpartyName}</p>
+						{/if}
 						<p class="body">{item.msg.body}</p>
 						{#if item.msg.kind === 'offer' && item.msg.autoDeclined}
 							<p class="auto-decline">
@@ -384,6 +387,13 @@
 	}
 	.body {
 		margin: 0;
+	}
+	.sender {
+		margin: 0;
+		font-size: 0.76rem;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		color: color-mix(in srgb, var(--fg) 62%, transparent);
 	}
 	.auto-decline {
 		margin: 0;
