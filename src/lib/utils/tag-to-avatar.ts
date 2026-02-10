@@ -1,4 +1,4 @@
-import { OPENMOJI_AVATAR_EMOJI, openMojiInnerSvgForEmoji } from './openmoji-avatar-map';
+import { OPENMOJI_AVATAR_EMOJI } from './openmoji-avatar-map';
 
 export type TagAvatarFormat = 'svg' | 'emoji';
 
@@ -169,25 +169,11 @@ function buildIdenticonSvg(
 	}
 
 	const safeLabel = escapeXml(label);
-	const centerEmojiMarkup = buildCenterEmojiMarkup(centerEmoji, center, iconSize);
-	const shadowAttr = useShadow ? ` filter="url(#${shadowId})"` : '';
-
-	return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${safeLabel}"><defs><linearGradient id="${bgGradientId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${bgA}" /><stop offset="100%" stop-color="${bgB}" /></linearGradient><radialGradient id="${glowGradientId}" cx="30%" cy="25%" r="75%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.38" /><stop offset="100%" stop-color="#ffffff" stop-opacity="0" /></radialGradient><linearGradient id="${ringGradientId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${ringA}" /><stop offset="100%" stop-color="${ringB}" /></linearGradient><radialGradient id="${badgeGradientId}" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="${badgeA}" /><stop offset="100%" stop-color="${badgeB}" /></radialGradient><filter id="${shadowId}" x="-35%" y="-35%" width="170%" height="170%"><feDropShadow dx="0" dy="${Math.max(1, Math.floor(size * 0.015))}" stdDeviation="${Math.max(1, Math.floor(size * 0.03))}" flood-color="${shadowColor}" flood-opacity="0.35" /></filter></defs><rect x="0" y="0" width="${size}" height="${size}" rx="${Math.max(4, Math.floor(size * 0.12))}" fill="url(#${bgGradientId})" /><rect x="0" y="0" width="${size}" height="${size}" rx="${Math.max(4, Math.floor(size * 0.12))}" fill="url(#${glowGradientId})" /><g class="identicon-grid">${rects}</g><circle class="badge-ring" cx="${center}" cy="${center}" r="${ringRadius}" fill="none" stroke="url(#${ringGradientId})" stroke-width="${ringWidth}" stroke-opacity="0.72" /><g class="badge-layer"${shadowAttr}><circle class="badge-core" cx="${center}" cy="${center}" r="${badgeRadius}" fill="url(#${badgeGradientId})" stroke="${ringB}" stroke-width="${Math.max(1, Math.floor(cell * 0.22))}" /><circle class="badge-highlight" cx="${center - Math.floor(badgeRadius * 0.35)}" cy="${center - Math.floor(badgeRadius * 0.35)}" r="${Math.max(2, Math.floor(badgeRadius * 0.25))}" fill="#ffffff" fill-opacity="0.3" />${centerEmojiMarkup}</g><rect class="outer-frame" x="${offset}" y="${offset}" width="${iconSize}" height="${iconSize}" rx="${Math.max(2, Math.floor(radius * 1.5))}" fill="none" stroke="${primary}" stroke-opacity="0.25" /></svg>`;
-}
-
-function buildCenterEmojiMarkup(centerEmoji: string, center: number, iconSize: number): string {
-	const openMojiInner = openMojiInnerSvgForEmoji(centerEmoji);
-	if (openMojiInner) {
-		const iconDrawSize = Math.max(14, Math.floor(iconSize * 0.5));
-		const x = Math.round(center - iconDrawSize / 2);
-		const y = Math.round(center - iconDrawSize / 2);
-		const scale = (iconDrawSize / 72).toFixed(4);
-		return `<g class="center-emoji-svg" transform="translate(${x} ${y}) scale(${scale})">${openMojiInner}</g>`;
-	}
-
 	const safeEmoji = escapeXml(centerEmoji);
 	const emojiFontSize = Math.max(12, Math.floor(iconSize * 0.28));
-	return `<text class="center-emoji" x="${center}" y="${center}" text-anchor="middle" dominant-baseline="central" font-size="${emojiFontSize}" font-family="system-ui, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Noto Color Emoji&quot;, sans-serif">${safeEmoji}</text>`;
+	const shadowAttr = useShadow ? ` filter="url(#${shadowId})"` : '';
+
+	return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${safeLabel}"><defs><linearGradient id="${bgGradientId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${bgA}" /><stop offset="100%" stop-color="${bgB}" /></linearGradient><radialGradient id="${glowGradientId}" cx="30%" cy="25%" r="75%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.38" /><stop offset="100%" stop-color="#ffffff" stop-opacity="0" /></radialGradient><linearGradient id="${ringGradientId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${ringA}" /><stop offset="100%" stop-color="${ringB}" /></linearGradient><radialGradient id="${badgeGradientId}" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="${badgeA}" /><stop offset="100%" stop-color="${badgeB}" /></radialGradient><filter id="${shadowId}" x="-35%" y="-35%" width="170%" height="170%"><feDropShadow dx="0" dy="${Math.max(1, Math.floor(size * 0.015))}" stdDeviation="${Math.max(1, Math.floor(size * 0.03))}" flood-color="${shadowColor}" flood-opacity="0.35" /></filter></defs><rect x="0" y="0" width="${size}" height="${size}" rx="${Math.max(4, Math.floor(size * 0.12))}" fill="url(#${bgGradientId})" /><rect x="0" y="0" width="${size}" height="${size}" rx="${Math.max(4, Math.floor(size * 0.12))}" fill="url(#${glowGradientId})" /><g class="identicon-grid">${rects}</g><circle class="badge-ring" cx="${center}" cy="${center}" r="${ringRadius}" fill="none" stroke="url(#${ringGradientId})" stroke-width="${ringWidth}" stroke-opacity="0.72" /><g class="badge-layer"${shadowAttr}><circle class="badge-core" cx="${center}" cy="${center}" r="${badgeRadius}" fill="url(#${badgeGradientId})" stroke="${ringB}" stroke-width="${Math.max(1, Math.floor(cell * 0.22))}" /><circle class="badge-highlight" cx="${center - Math.floor(badgeRadius * 0.35)}" cy="${center - Math.floor(badgeRadius * 0.35)}" r="${Math.max(2, Math.floor(badgeRadius * 0.25))}" fill="#ffffff" fill-opacity="0.3" /><text class="center-emoji" x="${center}" y="${center}" text-anchor="middle" dominant-baseline="central" font-size="${emojiFontSize}" font-family="system-ui, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Noto Color Emoji&quot;, sans-serif">${safeEmoji}</text></g><rect class="outer-frame" x="${offset}" y="${offset}" width="${iconSize}" height="${iconSize}" rx="${Math.max(2, Math.floor(radius * 1.5))}" fill="none" stroke="${primary}" stroke-opacity="0.25" /></svg>`;
 }
 
 function drawCell({

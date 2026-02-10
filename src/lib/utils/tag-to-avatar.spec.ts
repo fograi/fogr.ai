@@ -19,7 +19,7 @@ describe('tagToAvatar', () => {
 		expect(first.svg).toContain('class="identicon-grid"');
 		expect(first.svg).toContain('class="badge-ring"');
 		expect(first.svg).toContain('class="badge-core"');
-		expect(first.svg).toContain('class="center-emoji-svg"');
+		expect(first.svg).toContain('class="center-emoji"');
 		expect(first.svg).toContain('<feDropShadow');
 		expect(first.emoji.length).toBeGreaterThan(0);
 	});
