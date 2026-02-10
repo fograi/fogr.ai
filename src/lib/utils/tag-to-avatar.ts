@@ -15,6 +15,12 @@ export type TagAvatarResult = {
 	emoji: string;
 };
 
+type NormalizedTagToAvatarOptions = {
+	format: TagAvatarFormat | 'auto';
+	size: unknown;
+	label?: string;
+};
+
 const DEFAULT_AVATAR_SIZE = 64;
 const MIN_AVATAR_SIZE = 24;
 const MAX_AVATAR_SIZE = 512;
@@ -34,13 +40,14 @@ const EMOJI_SECONDARY = ['✨', '🌙', '🔥', '🌊', '🌿', '⭐', '⚡', '�
  * @param options.label Accessible label for generated SVG.
  * @returns Avatar payload containing SVG and emoji variants with selected `value`.
  */
-export function tagToAvatar(tag: string, options: TagToAvatarOptions = {}): TagAvatarResult {
+export function tagToAvatar(tag: string, options: TagToAvatarOptions | null = {}): TagAvatarResult {
+	const safeOptions = normalizeOptions(options);
 	const normalizedTag = normalizeTag(tag);
 	const bytes = deterministicBytes(normalizedTag);
 	const emoji = emojiFromBytes(bytes);
 	const centerEmoji = primaryEmojiFromBytes(bytes);
-	const preferredFormat = options.format ?? 'auto';
-	const safeSize = normalizeAvatarSize(options.size);
+	const preferredFormat = safeOptions.format;
+	const safeSize = normalizeAvatarSize(safeOptions.size);
 
 	if (preferredFormat === 'emoji' || safeSize === null) {
 		return {
@@ -51,7 +58,7 @@ export function tagToAvatar(tag: string, options: TagToAvatarOptions = {}): TagA
 		};
 	}
 
-	const label = options.label?.trim() || `Avatar for ${normalizedTag}`;
+	const label = safeOptions.label || `Avatar for ${normalizedTag}`;
 	const svg = buildIdenticonSvg(bytes, safeSize, label, centerEmoji);
 
 	return {
@@ -62,7 +69,32 @@ export function tagToAvatar(tag: string, options: TagToAvatarOptions = {}): TagA
 	};
 }
 
+function normalizeOptions(options: TagToAvatarOptions | null): NormalizedTagToAvatarOptions {
+	if (!options || typeof options !== 'object') {
+		return {
+			format: 'auto',
+			size: undefined
+		};
+	}
+
+	const format =
+		options.format === 'svg' || options.format === 'emoji' || options.format === 'auto'
+			? options.format
+			: 'auto';
+	const label = typeof options.label === 'string' ? options.label.trim() || undefined : undefined;
+
+	return {
+		format,
+		size: options.size,
+		label
+	};
+}
+
 function normalizeTag(tag: string): string {
+	if (typeof tag !== 'string') {
+		throw new TypeError('tag must be a non-empty string.');
+	}
+
 	const normalized = tag.trim();
 	if (!normalized) {
 		throw new TypeError('tag must be a non-empty string.');
@@ -70,9 +102,9 @@ function normalizeTag(tag: string): string {
 	return normalized.toLocaleUpperCase('en-US');
 }
 
-function normalizeAvatarSize(size: number | undefined): number | null {
+function normalizeAvatarSize(size: unknown): number | null {
 	if (size === undefined) return DEFAULT_AVATAR_SIZE;
-	if (!Number.isFinite(size)) return null;
+	if (typeof size !== 'number' || !Number.isFinite(size)) return null;
 
 	const rounded = Math.round(size);
 	if (rounded < MIN_AVATAR_SIZE || rounded > MAX_AVATAR_SIZE) return null;
