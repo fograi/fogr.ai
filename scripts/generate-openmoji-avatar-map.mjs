@@ -6,72 +6,36 @@ const OPENMOJI_DATA_PATH = path.join(ROOT, 'node_modules', 'openmoji', 'data', '
 const OPENMOJI_COLOR_SVG_DIR = path.join(ROOT, 'node_modules', 'openmoji', 'color', 'svg');
 const OUTPUT_PATH = path.join(ROOT, 'src', 'lib', 'utils', 'openmoji-avatar-map.ts');
 
-const GROUP_QUOTAS = [
-	{ group: 'animals-nature', count: 40 },
-	{ group: 'food-drink', count: 24 },
-	{ group: 'activities', count: 16 },
-	{ group: 'travel-places', count: 24 },
-	{ group: 'objects', count: 24 }
-];
-
-const TARGET_ICON_COUNT = GROUP_QUOTAS.reduce((total, entry) => total + entry.count, 0);
+const SOURCE_GROUP = 'animals-nature';
 const HEXCODE_PATTERN = /^[0-9A-F]+$/;
 
 const rawData = fs.readFileSync(OPENMOJI_DATA_PATH, 'utf8');
 /** @type {Array<{emoji: string; hexcode: string; group: string; skintone: string}>} */
 const openMojiRows = JSON.parse(rawData);
 
-/** @type {Map<string, Array<{emoji: string; hexcode: string; svgPath: string}>>} */
-const candidatesByGroup = new Map(GROUP_QUOTAS.map((quota) => [quota.group, []]));
-
-for (const row of openMojiRows) {
-	if (row.skintone) continue;
-	if (!HEXCODE_PATTERN.test(row.hexcode)) continue;
-	if (!candidatesByGroup.has(row.group)) continue;
-
-	const svgPath = path.join(OPENMOJI_COLOR_SVG_DIR, `${row.hexcode}.svg`);
-	if (!fs.existsSync(svgPath)) continue;
-
-	candidatesByGroup.get(row.group)?.push({
-		emoji: row.emoji,
-		hexcode: row.hexcode,
-		svgPath
-	});
-}
-
 /** @type {Array<{emoji: string; hexcode: string; svgPath: string}>} */
 const selectedIcons = [];
 const selectedEmoji = new Set();
 
-for (const { group, count } of GROUP_QUOTAS) {
-	const options = candidatesByGroup.get(group) ?? [];
-	let taken = 0;
+for (const row of openMojiRows) {
+	if (row.group !== SOURCE_GROUP) continue;
+	if (row.skintone) continue;
+	if (!HEXCODE_PATTERN.test(row.hexcode)) continue;
+	if (selectedEmoji.has(row.emoji)) continue;
 
-	for (const option of options) {
-		if (taken >= count) break;
-		if (selectedEmoji.has(option.emoji)) continue;
-		selectedIcons.push(option);
-		selectedEmoji.add(option.emoji);
-		taken += 1;
-	}
+	const svgPath = path.join(OPENMOJI_COLOR_SVG_DIR, `${row.hexcode}.svg`);
+	if (!fs.existsSync(svgPath)) continue;
+
+	selectedIcons.push({
+		emoji: row.emoji,
+		hexcode: row.hexcode,
+		svgPath
+	});
+	selectedEmoji.add(row.emoji);
 }
 
-if (selectedIcons.length < TARGET_ICON_COUNT) {
-	for (const { group } of GROUP_QUOTAS) {
-		const options = candidatesByGroup.get(group) ?? [];
-		for (const option of options) {
-			if (selectedIcons.length >= TARGET_ICON_COUNT) break;
-			if (selectedEmoji.has(option.emoji)) continue;
-			selectedIcons.push(option);
-			selectedEmoji.add(option.emoji);
-		}
-	}
-}
-
-if (selectedIcons.length < TARGET_ICON_COUNT) {
-	throw new Error(
-		`Unable to select ${TARGET_ICON_COUNT} OpenMoji icons. Found ${selectedIcons.length} valid entries.`
-	);
+if (selectedIcons.length === 0) {
+	throw new Error(`Unable to select OpenMoji icons for ${SOURCE_GROUP}.`);
 }
 
 function extractInnerSvg(svgSource) {
