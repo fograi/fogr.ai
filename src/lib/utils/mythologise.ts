@@ -289,6 +289,11 @@ export const ADJ: readonly AdjectiveEntry[] = [
 	{ lemma: 'níomhach', role: 'qualifier' }
 ];
 
+for (const entry of NOUNS) Object.freeze(entry);
+Object.freeze(NOUNS);
+for (const entry of ADJ) Object.freeze(entry);
+Object.freeze(ADJ);
+
 const CORE_ADJ = ADJ.filter((a) => a.role === 'core');
 const QUAL_ADJ = ADJ.filter((a) => a.role === 'qualifier');
 

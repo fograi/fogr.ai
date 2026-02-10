@@ -2,6 +2,12 @@
 
 Local classifieds for Ireland focused on trust and low friction: structured messaging, honest pricing states (Fixed/Free/POA), privacy‑first contact, and clearer reporting/moderation.
 
+## Locked Identity TL;DR
+
+- **Username/handle is deterministic**: generated from `userId + server secret` (`mythologise`), so the same user gets the same pseudonymous name/tag every time (unless the secret changes).
+- **Avatar is deterministic**: generated from the user tag (`tagToAvatar`), defaults to SVG identicon, and falls back to emoji only when SVG rendering options are invalid.
+- **Behavior is lock-tested**: `src/lib/utils/identity-lock.spec.ts` snapshots list/order fingerprints and canonical outputs to catch any accidental drift in CI.
+
 ## Stack
 
 - SvelteKit on Cloudflare Workers

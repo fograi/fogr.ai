@@ -160,3 +160,5 @@ export const OPENMOJI_AVATAR_EMOJI = [
 	'🍄',
 	'🪾'
 ] as const;
+
+Object.freeze(OPENMOJI_AVATAR_EMOJI);
