@@ -81,12 +81,43 @@ test('avatar rendering is visually consistent for the same normalized tag', asyn
 	await expect(avatarB).toBeVisible();
 	await expect(avatarC).toBeVisible();
 
-	const screenshotA = await avatarA.screenshot();
-	const screenshotB = await avatarB.screenshot();
-	const screenshotC = await avatarC.screenshot();
+	const comparison = await page.evaluate(async () => {
+		const getImage = (id: string) => {
+			const image = document.querySelector(`[data-testid="${id}"]`);
+			if (!(image instanceof HTMLImageElement)) throw new Error(`Missing image ${id}`);
+			return image;
+		};
 
-	expect(screenshotA.equals(screenshotB)).toBe(true);
-	expect(screenshotA.equals(screenshotC)).toBe(false);
+		const images = [getImage('avatar-a'), getImage('avatar-b'), getImage('avatar-c')];
+		await Promise.all(
+			images.map(async (image) => {
+				if ('decode' in image) {
+					await image.decode().catch(() => undefined);
+				}
+			})
+		);
+
+		const pixelHash = (image: HTMLImageElement) => {
+			const canvas = document.createElement('canvas');
+			canvas.width = image.naturalWidth;
+			canvas.height = image.naturalHeight;
+			const ctx = canvas.getContext('2d');
+			if (!ctx) throw new Error('Could not create 2d context');
+			ctx.drawImage(image, 0, 0);
+			return canvas.toDataURL('image/png');
+		};
+
+		const hashA = pixelHash(images[0]);
+		const hashB = pixelHash(images[1]);
+		const hashC = pixelHash(images[2]);
+		return {
+			aEqualsB: hashA === hashB,
+			aEqualsC: hashA === hashC
+		};
+	});
+
+	expect(comparison.aEqualsB).toBe(true);
+	expect(comparison.aEqualsC).toBe(false);
 
 	const gridScreenshot = await page.getByTestId('avatar-grid').screenshot();
 	await testInfo.attach('avatar-visual-grid', {

@@ -28,7 +28,7 @@ const GRID_SIZE = 5;
 const LEFT_GRID_COLUMNS = Math.ceil(GRID_SIZE / 2);
 const EMOJI_PRIMARY = OPENMOJI_AVATAR_EMOJI;
 const EMOJI_SECONDARY = ['✨', '🌙', '🔥', '🌊', '🌿', '⭐', '⚡', '🎯'] as const;
-const CENTER_EMOJI_SCALE = 0.45;
+const CENTER_EMOJI_SCALE = 0.58;
 
 /**
  * Generates a deterministic avatar payload from a stable tag.
