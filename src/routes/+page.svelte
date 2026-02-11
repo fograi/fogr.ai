@@ -17,6 +17,35 @@
 	const countyOptions = $derived(data?.locationOptions?.counties ?? []);
 	const localityOptions = $derived(data?.locationOptions?.localities ?? []);
 	const categoryOptions = CATEGORIES;
+	const hasScopeFilters = $derived(Boolean(category || countyId || localityId));
+	let mobileScopeOpen = $state(false);
+	let scopeOpenInitialized = false;
+	let previousHasScopeFilters = false;
+
+	function getLocationLabel(
+		options: ReadonlyArray<{ id: string; name: string }>,
+		selectedId: string
+	): string {
+		if (!selectedId) return '';
+		return options.find((option) => option.id === selectedId)?.name ?? '';
+	}
+
+	const scopeSummary = $derived.by(() => {
+		if (!hasScopeFilters) return 'All categories, all locations';
+		const labels: string[] = [];
+		if (category) labels.push(category);
+		if (countyId) {
+			labels.push(getLocationLabel(countyOptions, countyId) || 'Selected county');
+		}
+		if (localityId) {
+			labels.push(getLocationLabel(localityOptions, localityId) || 'Selected locality');
+		}
+		return labels.join(' • ');
+	});
+
+	function toggleScopeFilters() {
+		mobileScopeOpen = !mobileScopeOpen;
+	}
 
 	function submitSearchForm(form: HTMLFormElement | null | undefined) {
 		if (!form) return;
@@ -89,6 +118,19 @@
 			loggedError = false;
 		}
 	});
+
+	$effect(() => {
+		if (!scopeOpenInitialized) {
+			mobileScopeOpen = hasScopeFilters;
+			previousHasScopeFilters = hasScopeFilters;
+			scopeOpenInitialized = true;
+			return;
+		}
+		if (!previousHasScopeFilters && hasScopeFilters) {
+			mobileScopeOpen = true;
+		}
+		previousHasScopeFilters = hasScopeFilters;
+	});
 </script>
 
 <section class="search">
@@ -110,15 +152,35 @@
 						autocomplete="off"
 					/>
 				</div>
-				<button type="submit" class="search__submit">
+				<button type="submit" class="search__submit" aria-label="Search listings">
 					<span class="icon" aria-hidden="true">
 						<SearchIcon size={18} strokeWidth={1.8} />
 					</span>
-					<span>Search</span>
+					<span class="search__submit-text">Search</span>
 				</button>
 			</div>
 
-			<div class="search__filters" role="group" aria-label="Narrow results">
+			<button
+				type="button"
+				class="search__scope-toggle"
+				aria-controls="search-scope-filters"
+				aria-expanded={mobileScopeOpen}
+				onclick={toggleScopeFilters}
+			>
+				<span class="search__scope-toggle-label">Filters</span>
+				<span class="search__scope-toggle-summary">{scopeSummary}</span>
+				<span class="search__scope-toggle-glyph" aria-hidden="true">
+					{mobileScopeOpen ? '−' : '+'}
+				</span>
+			</button>
+
+			<div
+				id="search-scope-filters"
+				class="search__filters"
+				class:search__filters--mobile-open={mobileScopeOpen}
+				role="group"
+				aria-label="Narrow results"
+			>
 				<div class="field">
 					<label for="search-category">Category</label>
 					<select id="search-category" name="category" value={category}>
@@ -259,6 +321,34 @@
 		outline: 2px solid var(--accent-green);
 		outline-offset: 2px;
 	}
+	.search__scope-toggle {
+		display: none;
+		align-items: center;
+		gap: 8px;
+		padding: 0 12px;
+		height: 42px;
+		border-radius: 12px;
+		border: 1px solid var(--hairline);
+		background: var(--surface);
+		color: inherit;
+		font-weight: 600;
+		cursor: pointer;
+		min-width: 0;
+	}
+	.search__scope-toggle-summary {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-weight: 500;
+		font-size: 0.88rem;
+		color: color-mix(in srgb, var(--fg) 75%, transparent);
+	}
+	.search__scope-toggle-glyph {
+		font-size: 1.1rem;
+		font-weight: 700;
+		line-height: 1;
+	}
 	.search__form .clear {
 		text-decoration: none;
 		color: inherit;
@@ -267,12 +357,37 @@
 		justify-self: end;
 	}
 	@media (max-width: 720px) {
-		.search__row,
+		.search {
+			margin: 8px 0 14px;
+			padding: 6px 0 4px;
+		}
+		.search__copy h1 {
+			font-size: 1.45rem;
+			margin: 0;
+		}
+		.search__copy .sub {
+			display: none;
+		}
 		.search__filters {
+			display: none;
 			grid-template-columns: 1fr;
 		}
+		.search__filters.search__filters--mobile-open {
+			display: grid;
+		}
+		.search__scope-toggle {
+			display: grid;
+			grid-template-columns: auto minmax(0, 1fr) auto;
+		}
+		.search__scope-toggle-label {
+			font-size: 0.9rem;
+		}
 		.search__submit {
-			width: 100%;
+			min-width: 44px;
+			padding: 0 12px;
+		}
+		.search__submit-text {
+			display: none;
 		}
 		.search__form .clear {
 			justify-self: start;

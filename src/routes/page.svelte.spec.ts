@@ -63,12 +63,13 @@ describe('/+page.svelte', () => {
 			}
 		});
 
-		await expect.element(page.getByLabelText('Search')).toHaveValue('bike');
+		await expect.element(page.getByRole('searchbox', { name: 'Search' })).toHaveValue('bike');
 		await expect.element(page.getByLabelText('Category')).toHaveValue('Electronics');
 		await expect.element(page.getByLabelText('County')).toHaveValue('ie/leinster/dublin');
 		await expect
 			.element(page.getByLabelText('Locality'))
 			.toHaveValue('ie/leinster/dublin/ard-na-greine');
+		await expect.element(page.getByRole('button', { name: 'Search listings' })).toBeInTheDocument();
 		await expect.element(page.getByRole('link', { name: 'Clear filters' })).toBeInTheDocument();
 	});
 
@@ -85,5 +86,6 @@ describe('/+page.svelte', () => {
 		});
 
 		await expect.element(page.getByLabelText('Locality')).toBeDisabled();
+		await expect.element(page.getByRole('button', { name: 'Search listings' })).toBeInTheDocument();
 	});
 });

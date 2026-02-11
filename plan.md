@@ -653,6 +653,14 @@
 - [x] Update e2e coverage in `e2e/home.test.ts` for unified discovery behavior.
 - [x] Add/expand component-level tests in `src/routes/page.svelte.spec.ts` for rendered control contract.
 
+#### Task 9B - Mobile discovery bar compaction checklist
+
+- [x] Keep search input + submit action on one row for handset widths.
+- [x] Collapse scope filters (`category`, `county`, `locality`) behind a mobile toggle by default.
+- [x] Keep a short scope summary in the toggle so state remains visible without opening the panel.
+- [x] Auto-expand the mobile scope panel when scope filters are active from URL state.
+- [x] Add test coverage for mobile-collapsed behavior and one-row search alignment.
+
 #### Delivery checklist
 
 - [ ] Define `location_profile_data` contract (`island`, `province`, `county`, `locality`, optional geo).

@@ -14,7 +14,7 @@ test('home page renders the main nav', async ({ page }) => {
 test('home page category filter refines home results instead of navigating', async ({ page }) => {
 	await page.goto('/');
 	await page.selectOption('#search-category', 'Electronics');
-	await page.getByRole('button', { name: 'Search' }).click();
+	await page.getByRole('button', { name: 'Search listings' }).click();
 	await expect(page).toHaveURL(/category=Electronics/);
 	expect(page.url()).not.toContain('/category/');
 });
@@ -27,7 +27,7 @@ test('home page search bar keeps query and scope filters in one form', async ({ 
 
 	await page.fill('#search-q', 'bike');
 	await page.selectOption('#search-category', 'Bikes');
-	await page.getByRole('button', { name: 'Search' }).click();
+	await page.getByRole('button', { name: 'Search listings' }).click();
 	await expect(page).toHaveURL(/q=bike/);
 	await expect(page).toHaveURL(/category=Bikes/);
 
@@ -45,8 +45,30 @@ test('home page county selection progressively enables locality', async ({ page 
 	await expect(page.locator('#search-locality')).toBeEnabled();
 
 	await page.selectOption('#search-locality', 'ie/leinster/dublin/ard-na-greine');
-	await page.getByRole('button', { name: 'Search' }).click();
+	await page.getByRole('button', { name: 'Search listings' }).click();
 	await expect(page).toHaveURL(/locality_id=ie%2Fleinster%2Fdublin%2Fard-na-greine/);
+});
+
+test('home page mobile keeps scope filters collapsed by default', async ({ page }) => {
+	await page.setViewportSize({ width: 393, height: 852 });
+	await page.goto('/');
+
+	const inputBox = await page.locator('#search-q').boundingBox();
+	const buttonBox = await page.getByRole('button', { name: 'Search listings' }).boundingBox();
+	expect(inputBox).toBeTruthy();
+	expect(buttonBox).toBeTruthy();
+	if (inputBox && buttonBox) {
+		expect(Math.abs(inputBox.y - buttonBox.y)).toBeLessThan(8);
+	}
+
+	const scopeToggle = page.locator('.search__scope-toggle');
+	await expect(scopeToggle).toBeVisible();
+	await expect(scopeToggle).toHaveAttribute('aria-expanded', 'false');
+	await expect(page.locator('#search-scope-filters')).toBeHidden();
+
+	await scopeToggle.click();
+	await expect(scopeToggle).toHaveAttribute('aria-expanded', 'true');
+	await expect(page.locator('#search-scope-filters')).toBeVisible();
 });
 
 test('bikes category page supports sorting, range, and bike filters', async ({ page }) => {
