@@ -31,7 +31,7 @@
 	}
 
 	const scopeSummary = $derived.by(() => {
-		if (!hasScopeFilters) return 'All categories, all locations';
+		if (!hasScopeFilters) return 'Categories, Locations';
 		const labels: string[] = [];
 		if (category) labels.push(category);
 		if (countyId) {
@@ -142,13 +142,13 @@
 		<form class="search__form" method="GET" action={resolve('/')}>
 			<div class="search__row">
 				<div class="field field--query">
-					<label for="search-q">Search</label>
+					<label class="field__label--sr-only" for="search-q">Search</label>
 					<input
 						id="search-q"
 						name="q"
 						type="search"
 						value={q}
-						placeholder="Search listings"
+						placeholder="Title, keyword, or item"
 						autocomplete="off"
 					/>
 				</div>
@@ -182,7 +182,7 @@
 				aria-label="Narrow results"
 			>
 				<div class="field">
-					<label for="search-category">Category</label>
+					<label class="field__label--sr-only" for="search-category">Category</label>
 					<select id="search-category" name="category" value={category}>
 						<option value="">All categories</option>
 						{#each categoryOptions as option (option)}
@@ -191,7 +191,7 @@
 					</select>
 				</div>
 				<div class="field">
-					<label for="search-county">County</label>
+					<label class="field__label--sr-only" for="search-county">County</label>
 					<select id="search-county" name="county_id" value={countyId} onchange={onCountyChange}>
 						<option value="">All counties</option>
 						{#each countyOptions as option (option.id)}
@@ -200,7 +200,7 @@
 					</select>
 				</div>
 				<div class="field">
-					<label for="search-locality">Locality</label>
+					<label class="field__label--sr-only" for="search-locality">Locality</label>
 					<select id="search-locality" name="locality_id" value={localityId} disabled={!countyId}>
 						<option value="">All localities</option>
 						{#each localityOptions as option (option.id)}
@@ -284,10 +284,18 @@
 	.field {
 		display: grid;
 		gap: 6px;
+		position: relative;
 	}
-	.field > label {
-		font-size: 0.82rem;
-		font-weight: 700;
+	.field__label--sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 	.field input,
 	.field select {
@@ -366,19 +374,7 @@
 			margin: 0;
 		}
 		.field {
-			position: relative;
 			gap: 0;
-		}
-		.field > label {
-			position: absolute;
-			width: 1px;
-			height: 1px;
-			padding: 0;
-			margin: -1px;
-			overflow: hidden;
-			clip: rect(0, 0, 0, 0);
-			white-space: nowrap;
-			border: 0;
 		}
 		.search__filters {
 			display: none;
