@@ -1,4 +1,4 @@
-import rawIrelandLocationTree from '../../ireland_counties.json';
+import rawIrelandLocationTree from './data/ireland_counties.json';
 
 export type LocationNodeType = 'country' | 'province' | 'county' | 'area';
 export type LocationSelectableType = 'country' | 'province' | 'county';

@@ -365,8 +365,20 @@
 			font-size: 1.45rem;
 			margin: 0;
 		}
-		.search__copy .sub {
-			display: none;
+		.field {
+			position: relative;
+			gap: 0;
+		}
+		.field > label {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			white-space: nowrap;
+			border: 0;
 		}
 		.search__filters {
 			display: none;

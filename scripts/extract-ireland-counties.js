@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const inputPath = resolve(process.cwd(), process.argv[2] ?? 'ireland_counties.html');
-const outputPath = resolve(process.cwd(), process.argv[3] ?? 'ireland_counties.json');
+const outputPath = resolve(process.cwd(), process.argv[3] ?? 'src/lib/data/ireland_counties.json');
 
 const namedEntities = {
   amp: '&',
