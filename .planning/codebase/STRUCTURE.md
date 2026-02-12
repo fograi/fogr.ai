@@ -114,41 +114,48 @@ fogr.ai/
 ## Directory Purposes
 
 **src/routes/**
+
 - Purpose: File-based routing - each directory becomes a route
 - Contains: `.svelte` pages, `+page.server.ts` loaders, `+layout.svelte` wrappers
 - SvelteKit compiles this directory into navigable routes
 - Groups: `(app)` for authenticated, `(public)` for public, `api/` for REST
 
 **src/lib/components/**
+
 - Purpose: Reusable Svelte UI components
 - Contains: Generic components (buttons, cards, inputs) and page-specific components
 - Co-organized by feature: `post/`, `messages/`, `loading/`
 - Pattern: Components receive props, emit events, use stores sparingly
 
 **src/lib/server/**
+
 - Purpose: Server-only utilities that run on backend
 - Contains: Validators, auth, rate limiting, database operations
 - Server-side-only imports (Supabase, OpenAI) only allowed here
 - NOT accessible from client code (no accidental exports)
 
 **src/lib/utils/**
+
 - Purpose: Pure client-side utility functions
 - Contains: Formatting helpers, transformations, calculations
 - No side effects, no external API calls
 - Used by components and pages for display logic
 
 **src/lib/data/**
+
 - Purpose: Static or semi-static data (location trees, mock data)
 - Contains: JSON files, constant lists, test fixtures
 - Imported as needed, not loaded on every request
 
 **src/types/**
+
 - Purpose: Shared TypeScript type definitions
 - Contains: Database schema types, API response shapes, enums
 - `ad-types.d.ts` defines AdCard, ApiAdRow, etc.
 - `supabase.types.ts` auto-generated from schema
 
 **src/cron-worker.ts**
+
 - Purpose: Cloudflare Workers scheduled task
 - Single file deployed separately from main app
 - Runs on schedule (e.g., every 5 minutes)
@@ -285,30 +292,35 @@ fogr.ai/
 ## Special Directories
 
 **src/.svelte-kit/**
+
 - Purpose: Generated SvelteKit configuration
 - Generated: Yes (build output)
 - Committed: No (in .gitignore)
 - Do NOT edit manually
 
 **node_modules/**
+
 - Purpose: NPM dependencies
 - Generated: Yes (via npm install)
 - Committed: No (in .gitignore)
 - Update via `npm update`
 
 **supabase/migrations/**
+
 - Purpose: Database schema migrations
 - Generated: No (hand-written)
 - Committed: Yes
 - Run via `supabase migration up`
 
 **e2e/**
+
 - Purpose: End-to-end tests using Playwright
 - Generated: No (hand-written)
 - Committed: Yes
 - Run via `npm run test:e2e`
 
 **test-results/**
+
 - Purpose: Test output and trace files
 - Generated: Yes (from Playwright runs)
 - Committed: No (in .gitignore)
@@ -317,23 +329,27 @@ fogr.ai/
 ## Route Groups & Organization
 
 **Protected Routes (app):**
+
 - Routes: `src/routes/(app)/**`
 - Access: Only authenticated users
 - Check: `locals.getUser()` in `+page.server.ts`
 - Redirect: To `/login` if not authenticated
 
 **Public Routes (public):**
+
 - Routes: `src/routes/(public)/**`
 - Access: Anyone (no auth required)
 - No redirect, allows anonymous viewing
 
 **API Routes:**
+
 - Routes: `src/routes/api/**`
 - Pattern: JSON responses, `RequestHandler` pattern
 - Status: Return appropriate HTTP codes
 - Auth: Individual endpoint checks
 
 **Auth Routes:**
+
 - Routes: `src/routes/auth/**`
 - Purpose: Login, logout, oauth callback
 - Pattern: Redirect-based, no JSON responses
@@ -341,6 +357,7 @@ fogr.ai/
 ## Import Paths
 
 **Alias:** `$lib/` points to `src/lib/`
+
 - Usage: `import { Component } from '$lib/components/...'`
 - Defined in: SvelteKit automatically handles this
 - Examples:
@@ -349,10 +366,12 @@ fogr.ai/
   - `import { tagToAvatar } from '$lib/utils/tag-to-avatar'`
 
 **Relative Imports:**
+
 - Use for local sibling files: `import './style.css'`
 - Use for parent directory: `import { Component } from '../Component.svelte'`
 
 **Package Imports:**
+
 - ESM only: `import { createClient } from '@supabase/supabase-js'`
 - Entry defined in package.json or package's export map
 

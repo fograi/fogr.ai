@@ -5,14 +5,17 @@
 ## Test Framework
 
 **Runner:**
+
 - Vitest 4.0.18
 - Config: `vite.config.ts` (dual-project setup)
 
 **Assertion Library:**
+
 - Vitest's built-in `expect` API
 - Playwright assertions for E2E tests (`@playwright/test` 1.58.2)
 
 **Run Commands:**
+
 ```bash
 npm run test:unit          # Run all unit tests (runs both projects then exits)
 npm run test:e2e           # Run E2E tests with Playwright
@@ -20,16 +23,19 @@ npm test                   # Run unit tests then E2E tests
 ```
 
 **Watch mode:**
+
 - Vitest supports watch mode but no npm script defined
 - Run directly: `npx vitest` or `npx vitest --watch`
 
 **Coverage:**
+
 - No coverage script defined
 - Can run: `npx vitest --coverage`
 
 ## Test File Organization
 
 **Location:**
+
 - Co-located with source files (preferred pattern)
 - E2E tests in separate `e2e/` directory
 - Server tests: `src/lib/server/*.spec.ts`
@@ -37,11 +43,13 @@ npm test                   # Run unit tests then E2E tests
 - Svelte component tests: `src/routes/*.svelte.spec.ts`, `src/lib/components/**/*.svelte.spec.ts`
 
 **Naming:**
+
 - Unit tests: `*.spec.ts` (e.g., `pagination.spec.ts`, `ads-validation.spec.ts`)
 - E2E tests: `*.test.ts` (e.g., `home.test.ts`, `flows.test.ts`, `avatar-visual.test.ts`)
 - Svelte component tests: `*.svelte.spec.ts` (e.g., `page.svelte.spec.ts`)
 
 **Structure:**
+
 ```
 src/lib/server/
 ├── pagination.ts
@@ -60,6 +68,7 @@ e2e/
 ## Test Structure
 
 **Suite Organization:**
+
 ```typescript
 // Server/utility tests (src/lib/server/pagination.spec.ts)
 import { describe, it, expect } from 'vitest';
@@ -92,6 +101,7 @@ test('home page renders the main nav', async ({ page }) => {
 ```
 
 **Patterns:**
+
 - `describe()` groups related tests by function or feature
 - `it()` describes specific behavior in plain English
 - Arrange-Act-Assert pattern for unit tests
@@ -104,6 +114,7 @@ test('home page renders the main nav', async ({ page }) => {
 **Framework:** Vitest's built-in `vi` mocking utilities
 
 **Patterns:**
+
 ```typescript
 // From src/lib/server/moderation-events.spec.ts
 import { describe, expect, it, vi } from 'vitest';
@@ -124,12 +135,14 @@ describe('recordModerationEvent', () => {
 ```
 
 **What to Mock:**
+
 - External API clients (Supabase, OpenAI) in unit tests
 - Browser APIs not available in Node environment
 - Cloudflare Workers bindings (KV, R2) when testing locally
 - Time-dependent functions (not observed but would use `vi.useFakeTimers()`)
 
 **What NOT to Mock:**
+
 - Pure utility functions
 - Type definitions
 - Constants
@@ -138,6 +151,7 @@ describe('recordModerationEvent', () => {
 ## Fixtures and Factories
 
 **Test Data:**
+
 ```typescript
 // From src/routes/page.svelte.spec.ts
 function buildPageData(overrides: Record<string, unknown> = {}) {
@@ -185,11 +199,13 @@ describe('/+page.svelte', () => {
 ```
 
 **Location:**
+
 - Test data factories defined inline in test files
 - E2E mocks in `src/lib/server/e2e-mocks.ts`
 - Identity lock fixtures in `src/lib/utils/identity-lock.spec.ts` as const arrays
 
 **Pattern:**
+
 - Factory functions accept `overrides` parameter for customization
 - Use `...overrides` spread to allow test-specific data
 - Const arrays for deterministic test vectors
@@ -200,12 +216,14 @@ describe('/+page.svelte', () => {
 **Requirements:** No explicit target enforced
 
 **Current state:**
+
 - Vitest configured with `expect: { requireAssertions: true }` (all tests must have at least one assertion)
 - Good coverage of validation logic (`ads-validation.spec.ts` has 165 lines)
 - Server utilities well-tested (pagination, redirect, rate-limit, etc.)
 - Visual regression tests for avatar rendering
 
 **View Coverage:**
+
 ```bash
 npx vitest --coverage
 ```
@@ -213,17 +231,20 @@ npx vitest --coverage
 ## Test Types
 
 **Unit Tests:**
+
 - Scope: Pure functions, validation logic, utilities
 - Environment: Node for server code, Chromium browser for client code via `@vitest/browser-playwright`
 - Approach: Test inputs/outputs, edge cases, error conditions
 - Examples: `src/lib/server/pagination.spec.ts`, `src/lib/utils/loading.spec.ts`, `src/lib/server/ads-validation.spec.ts`
 
 **Integration Tests:**
+
 - Scope: Not explicitly separated; validation tests cover integration of multiple rules
 - Approach: Test complete validation flows with realistic data
 - Example: `src/lib/server/ads-validation.spec.ts` tests category profile validation with location data
 
 **E2E Tests:**
+
 - Framework: Playwright (`@playwright/test`)
 - Scope: Full user flows, page rendering, navigation, interactions
 - Browser: Chromium (headless)
@@ -231,6 +252,7 @@ npx vitest --coverage
 - Examples: `e2e/home.test.ts`, `e2e/flows.test.ts`, `e2e/avatar-visual.test.ts`
 
 **Vitest Projects:**
+
 ```typescript
 // From vite.config.ts
 test: {
@@ -264,6 +286,7 @@ test: {
 ## Common Patterns
 
 **Async Testing:**
+
 ```typescript
 // Unit tests - simple async/await
 it('inserts moderation event', async () => {
@@ -279,6 +302,7 @@ test('home page renders', async ({ page }) => {
 ```
 
 **Error Testing:**
+
 ```typescript
 // From src/lib/utils/mythologise.spec.ts
 it('throws TypeError when tagChars is not a whole finite number', () => {
@@ -303,6 +327,7 @@ it('throws RangeError when tagChars is out of supported bounds', () => {
 ```
 
 **Parametric Testing:**
+
 ```typescript
 // From src/lib/utils/mythologise.spec.ts
 it('returns the expected default handles for the provided Supabase UIDs', () => {
@@ -319,6 +344,7 @@ const expectWholeEuroVariant = (result: string | null, rawValue: string) => {
 ```
 
 **Svelte Component Testing:**
+
 ```typescript
 // From src/routes/page.svelte.spec.ts
 import { page } from 'vitest/browser';
@@ -339,6 +365,7 @@ it('renders unified discovery controls with current filter state', async () => {
 ```
 
 **Visual Regression Testing:**
+
 ```typescript
 // From e2e/avatar-visual.test.ts
 test('avatar rendering is visually consistent', async ({ page }, testInfo) => {

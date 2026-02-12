@@ -11,6 +11,7 @@
 **Issue:** The `warnedMissingRateLimit` variable is declared at module scope in `src/routes/api/ads/+server.ts` (line 59) and `src/routes/api/ads/[id]/+server.ts` (line 36). This warning flag persists across requests and only logs once globally.
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 59, 293-295)
 - `src/routes/api/ads/[id]/+server.ts` (line 36)
 
@@ -25,6 +26,7 @@
 **Issue:** The `shouldFlag()` function with identical moderation thresholds and logic is duplicated across two files. Makes maintenance harder when scores need tuning.
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 136-159)
 - `src/cron-worker.ts` (lines 58-81)
 
@@ -39,6 +41,7 @@
 **Issue:** `arrayBufferToBase64()` function implemented identically in three places.
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 99-107)
 - `src/routes/api/ads/[id]/+server.ts` (lines 62-78, with additional Buffer fallback logic)
 - `src/cron-worker.ts` (lines 41-49)
@@ -84,6 +87,7 @@
 **Issue:** `x-forwarded-for` header is split without bounds checking and invalid IPs are used as rate-limit keys.
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (line 224)
 - `src/routes/api/ads/[id]/report/+server.ts` (line 85)
 - `src/routes/api/auth/magic-link/+server.ts` (line 61)
@@ -122,6 +126,7 @@
 **Risk:** If `RATE_LIMIT` KV binding is not configured, rate limiting silently degrades to per-request checks only. An attacker can spam ad posts (5 per 10m → unlimited), file reports (5 per 10m → unlimited), or send magic links.
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 268-296)
 - `src/routes/api/ads/[id]/report/+server.ts` (lines 96-120)
 - `src/routes/api/auth/magic-link/+server.ts` (similar pattern)
@@ -129,6 +134,7 @@
 **Current mitigation:** Logs one warning per module per deployment if KV is missing. No actual rate limiting if binding is unavailable.
 
 **Recommendations:**
+
 1. Fail deployment if `RATE_LIMIT` is not present in production (add pre-flight check in CI)
 2. Return 503 instead of silently proceeding without rate limiting
 3. Add health check endpoint that verifies KV binding is accessible
@@ -144,6 +150,7 @@
 **Current mitigation:** None, relies on cryptographic hash strength.
 
 **Recommendations:**
+
 1. Add collision detection test with sample email lists
 2. Use IP-based rate limiting as primary, email hash as secondary (currently does both independently)
 3. Document assumption that SHA-256 collisions are acceptable in this threat model
@@ -153,12 +160,14 @@
 **Risk:** `OPENAI_API_KEY` is loaded from `platform.env` without validation that it's set or valid in production.
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 250, 298)
 - `src/cron-worker.ts` (line 211)
 
 **Current mitigation:** Throws error if missing in non-dev mode at line 298, but only at request time.
 
 **Recommendations:**
+
 1. Validate keys exist at Wrangler deployment validation time, not request time
 2. Add health check endpoint that verifies API connectivity without incurring quota
 3. Implement circuit breaker pattern for OpenAI failures to prevent cascade
@@ -170,12 +179,14 @@
 **Risk:** Service role key is stored in `platform.env` and used in ad creation (line 439) and cron worker (line 225). If compromised, full database access is possible including reading all user data.
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 436-442)
 - `src/cron-worker.ts` (lines 210, 316-322)
 
 **Current mitigation:** Only used server-side, never sent to client.
 
 **Recommendations:**
+
 1. Rotate service role key quarterly (document in ops playbook)
 2. Prefer row-level security (RLS) policies over service role for ad queries
 3. Add audit logging for service role usage patterns
@@ -194,6 +205,7 @@
 **Cause:** Fetching all conversation metadata first, then querying unread message counts per conversation in parallel.
 
 **Improvement path:**
+
 1. Use Supabase aggregation with `count` option: `select('..., messages(count)')`
 2. Or load conversation + count in single query with subquery or join
 3. Add query test to verify single query, not N+1 pattern
@@ -203,6 +215,7 @@
 **Area:** Ad listing GET handler performance
 
 **Issue:** Cache key is created on every request (lines 788-790 in `src/routes/api/ads/+server.ts`):
+
 ```typescript
 const cacheKey = cfCache
   ? new Request(new URL(url.pathname + url.search, url.origin), { method: 'GET' })
@@ -214,6 +227,7 @@ const cacheKey = cfCache
 **Cause:** Constructing a full Request object on every hit even if cache doesn't need it.
 
 **Improvement path:**
+
 1. Check if cache exists and needs key before constructing Request
 2. Or use simpler string key based on query parameters: `${url.pathname}${url.search}`
 3. Benchmark Request construction cost before/after optimization
@@ -229,6 +243,7 @@ const cacheKey = cfCache
 **Cause:** Leo-profanity and obscenity libraries have no async mode.
 
 **Improvement path:**
+
 1. Move profanity check to Cloudflare Worker or Web Worker
 2. Add description length limit to prevent extremely long inputs (MAX_DESC_LENGTH = 5000 chars already enforced)
 3. Profile actual blocking time with larger descriptions
@@ -245,6 +260,7 @@ const cacheKey = cfCache
 **Cause:** No Worker or streaming approach; blocks until all images encoded.
 
 **Improvement path:**
+
 1. Benchmark base64 encoding time for 5 images at 2MB each
 2. Consider pre-encoding images on client before upload
 3. If server-side needed, batch encode in background after returning response
@@ -269,12 +285,14 @@ const cacheKey = cfCache
 **Component/Module:** Category-specific ad validation
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 373-386)
 - `src/routes/api/ads/[id]/+server.ts` (similar pattern)
 
 **Why fragile:** `categoryProfilePayload` is parsed JSON but typed as `unknown`, then passed to `validateAndNormalizeBikesProfileData()`. If the validation function has a bug or partial type coverage, invalid bike profiles could be stored and cause downstream rendering errors.
 
 **Safe modification:**
+
 1. Add comprehensive test suite in `src/lib/server/ads-validation.spec.ts` covering all bike subtypes, conditions, and size presets
 2. Use TypeScript's `satisfies` operator to validate parsed JSON shape before passing to validator
 3. Add database constraints or trigger to reject invalid JSON shapes at storage layer
@@ -286,12 +304,14 @@ const cacheKey = cfCache
 **Component/Module:** Location hierarchy validation
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 387-399)
 - `src/routes/api/ads/[id]/+server.ts` (similar pattern)
 
 **Why fragile:** Location profile is parsed JSON with minimal validation. No checks that county/locality IDs actually exist in hierarchy.
 
 **Safe modification:**
+
 1. Add location hierarchy validation test
 2. Validate against known county/locality options from `src/lib/location-hierarchy.ts`
 3. Consider caching location hierarchy to reduce repeated lookups
@@ -303,6 +323,7 @@ const cacheKey = cfCache
 **Component/Module:** Testing infrastructure
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 711-783)
 - `src/routes/api/messages/+server.ts` (lines 51-63)
 - `src/routes/(app)/messages/+page.server.ts` (lines 27-100+)
@@ -310,6 +331,7 @@ const cacheKey = cfCache
 **Why fragile:** E2E tests depend on mock data being consistent across multiple route files. If one mock data object is updated and others aren't, tests break unpredictably.
 
 **Safe modification:**
+
 1. Create single `src/lib/server/e2e-mock-data.ts` that exports all mock objects
 2. Import in all route handlers
 3. Document mock data schema in comments
@@ -328,6 +350,7 @@ const cacheKey = cfCache
 **Limit:** OpenAI free tier allows ~3500 requests/minute. With 5 moderation calls per ad (text, up to 3 images, combined) and 12 ads/day per user, system can handle ~70 concurrent users posting simultaneously before hitting quota.
 
 **Scaling path:**
+
 1. Implement request queuing for moderation (batch multiple ads per minute)
 2. Switch to batch moderation API when available
 3. Cache common profanity results (e.g., same title text)
@@ -343,6 +366,7 @@ const cacheKey = cfCache
 **Limit:** Cloudflare R2 has soft limits around 100 requests/second per bucket before throttling.
 
 **Scaling path:**
+
 1. Implement sequential upload with rate limiting (max 5 parallel uploads per ad)
 2. Use R2's multipart upload for large images
 3. Split images across multiple R2 buckets by geography or user segment
@@ -357,6 +381,7 @@ const cacheKey = cfCache
 **Limit:** Supabase free tier allows ~20 concurrent connections.
 
 **Scaling path:**
+
 1. Upgrade to Supabase paid plan with higher connection limits
 2. Implement connection pooling with pgBouncer
 3. Move high-frequency queries to read replicas
@@ -373,6 +398,7 @@ const cacheKey = cfCache
 **Impact:** If OpenAI SDK updates to v7, moderation model name `'omni-moderation-latest'` or response schema could break. Also uses undocumented `_request_id` field on response (line 138 in ads/+server.ts).
 
 **Migration plan:**
+
 1. Add integration tests that validate OpenAI moderation response schema
 2. Pin to `openai@6.18.0` exactly until v7 migration plan is ready
 3. Check OpenAI changelog before accepting SDK updates
@@ -387,6 +413,7 @@ const cacheKey = cfCache
 **Impact:** Profanity filtering degrades over time relative to OpenAI's moderation API.
 
 **Migration plan:**
+
 1. Use OpenAI moderation as source of truth; leo-profanity as optional secondary gate
 2. Consider replacing with maintained alternative like `bad-words` with custom dictionaries
 3. Set reminder to audit library status quarterly
@@ -400,6 +427,7 @@ const cacheKey = cfCache
 **Impact:** Startup time for ad creation handler may be increased by regex compilation. Unclear if blocking.
 
 **Migration plan:**
+
 1. Profile regex compilation time in production environment
 2. Consider pre-compiling regex during build step if time is significant
 3. If performance issue found, consider simpler regex-based alternative
@@ -411,6 +439,7 @@ const cacheKey = cfCache
 **Untested area:** Rate limiting across 10m and daily windows in API endpoints.
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 268-296)
 - `src/routes/api/ads/[id]/report/+server.ts` (lines 96-120)
 - No dedicated E2E test found
@@ -426,6 +455,7 @@ const cacheKey = cfCache
 **Untested area:** Partial image upload failures, R2 bucket unavailability, edge cases in Promise.allSettled().
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 574-632)
 - No unit test found
 
@@ -440,6 +470,7 @@ const cacheKey = cfCache
 **Untested area:** OpenAI moderation scoring and `shouldFlag()` decision logic.
 
 **Files:**
+
 - `src/routes/api/ads/+server.ts` (lines 136-159)
 - `src/cron-worker.ts` (lines 58-81)
 - Test: `src/lib/server/ads-validation.spec.ts` (tests price validation only)
@@ -455,6 +486,7 @@ const cacheKey = cfCache
 **Untested area:** Message sending authorization and conversation access control.
 
 **Files:**
+
 - `src/routes/api/messages/+server.ts` (lines 77-88, 102-103, 125-128)
 - E2E test exists but doesn't test authorization edge cases
 
