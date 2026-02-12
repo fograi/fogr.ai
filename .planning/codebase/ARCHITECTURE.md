@@ -4,193 +4,219 @@
 
 ## Pattern Overview
 
-**Overall:** SvelteKit full-stack application with filesystem-based routing, deployed to Cloudflare Workers
+**Overall:** Layered SvelteKit full-stack application with strict separation between client-side, server-side, and API layers. Follows SvelteKit conventions with file-based routing, server-side data loading, and isolated API endpoints.
 
 **Key Characteristics:**
-- Server-side rendering (SSR) with SvelteKit
-- Filesystem-based routing with route groups
-- Supabase backend (PostgreSQL + Auth)
-- Cloudflare Workers runtime (edge compute)
-- R2 object storage for images
-- Scheduled cron worker for background tasks
+- Full-stack TypeScript with SvelteKit 2.x framework
+- Server-side rendering with Svelte 5 components
+- RESTful API layer for app operations
+- Cloudflare Workers integration for scheduled tasks (cron-worker.ts)
+- Supabase PostgreSQL database with server-side authentication
+- OpenAI integration for AI-based content moderation
+- Cloudflare R2 for image storage (pending and public buckets)
+- Svelte stores for lightweight client-side state
+- Web Workers for client-side moderation checks
 
 ## Layers
 
-**Presentation Layer:**
-- Purpose: Renders UI and handles user interactions
-- Location: `src/routes/**/*.svelte`, `src/lib/components/**/*.svelte`
-- Contains: Svelte components, page routes, layout components
-- Depends on: Client stores (`src/lib/stores`), utilities (`src/lib/utils`), API routes
-- Used by: End users via browser
+**Presentation (Client):**
+- Purpose: Render UI with Svelte components and handle user interactions
+- Location: `src/routes/`, `src/lib/components/`
+- Contains: `.svelte` route pages, layout components, UI elements
+- Depends on: Server data from `+page.server.ts`, Svelte stores, client utilities
+- Used by: Browser requests, handles forms and navigation
 
-**API Layer:**
-- Purpose: HTTP API endpoints for client-server communication
-- Location: `src/routes/api/**/*+server.ts`
-- Contains: RESTful request handlers (GET, POST, PATCH, DELETE)
-- Depends on: Server utilities (`src/lib/server`), Supabase client, platform bindings (R2, KV, OpenAI)
-- Used by: Frontend pages (via fetch), external services
+**Server-Side Routes:**
+- Purpose: Execute server logic, validate user authentication, fetch initial page data
+- Location: `src/routes/**/+page.server.ts`, `src/routes/**/+layout.server.ts`
+- Contains: `PageServerLoad`, `LayoutServerLoad` functions
+- Depends on: Supabase client from hooks, utility validators, permission checks
+- Used by: SvelteKit to load data before rendering pages
+- Pattern: Each route's data loading is colocated with the `.svelte` file
 
-**Server Logic Layer:**
-- Purpose: Business logic, validation, and server-side utilities
-- Location: `src/lib/server/**/*.ts`
-- Contains: Validation functions, moderation logic, rate limiting, pagination, CSRF protection, admin checks
-- Depends on: Database types (`src/lib/supabase.types.ts`), external services (Supabase, OpenAI)
-- Used by: API routes, page server load functions, cron worker
+**API Endpoints:**
+- Purpose: Handle HTTP requests for data mutations, searches, and external integrations
+- Location: `src/routes/api/**/+server.ts`
+- Contains: `RequestHandler` functions (GET, POST, PATCH, DELETE)
+- Depends on: Supabase client, OpenAI SDK, Cloudflare R2 bucket access, rate limiting
+- Used by: Frontend XHR requests, webhook endpoints
 
-**Data Access Layer:**
-- Purpose: Database operations and external service integrations
-- Location: Supabase client (initialized in `src/hooks.server.ts`), platform bindings
-- Contains: Supabase queries, R2 storage operations, KV cache operations
-- Depends on: Cloudflare platform environment, Supabase service
-- Used by: Server logic layer, API routes
+**Server Utilities:**
+- Purpose: Reusable business logic for validation, auth, metrics, and moderation
+- Location: `src/lib/server/`
+- Contains: Validators, rate limiting, CSRF checks, moderation logic
 
-**Background Jobs Layer:**
-- Purpose: Scheduled tasks and asynchronous processing
+**Client Utilities:**
+- Purpose: Client-side helpers for formatting, Avatar generation, UI utilities
+- Location: `src/lib/utils/`
+- Contains: Pure functions for formatting, mapping, transforms
+
+**Data & Configuration:**
+- Purpose: Static data, type definitions, and configuration constants
+- Location: `src/lib/`, `src/types/`, `src/data/`
+- Contains: Category profiles, location hierarchies, constants
+
+**Database Client:**
+- Purpose: Manage Supabase database connection and session handling
+- Location: `src/hooks.server.ts`
+- Contains: Server request handler that initializes Supabase client
+
+**Scheduled Tasks:**
+- Purpose: Background processing on Cloudflare Workers schedule
 - Location: `src/cron-worker.ts`
-- Contains: Pending ad moderation retry, ad expiration, metrics rollup
-- Depends on: Supabase REST API, R2 buckets, OpenAI API
-- Used by: Cloudflare Cron Triggers (scheduled events)
+- Responsibilities: Moderate pending ads, move approved images, expire old ads, rollup metrics
 
 ## Data Flow
 
-**User Authentication Flow:**
+**Browsing & Searching (Public):**
 
-1. User requests authentication → hits `src/routes/api/auth/magic-link/+server.ts`
-2. Magic link sent via Supabase Auth
-3. Callback handled by `src/routes/auth/callback/+server.ts`
-4. Session cookie set via `src/routes/auth/set-cookie/+server.ts`
-5. `src/hooks.server.ts` creates Supabase client with cookie handling
-6. `src/routes/+layout.server.ts` loads user data into page context
-7. Client-side store `src/lib/stores/user.ts` maintains reactive user state
+1. User navigates to `/` → `src/routes/+page.server.ts` load()
+2. Function extracts query params (search, category, location, pagination)
+3. Calls fetch('/api/ads?...') with query parameters
+4. `/api/ads` GET endpoint validates, queries Supabase, returns filtered ads list
+5. Server load returns data to `src/routes/+page.svelte`
+6. Page renders ad grid with `AdCard` components
 
-**Ad Creation Flow:**
+**Creating/Editing Ads:**
 
-1. User submits form → `POST /api/ads` (`src/routes/api/ads/+server.ts`)
-2. Request validated: CSRF check, auth check, rate limiting (KV), daily limit (Supabase)
-3. Content moderation: profanity filter, OpenAI moderation API
-4. Ad record inserted into Supabase `ads` table
-5. Images uploaded to R2 bucket (public or pending based on moderation result)
-6. Database updated with image keys
-7. If moderation unavailable, ad marked `pending` for cron worker retry
-8. Response returned with ad ID for redirect
+1. User navigates to `/post` → `src/routes/(app)/post/+page.server.ts` checks auth
+2. Page renders `PostFields` and `ImageDrop` components
+3. Form submit → POST `/api/ads`:
+   - Client-side moderation check via Web Worker (leo-profanity)
+   - Server validation (text, images, category/location data, rate limit)
+   - If valid → store ad with status='pending', upload images to R2
+4. Cron worker (`src/cron-worker.ts`) processes pending ads:
+   - Fetches ads with status='pending'
+   - Calls OpenAI omni-moderation API for text + images
+   - If passes → copies images to public bucket, updates status='active'
+   - If flagged → updates status='rejected'
 
-**Ad Listing Flow:**
+**Reporting & Moderation:**
 
-1. User loads homepage → `src/routes/+page.server.ts` load function
-2. Fetch call to `GET /api/ads` with filters
-3. API route queries Supabase with category/price/location filters
-4. Results cached in Cloudflare edge cache (5-minute TTL)
-5. Data transformed to `AdCard` format
-6. Rendered in `src/routes/+page.svelte` using `AdCard.svelte` components
+1. User clicks "Report" → POST `/api/ads/[id]/report` creates report entry
+2. Admin navigates to `/admin/reports` → checks admin permission
+3. Admin approves/rejects → POST `/api/ads/[id]/status` updates ad status
+4. Records moderation event, sends email to user
 
-**State Management:**
-- Server state: Passed via SvelteKit load functions (`+page.server.ts`, `+layout.server.ts`)
-- Client state: Svelte 5 runes (`$state`, `$derived`, `$effect`) and stores (`src/lib/stores/user.ts`)
-- Form state: Progressive enhancement with `use:enhance` from `@sveltejs/kit/forms`
+**Messaging Between Users:**
+
+1. User views ad → clicks "Message"
+2. Creates/fetches conversation, displays thread via `/api/messages`
+3. Both users' identities anonymized using `mythologise()` function
+4. Avatar generated from user tag via `tagToAvatar()`
 
 ## Key Abstractions
 
-**Route Groups:**
-- Purpose: Organize routes with shared layouts
-- Examples: `src/routes/(app)`, `src/routes/(public)`, `src/routes/api`
-- Pattern: Parentheses in folder name create non-URL segments for layout grouping
+**AdCard & ApiAdRow:**
+- Transform database rows into display objects
+- Location: `src/types/ad-types.d.ts`, `src/routes/+page.server.ts`
 
-**Page Server Loads:**
-- Purpose: Server-side data fetching before page render
-- Examples: `src/routes/+page.server.ts`, `src/routes/(public)/ad/[slug]/+page.server.ts`
-- Pattern: `+page.server.ts` exports `load` function; data passed to corresponding `+page.svelte`
+**LocationProfileData:**
+- Hierarchical location selection (Country → Province → County → Locality)
+- Location: `src/lib/location-hierarchy.ts`
 
-**API Request Handlers:**
-- Purpose: Handle HTTP methods for API endpoints
-- Examples: `src/routes/api/ads/+server.ts` (GET, POST), `src/routes/api/ads/[id]/+server.ts` (PATCH, DELETE)
-- Pattern: `+server.ts` exports named functions (GET, POST, PATCH, DELETE) matching HTTP methods
+**CategoryProfileData:**
+- Category-specific attributes (e.g., bike type, size, condition)
+- Location: `src/lib/category-profiles.ts`
 
-**Platform Bindings:**
-- Purpose: Access Cloudflare Workers environment (env vars, KV, R2, D1)
-- Examples: `platform.env.ADS_BUCKET`, `platform.env.RATE_LIMIT`, `platform.env.OPENAI_API_KEY`
-- Pattern: Accessed via `event.platform.env` in handlers and load functions
+**ModerationDecision:**
+- Three-state outcome: 'allow' | 'flagged' | 'unavailable'
+- Used in client/server moderation, cron moderation
 
-**Locals Context:**
-- Purpose: Per-request server-side context
-- Examples: `locals.supabase` (authenticated Supabase client), `locals.getUser()` (helper to fetch current user)
-- Pattern: Initialized in `src/hooks.server.ts`, available in all server contexts
+**UserLite Store:**
+- Minimal Svelte store with id + email
+- Location: `src/lib/stores/user.ts`
 
 ## Entry Points
 
-**Web Application:**
-- Location: `src/routes/+layout.svelte` (root layout), `src/routes/+page.svelte` (homepage)
-- Triggers: HTTP requests to application routes
-- Responsibilities: SSR initial HTML, hydrate client-side interactivity
+**Web App (SvelteKit):**
+- Location: `src/routes/+layout.svelte`
+- Triggers: HTTP requests to any route
+- Responsibilities: Root layout, global assets, Navbar setup
 
-**API Endpoints:**
-- Location: `src/routes/api/ads/+server.ts` (primary ad CRUD), `src/routes/api/messages/+server.ts` (messaging)
-- Triggers: Fetch calls from frontend or external HTTP requests
-- Responsibilities: Validate, authorize, execute business logic, return JSON
+**API Root:**
+- Location: `src/routes/api/` directory
+- Triggers: XHR/fetch requests
+- Endpoints: `/api/ads`, `/api/messages`, `/api/me/*`, etc.
 
-**Server Hooks:**
-- Location: `src/hooks.server.ts`
-- Triggers: Every server-side request
-- Responsibilities: Initialize Supabase client with cookie session handling, attach helpers to `event.locals`
+**Authentication:**
+- Location: `src/routes/auth/callback/+server.ts`
+- Triggers: OAuth callback from Supabase
+- Responsibilities: Exchange code for session
+
+**Public Ad Viewing:**
+- Location: `src/routes/(public)/ad/[slug]/+page.server.ts`
+- Triggers: Public ad link visit (no auth required)
+
+**Admin Routes:**
+- Location: `src/routes/(app)/admin/`
+- Triggers: Admin navigation
+- Checks: Admin permission via `isAdminUser()`
 
 **Cron Worker:**
 - Location: `src/cron-worker.ts`
-- Triggers: Cloudflare Cron Triggers (configured in `wrangler.cron.jsonc`)
-- Responsibilities: Retry pending ad moderation, expire old ads, rollup metrics, purge old metrics
-
-**App Initialization:**
-- Location: `src/app.html` (HTML shell), `src/app.css` (global styles)
-- Triggers: All page loads
-- Responsibilities: Provide HTML structure and global CSS for SvelteKit app
+- Triggers: Cloudflare Workers scheduled event
+- Tasks: Batch-process pending ads, expire ads, rollup metrics
 
 ## Error Handling
 
-**Strategy:** Centralized error responses with request ID tracking
+**Input Validation:**
+- Happens in `src/lib/server/ads-validation.ts`
+- Returns `string | null` (null = valid, string = error)
+- Validators: `validateAdMeta()`, `validateAdImages()`, `validateLocationProfileData()`
 
-**Patterns:**
-- API routes return structured JSON errors: `{ success: false, message: string, requestId?: string }`
-- Status codes: 400 (validation), 401 (auth), 403 (forbidden), 413 (payload too large), 429 (rate limit), 500 (server error), 503 (service unavailable)
-- Request IDs generated via `crypto.randomUUID()` for traceability
-- Server-side errors logged with structured JSON: `{ level, message, requestId, ...extra }`
-- Page load errors: Use SvelteKit's `error()` helper to throw HTTP errors with messages
-- Client-side errors: Try/catch in async functions, display user-friendly messages
+**Rate Limiting:**
+- Two windows: 10 minutes (5 posts), 24 hours (30 posts)
+- Uses Cloudflare KV namespace
+- Returns 429 with `Retry-After` header
+- Logic in `src/lib/server/rate-limit.ts`
+
+**Permission Checks:**
+- `isAdminUser()` verifies admin flag
+- Protected routes redirect unauthenticated users to login
+
+**API Responses:**
+- Standardized: `{ success: false, message: string, requestId?: string }`
+- Status codes: 400 (validation), 401 (auth), 403 (permission), 429 (rate limit), 500 (error)
+- Example in `src/routes/api/ads/+server.ts`
+
+**Content Moderation:**
+- Client-side check (Web Worker) timeout 1.5s → fail-open
+- Server-side text checks synchronous, always enforce
+- OpenAI moderation (cron) can return 'unavailable' → retry later
+
+**Database Errors:**
+- Logged but don't crash handlers
+- User sees generic error message with requestId for debugging
 
 ## Cross-Cutting Concerns
 
-**Logging:** Structured JSON logging to console with log levels (info, warn, error) and request IDs
+**Logging:**
+- Structured event names + context object
+- Examples: `cron_ad_activated`, `cron_missing_image`
 
 **Validation:**
-- Input validation in `src/lib/server/ads-validation.ts` (centralized rules)
-- Category/location validation using helper functions (`asCategory`, `getCountyOptionById`)
-- Type safety via TypeScript and Supabase-generated types (`src/lib/supabase.types.ts`)
+- Pure functions return `string | null`
+- Fail-fast on first error
 
 **Authentication:**
-- Supabase Auth with magic link flow
-- Session persisted in HTTP-only cookies
-- User context loaded in root layout server load
-- Protected routes redirect unauthenticated users (e.g., `src/routes/(app)/post/+page.server.ts`)
-- Admin role checked via email allowlist (`src/lib/server/admin.ts`)
+- Supabase Auth + Session Cookies via `@supabase/ssr`
+- Hook initializes client in `src/hooks.server.ts`
+- `locals.getUser()` fetches current user
 
 **Rate Limiting:**
-- Cloudflare Workers KV for rate limit counters
-- Sliding window algorithm (`src/lib/server/rate-limit.ts`)
-- Per-user and per-IP limits
-- Returns `429` with `Retry-After` header
+- Hard limits per time window
+- Checked before expensive operations
+
+**Metrics:**
+- Async insert into `event_metrics` table via `recordMetric()`
+- Daily rollup, weekly purge (90 days)
 
 **CSRF Protection:**
-- Same-origin check in API POST/PATCH/DELETE handlers (`src/lib/server/csrf.ts`)
-- Rejects cross-origin requests
+- Same-origin check in `src/lib/server/csrf.ts`
+- Applied to sensitive endpoints
 
-**Caching:**
-- Cloudflare edge cache for public API responses (5-minute TTL with stale-while-revalidate)
-- R2 objects served with immutable cache headers for public images
-- Private cache-control headers for authenticated pages
-
-**Content Moderation:**
-- Client-side pre-check via Web Worker (`src/lib/workers/moderation.worker.ts`)
-- Server-side profanity filter (leo-profanity, obscenity libraries)
-- OpenAI Moderation API for text and images
-- Pending status for ads when moderation API unavailable (retried by cron worker)
-
----
-
-*Architecture analysis: 2026-02-11*
+**Content Security:**
+- HTML escaping automatic in Svelte templates
+- Image URLs validated before rendering
+- Text passed through moderation before storage
