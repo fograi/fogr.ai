@@ -147,6 +147,7 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 
 	const mapped: AdCard[] = ads.map((ad) => ({
 		id: ad.id,
+		slug: ad.slug ?? undefined,
 		title: ad.title,
 		price: ad.price ?? null,
 		img: ad.image_keys?.[0] ?? '',

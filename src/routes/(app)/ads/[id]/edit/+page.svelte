@@ -246,6 +246,7 @@
 		success?: boolean;
 		message?: string;
 		id?: string;
+		slug?: string;
 	};
 
 	let err = '';
@@ -488,7 +489,7 @@
 				throw new Error(payload?.message || 'We could not save your changes.');
 
 			if (payload?.id) {
-				window.location.href = `/ad/${payload.id}`;
+				window.location.href = `/ad/${payload.slug || payload.id}`;
 				return;
 			}
 			ok = payload?.message || 'Changes saved.';

@@ -169,6 +169,7 @@
 		success?: boolean;
 		message?: string;
 		id?: string;
+		slug?: string;
 		requestId?: string;
 	};
 
@@ -393,7 +394,7 @@
 				throw new Error(data?.message || 'We could not post your ad. Try again.');
 
 			if (data?.id) {
-				window.location.href = `/ad/${data.id}`;
+				window.location.href = `/ad/${data.slug || data.id}`;
 				return;
 			}
 

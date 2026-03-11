@@ -8,6 +8,7 @@ type EmailTemplate = {
 
 type ModerationEmailContext = {
 	adId: string;
+	adSlug?: string;
 	decision: string;
 	reasonCategory?: string | null;
 	reasonDetails?: string | null;
@@ -23,16 +24,17 @@ export type ModerationEmailPreview = {
 
 type AppealOutcomeContext = {
 	adId: string;
+	adSlug?: string;
 	outcome: 'resolved' | 'dismissed';
 	appealId?: string | null;
 	baseUrl?: string;
 };
 
-const buildAdUrl = (adId: string, baseUrl: string) => `${baseUrl.replace(/\/$/, '')}/ad/${adId}`;
+const buildAdUrl = (id: string, baseUrl: string) => `${baseUrl.replace(/\/$/, '')}/ad/${id}`;
 
 export const buildTakedownEmail = (ctx: ModerationEmailContext): EmailTemplate => {
 	const baseUrl = ctx.baseUrl ?? DEFAULT_BASE_URL;
-	const adUrl = buildAdUrl(ctx.adId, baseUrl);
+	const adUrl = buildAdUrl(ctx.adSlug ?? ctx.adId, baseUrl);
 	const reasonCategory = ctx.reasonCategory ?? 'Unspecified';
 	const reasonDetails = ctx.reasonDetails ?? 'No additional details provided.';
 	const legalBasis = ctx.legalBasis ? `Legal or policy basis: ${ctx.legalBasis}` : '';
@@ -61,7 +63,7 @@ export const buildTakedownEmail = (ctx: ModerationEmailContext): EmailTemplate =
 
 export const buildStatementOfReasonsEmail = (ctx: ModerationEmailContext): EmailTemplate => {
 	const baseUrl = ctx.baseUrl ?? DEFAULT_BASE_URL;
-	const adUrl = buildAdUrl(ctx.adId, baseUrl);
+	const adUrl = buildAdUrl(ctx.adSlug ?? ctx.adId, baseUrl);
 	const reasonCategory = ctx.reasonCategory ?? 'Unspecified';
 	const reasonDetails = ctx.reasonDetails ?? 'No additional details provided.';
 	const legalBasis = ctx.legalBasis ? `Legal or policy basis: ${ctx.legalBasis}` : '';
@@ -88,7 +90,7 @@ export const buildStatementOfReasonsEmail = (ctx: ModerationEmailContext): Email
 
 export const buildAppealOutcomeEmail = (ctx: AppealOutcomeContext): EmailTemplate => {
 	const baseUrl = ctx.baseUrl ?? DEFAULT_BASE_URL;
-	const adUrl = buildAdUrl(ctx.adId, baseUrl);
+	const adUrl = buildAdUrl(ctx.adSlug ?? ctx.adId, baseUrl);
 	const outcomeLabel = ctx.outcome === 'resolved' ? 'resolved' : 'dismissed';
 	const appealLine = ctx.appealId ? `Appeal reference: ${ctx.appealId}` : '';
 

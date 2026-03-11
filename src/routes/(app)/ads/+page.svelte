@@ -6,6 +6,7 @@
 
 	type AdRow = {
 		id: string;
+		slug?: string | null;
 		title: string;
 		price: number | null;
 		currency: string | null;
@@ -89,7 +90,7 @@
 		notice = '';
 		try {
 			await navigator.clipboard?.writeText(
-				`${location.origin}${resolve('/(public)/ad/[slug]', { slug: ad.id })}`
+				`${location.origin}${resolve('/(public)/ad/[slug]', { slug: ad.slug ?? ad.id })}`
 			);
 			notice = 'Link copied.';
 		} catch {
@@ -176,7 +177,7 @@
 					</div>
 
 					<div class="actions">
-						<a class="btn ghost" href={resolve(`/ad/${ad.id}`)}>View</a>
+						<a class="btn ghost" href={`/ad/${ad.slug ?? ad.id}`}>View</a>
 						{#if ['active', 'pending', 'archived'].includes(ad.status)}
 							<a class="btn ghost" href={resolve(`/ads/${ad.id}/edit`)}>Edit</a>
 						{/if}

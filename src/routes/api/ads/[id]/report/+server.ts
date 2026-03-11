@@ -157,7 +157,7 @@ export const POST: RequestHandler = async ({ params, request, url, platform, loc
 
 	const { data: ad, error: adError } = await admin
 		.from('ads')
-		.select('id')
+		.select('id, slug')
 		.eq('id', adId)
 		.maybeSingle();
 
@@ -171,7 +171,8 @@ export const POST: RequestHandler = async ({ params, request, url, platform, loc
 		data: { user }
 	} = await locals.supabase.auth.getUser();
 
-	const locationUrl = new URL(`/ad/${adId}`, url.origin).toString();
+	const adSlugOrId = ad.slug ?? adId;
+	const locationUrl = new URL(`/ad/${adSlugOrId}`, url.origin).toString();
 	const { data: report, error: reportError } = await admin
 		.from('ad_reports')
 		.insert({

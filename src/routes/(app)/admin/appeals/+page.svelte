@@ -155,6 +155,7 @@
 							</select>
 							<button type="submit">Update</button>
 						</form>
+						<!-- Uses UUID; 301 redirects to slug URL -->
 						<a class="link" href={`/ad/${appeal.ad_id}`} target="_blank" rel="noopener">
 							View ad
 						</a>

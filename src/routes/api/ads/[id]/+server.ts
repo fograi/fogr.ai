@@ -305,7 +305,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		const { data: ad, error: adError } = await locals.supabase
 			.from('ads')
 			.select(
-				'id,user_id,title,description,category,category_profile_data,location_profile_data,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,expires_at'
+				'id,user_id,slug,title,description,category,category_profile_data,location_profile_data,price,currency,image_keys,status,firm_price,min_offer,auto_decline_message,expires_at'
 			)
 			.eq('id', adId)
 			.maybeSingle();
@@ -631,6 +631,7 @@ export const PATCH: RequestHandler = async ({ params, locals, platform, request,
 		return json({
 			success: true,
 			id: ad.id,
+			slug: ad.slug,
 			message:
 				needsModeration && (moderationFlagged || moderationUnavailable) && ad.status !== 'archived'
 					? 'Changes saved and queued for review.'

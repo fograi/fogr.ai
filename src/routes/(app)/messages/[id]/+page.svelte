@@ -196,6 +196,7 @@
 							<span>{data.conversation.adStatus.replace('_', ' ')}</span>
 						</div>
 					{/if}
+					<!-- Uses UUID; 301 redirects to slug URL -->
 					<a class="summary-link" href={`/ad/${data.conversation.adId}`}>Open listing</a>
 				</div>
 			</details>

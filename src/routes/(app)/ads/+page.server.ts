@@ -4,6 +4,7 @@ import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
 
 type AdRow = {
 	id: string;
+	slug?: string | null;
 	title: string;
 	price: number | null;
 	currency: string | null;
@@ -21,6 +22,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 			ads: [
 				{
 					id: E2E_MOCK_AD.id,
+					slug: E2E_MOCK_AD.slug,
 					title: E2E_MOCK_AD.title,
 					price: E2E_MOCK_AD.price,
 					currency: E2E_MOCK_AD.currency,
@@ -40,7 +42,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 
 	const { data, error: listError } = await locals.supabase
 		.from('ads')
-		.select('id,title,price,currency,category,image_keys,status,created_at,updated_at,expires_at')
+		.select('id,slug,title,price,currency,category,image_keys,status,created_at,updated_at,expires_at')
 		.eq('user_id', user.id)
 		.order('updated_at', { ascending: false })
 		.order('created_at', { ascending: false });

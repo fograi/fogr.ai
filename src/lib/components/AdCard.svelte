@@ -11,6 +11,7 @@
 	import { formatLocationSummary } from '$lib/location-profile';
 
 	export let id: number | string;
+	export let slug: string | undefined = undefined;
 	export let title: string;
 	export let price: number | null;
 	export let img: string | undefined;
@@ -102,7 +103,7 @@
 <li class="card">
 	<a
 		class="link-wrap"
-		href={resolve('/(public)/ad/[slug]', { slug: String(id) })}
+		href={resolve('/(public)/ad/[slug]', { slug: slug ?? String(id) })}
 		aria-label={`View ad: ${title}`}
 	>
 		<div class="card__inner">
