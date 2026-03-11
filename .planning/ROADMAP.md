@@ -36,12 +36,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 4. Slug collisions are handled automatically (two ads with identical titles generate distinct slugs)
 5. No existing ad link that was previously shared becomes a permanent 404 — all resolve via redirect
 
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 01-01: DB migration — add `slug` column, index, populate existing rows, set NOT NULL
-- [ ] 01-02: Slug generation — write generation function, wire into ad insert path, add collision handling
-- [ ] 01-03: Route migration — update SvelteKit routes to use slug param, add 301 redirect handler for UUID URLs
+- [ ] 01-01-PLAN.md — DB migration, slug generation function with tests, backfill script, wire into POST handler
+- [ ] 01-02-PLAN.md — Route migration (UUID/canonical redirects), update all ad link references across codebase
 
 ---
 
@@ -190,11 +189,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Slug Migration | 0/3 | Not started | - |
+| 1. Slug Migration | 0/2 | Planning complete | - |
 | 2. SEO Foundation | 0/8 | Not started | - |
 | 3. Email Infrastructure | 0/5 | Not started | - |
 | 4. Engagement and Retention | 0/6 | Not started | - |
@@ -203,4 +202,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ---
 *Roadmap created: 2026-03-11*
-*Last updated: 2026-03-11 after FB Marketplace research — 38 requirements, 6 phases*
+*Last updated: 2026-03-11 after phase 1 planning -- 2 plans in 2 waves*
