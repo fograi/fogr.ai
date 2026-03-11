@@ -39,7 +39,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — DB migration, slug generation function with tests, backfill script, wire into POST handler
+- [x] 01-01-PLAN.md — DB migration, slug generation function with tests, backfill script, wire into POST handler
 - [ ] 01-02-PLAN.md — Route migration (UUID/canonical redirects), update all ad link references across codebase
 
 ---
@@ -193,7 +193,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Slug Migration | 0/2 | Planning complete | - |
+| 1. Slug Migration | 1/2 | In progress | - |
 | 2. SEO Foundation | 0/8 | Not started | - |
 | 3. Email Infrastructure | 0/5 | Not started | - |
 | 4. Engagement and Retention | 0/6 | Not started | - |
