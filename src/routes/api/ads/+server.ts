@@ -30,6 +30,7 @@ import { recordMetric } from '$lib/server/metrics';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
 import { classifyAdWriteError } from '$lib/server/ads-write-errors';
+import { generateAdSlug } from '$lib/server/slugs';
 import { asCategory, asCategorySort } from '$lib/category-browse';
 import {
 	BIKE_ADULT_SIZE_PRESETS,
@@ -535,37 +536,67 @@ export const POST: RequestHandler = async (event) => {
 				? autoDeclineMessage
 				: null;
 
-		// === NEW === 1) Insert row first to get id
-		const { data: inserted, error: insErr } = await locals.supabase
-			.from('ads')
-			.insert({
-				user_id: user.id,
-				title,
-				description,
-				category,
-				category_profile_data: categoryProfileValidation.categoryProfileData,
-				location_profile_data: locationProfileValidation.locationProfileData,
-				price,
-				currency,
-				image_keys: [],
-				email,
-				status,
-				firm_price: firmPriceValue,
-				min_offer: minOfferValue,
-				auto_decline_message: autoDeclineValue
-			})
-			.select('id')
-			.single();
-			if (insErr || !inserted) {
-				const classified = classifyAdWriteError(insErr);
-				log('error', 'ads_post_insert_failed', {
-					errorCode: insErr?.code ?? null,
-					errorMessage: insErr?.message ?? null,
-					errorDetails: insErr?.details ?? null,
-					reason: classified.reason
-				});
-				return errorResponse(classified.message, classified.status, requestId);
+		// === NEW === 1) Insert row first to get id (with slug collision retry)
+		const countyName =
+			locationProfileValidation.locationProfileData?.county?.name ?? null;
+		const MAX_SLUG_RETRIES = 3;
+		let inserted: { id: string; slug: string | null } | null = null;
+		let insErr: { code?: string; message?: string; details?: string } | null = null;
+
+		for (let attempt = 0; attempt < MAX_SLUG_RETRIES; attempt++) {
+			const slug = generateAdSlug(title, countyName, category);
+			const shortId = slug.slice(-8);
+			const result = await locals.supabase
+				.from('ads')
+				.insert({
+					user_id: user.id,
+					title,
+					description,
+					category,
+					category_profile_data: categoryProfileValidation.categoryProfileData,
+					location_profile_data: locationProfileValidation.locationProfileData,
+					price,
+					currency,
+					image_keys: [],
+					email,
+					status,
+					firm_price: firmPriceValue,
+					min_offer: minOfferValue,
+					auto_decline_message: autoDeclineValue,
+					slug,
+					short_id: shortId
+				})
+				.select('id, slug')
+				.single();
+
+			if (!result.error) {
+				inserted = result.data;
+				insErr = null;
+				break;
 			}
+
+			// If unique constraint violation on short_id or slug, retry
+			if (result.error.code === '23505') {
+				log('warn', 'ads_post_slug_collision', { attempt, slug });
+				insErr = result.error;
+				continue;
+			}
+
+			// Other error -- don't retry
+			insErr = result.error;
+			break;
+		}
+
+		if (insErr || !inserted) {
+			const classified = classifyAdWriteError(insErr);
+			log('error', 'ads_post_insert_failed', {
+				errorCode: insErr?.code ?? null,
+				errorMessage: insErr?.message ?? null,
+				errorDetails: insErr?.details ?? null,
+				reason: classified.reason
+			});
+			return errorResponse(classified.message, classified.status, requestId);
+		}
 
 		const adId: string = inserted.id;
 
@@ -663,6 +694,7 @@ export const POST: RequestHandler = async (event) => {
 			{
 				success: true,
 				id: adId,
+				slug: inserted.slug!,
 				status,
 				message: responseMessage,
 				image_keys,
@@ -797,7 +829,7 @@ export const GET: RequestHandler = async (event) => {
 	let query = locals.supabase
 		.from('ads')
 		.select(
-			'id,title,description,price,currency,category,category_profile_data,location_profile_data,image_keys,created_at,firm_price,min_offer'
+			'id,slug,title,description,price,currency,category,category_profile_data,location_profile_data,image_keys,created_at,firm_price,min_offer'
 		)
 		.eq('status', PUBLIC_AD_STATUS)
 		.gt('expires_at', nowIso);

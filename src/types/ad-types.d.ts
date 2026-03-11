@@ -13,6 +13,7 @@ export interface AdCard {
 	expiresAt?: string;
 	firmPrice?: boolean;
 	minOffer?: number | null;
+	slug?: string;
 }
 
 export type ModerationAction = {
@@ -43,4 +44,6 @@ export type ApiAdRow = {
 	created_at: string;
 	expires_at?: string;
 	updated_at: string | null;
+	slug?: string;
+	short_id?: string;
 };

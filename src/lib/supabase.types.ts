@@ -186,6 +186,8 @@ export type Database = {
 					min_offer: number | null;
 					auto_decline_message: string | null;
 					price: number | null;
+					slug: string | null;
+					short_id: string | null;
 					status: string;
 					title: string;
 					updated_at: string;
@@ -209,6 +211,8 @@ export type Database = {
 					min_offer?: number | null;
 					auto_decline_message?: string | null;
 					price?: number | null;
+					slug?: string | null;
+					short_id?: string | null;
 					status?: string;
 					title: string;
 					updated_at?: string;
@@ -232,6 +236,8 @@ export type Database = {
 					min_offer?: number | null;
 					auto_decline_message?: string | null;
 					price?: number | null;
+					slug?: string | null;
+					short_id?: string | null;
 					status?: string;
 					title?: string;
 					updated_at?: string;

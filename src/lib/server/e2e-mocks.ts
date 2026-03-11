@@ -31,6 +31,8 @@ export const E2E_MOCK_AD: ApiAdRow = {
 	},
 	price: 12,
 	currency: 'EUR',
+	slug: 'e2e-test-ad-dublin-e2emock1',
+	short_id: 'e2emock1',
 	image_keys: [],
 	firm_price: false,
 	min_offer: 10,
