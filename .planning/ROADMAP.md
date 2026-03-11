@@ -12,7 +12,7 @@ Fogr.ai is a near-MVP Irish classifieds platform with core functionality already
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Slug Migration** - Migrate ad URLs from UUIDs to human-readable slugs — load-bearing prerequisite for all SEO work
+- [x] **Phase 1: Slug Migration** - Migrate ad URLs from UUIDs to human-readable slugs — load-bearing prerequisite for all SEO work
 - [ ] **Phase 2: SEO Foundation** - Ship per-page meta tags, JSON-LD structured data, sitemap, robots.txt, canonical URLs, Open Graph tags, programmatic pages, and expired ad handling
 - [ ] **Phase 3: Email Infrastructure** - Integrate Resend transactional email with templates for all lifecycle events
 - [ ] **Phase 4: Engagement and Retention** - Watchlist, saved searches, email alerts, Northern Ireland location support, and posted timestamps
@@ -40,7 +40,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — DB migration, slug generation function with tests, backfill script, wire into POST handler
-- [ ] 01-02-PLAN.md — Route migration (UUID/canonical redirects), update all ad link references across codebase
+- [x] 01-02-PLAN.md — Route migration (UUID/canonical redirects), update all ad link references across codebase
 
 ---
 
@@ -193,7 +193,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Slug Migration | 1/2 | In progress | - |
+| 1. Slug Migration | 2/2 | Complete (pending verification) | 2026-03-11 |
 | 2. SEO Foundation | 0/8 | Not started | - |
 | 3. Email Infrastructure | 0/5 | Not started | - |
 | 4. Engagement and Retention | 0/6 | Not started | - |
@@ -202,4 +202,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-03-11*
-*Last updated: 2026-03-11 after phase 1 planning -- 2 plans in 2 waves*
+*Last updated: 2026-03-11 -- Phase 1 complete (2/2 plans), pending human verification*
