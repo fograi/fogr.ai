@@ -26,6 +26,8 @@ Requirements for launch. Each maps to roadmap phases.
 - [ ] **TRST-03**: All ad browsing and viewing is accessible without login
 - [ ] **TRST-04**: Platform enforces private-seller-only policy with detection for commercial resellers
 - [ ] **TRST-05**: Expired ads return a page with "This ad has expired" and similar active listings instead of a 404
+- [ ] **TRST-06**: Anti-scam safety guidance displayed during ad creation and when viewing ads (meeting tips, payment safety)
+- [ ] **TRST-07**: Private-seller-only trust messaging displayed prominently throughout the platform (positioning vs Facebook Marketplace)
 
 ### Engagement & Retention
 
@@ -35,6 +37,7 @@ Requirements for launch. Each maps to roadmap phases.
 - [ ] **ENGR-04**: User receives email alerts when new ads match their saved searches
 - [ ] **ENGR-05**: User can manage and delete their saved searches
 - [ ] **ENGR-06**: Saved search emails include one-click unsubscribe (GDPR compliant)
+- [ ] **ENGR-07**: Seller can mark ad as "Sold" with optional final sale price (creates price signal data)
 
 ### Email Infrastructure
 
@@ -72,8 +75,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### Trust (Advanced)
 
-- **TRST-06**: Seller trust indicators displayed (account age, listing count, response rate)
-- **TRST-07**: "Mark as sold" status visible on listings as social proof
+- **TRST-08**: Seller trust indicators displayed (account age, listing count, response rate)
 
 ### Quality
 
@@ -106,47 +108,50 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEO-01 | — | Pending |
-| SEO-02 | — | Pending |
-| SEO-03 | — | Pending |
-| SEO-04 | — | Pending |
-| SEO-05 | — | Pending |
-| SEO-06 | — | Pending |
-| SEO-07 | — | Pending |
-| SEO-08 | — | Pending |
-| SEO-09 | — | Pending |
-| TRST-01 | — | Pending |
-| TRST-02 | — | Pending |
-| TRST-03 | — | Pending |
-| TRST-04 | — | Pending |
-| TRST-05 | — | Pending |
-| ENGR-01 | — | Pending |
-| ENGR-02 | — | Pending |
-| ENGR-03 | — | Pending |
-| ENGR-04 | — | Pending |
-| ENGR-05 | — | Pending |
-| ENGR-06 | — | Pending |
-| EMAL-01 | — | Pending |
-| EMAL-02 | — | Pending |
-| EMAL-03 | — | Pending |
-| EMAL-04 | — | Pending |
-| EMAL-05 | — | Pending |
-| EMAL-06 | — | Pending |
-| LNCH-01 | — | Pending |
-| LNCH-02 | — | Pending |
-| LNCH-03 | — | Pending |
-| LNCH-04 | — | Pending |
-| INFR-01 | — | Pending |
-| INFR-02 | — | Pending |
-| INFR-03 | — | Pending |
-| INFR-04 | — | Pending |
-| INFR-05 | — | Pending |
+| SEO-01 | Phase 1 | Pending |
+| SEO-02 | Phase 2 | Pending |
+| SEO-03 | Phase 2 | Pending |
+| SEO-04 | Phase 2 | Pending |
+| SEO-05 | Phase 2 | Pending |
+| SEO-06 | Phase 2 | Pending |
+| SEO-07 | Phase 2 | Pending |
+| SEO-08 | Phase 2 | Pending |
+| SEO-09 | Phase 2 | Pending |
+| TRST-01 | Phase 4 | Pending |
+| TRST-02 | Phase 4 | Pending |
+| TRST-03 | Phase 2 | Pending |
+| TRST-04 | Phase 5 | Pending |
+| TRST-05 | Phase 2 | Pending |
+| TRST-06 | Phase 5 | Pending |
+| TRST-07 | Phase 5 | Pending |
+| ENGR-01 | Phase 4 | Pending |
+| ENGR-02 | Phase 4 | Pending |
+| ENGR-03 | Phase 4 | Pending |
+| ENGR-04 | Phase 4 | Pending |
+| ENGR-05 | Phase 4 | Pending |
+| ENGR-06 | Phase 4 | Pending |
+| ENGR-07 | Phase 4 | Pending |
+| EMAL-01 | Phase 3 | Pending |
+| EMAL-02 | Phase 3 | Pending |
+| EMAL-03 | Phase 3 | Pending |
+| EMAL-04 | Phase 3 | Pending |
+| EMAL-05 | Phase 3 | Pending |
+| EMAL-06 | Phase 3 | Pending |
+| LNCH-01 | Phase 5 | Pending |
+| LNCH-02 | Phase 5 | Pending |
+| LNCH-03 | Phase 5 | Pending |
+| LNCH-04 | Phase 5 | Pending |
+| INFR-01 | Phase 6 | Pending |
+| INFR-02 | Phase 6 | Pending |
+| INFR-03 | Phase 6 | Pending |
+| INFR-04 | Phase 6 | Pending |
+| INFR-05 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 35 total
-- Mapped to phases: 0
-- Unmapped: 35
+- v1 requirements: 38 total
+- Mapped to phases: 38
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after initial definition*
+*Last updated: 2026-03-11 after FB Marketplace research — 38 requirements mapped*

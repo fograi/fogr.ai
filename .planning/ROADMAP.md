@@ -1,0 +1,206 @@
+# Roadmap: Fogr.ai (Fógraí)
+
+## Overview
+
+Fogr.ai is a near-MVP Irish classifieds platform with core functionality already working. This roadmap takes it from brownfield MVP to a publicly launched, organically growing platform. The dependency chain is strict: human-readable ad slugs must land first (everything else in SEO is worthless on UUID URLs), email must land before engagement loops, and the platform must have real content and operational hardening before any public launch announcement or Google Search Console submission.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Slug Migration** - Migrate ad URLs from UUIDs to human-readable slugs — load-bearing prerequisite for all SEO work
+- [ ] **Phase 2: SEO Foundation** - Ship per-page meta tags, JSON-LD structured data, sitemap, robots.txt, canonical URLs, Open Graph tags, programmatic pages, and expired ad handling
+- [ ] **Phase 3: Email Infrastructure** - Integrate Resend transactional email with templates for all lifecycle events
+- [ ] **Phase 4: Engagement and Retention** - Watchlist, saved searches, email alerts, Northern Ireland location support, and posted timestamps
+- [ ] **Phase 5: Launch Hardening** - New-account moderation hold queue, mobile audit, commercial reseller detection, and content seeding
+- [ ] **Phase 6: Infrastructure and Cost Control** - Backups, monitoring, spending alerts, graceful degradation, and R2 redundancy
+
+## Phase Details
+
+### Phase 1: Slug Migration
+
+**Goal**: Ad pages use human-readable URLs so that all downstream SEO work has value from the moment it ships.
+
+**Depends on**: Nothing (first phase)
+
+**Requirements**: SEO-01
+
+**Success Criteria** (what must be TRUE):
+1. Visiting `/ad/trek-domane-road-bike-dublin-a1b2c3` opens the correct ad — the URL contains the ad title and a short ID suffix, not a UUID
+2. Visiting an old UUID URL (`/ad/550e8400-e29b-41d4-...`) redirects with HTTP 301 to the new slug URL
+3. New ads posted after the migration automatically get a slug assigned at insert time — no manual step required
+4. Slug collisions are handled automatically (two ads with identical titles generate distinct slugs)
+5. No existing ad link that was previously shared becomes a permanent 404 — all resolve via redirect
+
+**Plans**: TBD
+
+Plans:
+- [ ] 01-01: DB migration — add `slug` column, index, populate existing rows, set NOT NULL
+- [ ] 01-02: Slug generation — write generation function, wire into ad insert path, add collision handling
+- [ ] 01-03: Route migration — update SvelteKit routes to use slug param, add 301 redirect handler for UUID URLs
+
+---
+
+### Phase 2: SEO Foundation
+
+**Goal**: Every public page is discoverable, correctly indexed, and rich-snippet-eligible before any public launch announcement.
+
+**Depends on**: Phase 1 (slugs must exist before meta tags and sitemaps reference them)
+
+**Requirements**: SEO-02, SEO-03, SEO-04, SEO-05, SEO-06, SEO-07, SEO-08, SEO-09, TRST-03, TRST-05
+
+**Success Criteria** (what must be TRUE):
+1. Every ad page has a unique `<title>`, `<meta description>`, and `<link rel="canonical">` that reflect the listing content
+2. Google's Rich Results Test validates Product schema on an ad page and ItemList/BreadcrumbList on a category page
+3. `/sitemap.xml` is accessible, contains only active approved listings with valid slugs, and updates dynamically as ads are posted or expire
+4. `/robots.txt` references the sitemap URL and correctly blocks crawling of private/admin routes
+5. Open Graph preview renders correctly when an ad URL is pasted into WhatsApp or Twitter (shows title, description, image)
+6. Programmatic pages exist for category+location combinations (e.g., `/bicycles/dublin`) and only appear in the sitemap when they have at least 5 active listings
+7. An expired ad page returns HTTP 200 with a "This ad has expired" message and similar active listings rather than a 404; it carries a `noindex` directive
+8. All ad browsing and viewing pages load without requiring a login — anonymous crawlers can access all public content
+
+**Plans**: TBD
+
+Plans:
+- [ ] 02-01: Per-page meta tags — title, meta description, canonical on all public routes (ad pages, category pages, location pages, home)
+- [ ] 02-02: JSON-LD structured data — Product schema on ad pages, ItemList + BreadcrumbList on category/location pages
+- [ ] 02-03: Open Graph and Twitter Card meta tags on ad pages
+- [ ] 02-04: Dynamic sitemap endpoint using super-sitemap — active approved ads + category/location pages with listing count gate
+- [ ] 02-05: robots.txt update — sitemap directive, block admin/private routes
+- [ ] 02-06: Programmatic SEO pages — category+location combination routes with listing count gate (min 5 listings to index)
+- [ ] 02-07: Expired ad handling — return 200 + noindex with similar listings; schedule 410 at 90 days post-expiry
+- [ ] 02-08: Public browsing — audit and remove any login walls on browse/view routes; verify anonymous access end-to-end
+
+---
+
+### Phase 3: Email Infrastructure
+
+**Goal**: The platform can send reliable, GDPR-compliant transactional email for every lifecycle event that affects a user.
+
+**Depends on**: Phase 1 (emails link to ad pages — slugs must be stable)
+
+**Requirements**: EMAL-01, EMAL-02, EMAL-03, EMAL-04, EMAL-05, EMAL-06
+
+**Success Criteria** (what must be TRUE):
+1. A seller who posts an ad receives an email when it is approved by moderation, with a link to the live ad page using its slug URL
+2. A seller who posts an ad receives an email when it is rejected by moderation, including the stated rejection reason
+3. A user who receives a message receives an email notification within the cron cycle — the email does not reveal the sender's identity
+4. Saved search alert emails are delivered on a schedule (daily digest or configurable) — this is the foundation for Phase 4 alerts
+5. Every email contains a working one-click unsubscribe link; clicking it immediately suppresses that email type without requiring login
+6. Sending an email does not block the ad posting flow — failures queue for retry and do not surface as user-facing errors
+
+**Plans**: TBD
+
+Plans:
+- [ ] 03-01: Resend integration — install SDK, configure API key, verify send from cron worker and messages API route
+- [ ] 03-02: Email templates — ad approved, ad rejected, new message received (using React Email server-side rendering)
+- [ ] 03-03: Unsubscribe token mechanism — generate tokens, store preferences, handle unsubscribe endpoint
+- [ ] 03-04: Cron worker email dispatch — wire moderation outcome emails and new-message emails into cron worker
+- [ ] 03-05: Email retry queue and graceful failure — failed sends enqueue for retry; email failures do not propagate as user-visible errors
+
+---
+
+### Phase 4: Engagement and Retention
+
+**Goal**: Buyers have reasons to return to the platform without any marketing spend — saved searches pull them back; the watchlist and trust signals keep them engaged.
+
+**Depends on**: Phase 3 (saved search alerts require a working email pipeline)
+
+**Requirements**: ENGR-01, ENGR-02, ENGR-03, ENGR-04, ENGR-05, ENGR-06, ENGR-07, TRST-01, TRST-02
+
+**Success Criteria** (what must be TRUE):
+1. A logged-in user can tap a "Save" button on any ad and find it later in their watchlist page
+2. A logged-in user can create a saved search with category, location, and keyword filters, and manage or delete it from their profile
+3. When a new ad matches a user's saved search, the user receives an email alert — the email includes one-click unsubscribe and is GDPR-opt-in
+4. Every listing shows "Posted X days ago" visibly — no timestamps are hidden or approximate only for buyers
+5. The location picker includes Northern Ireland counties and localities — ads can be posted to and filtered by NI locations
+6. A seller can mark their ad as "Sold" with an optional final sale price — sold ads display a "Sold" badge and create price signal data
+
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: Watchlist — `watchlist` Supabase table, save/unsave ad UI, watchlist management page
+- [ ] 04-02: Saved searches — `saved_searches` Supabase table, search save UI with filters, manage/delete saved searches page
+- [ ] 04-03: Saved search email alerts — cron job for alert matching and Resend dispatch, opt-in model, GDPR unsubscribe compliance distinct from transactional
+- [ ] 04-04: Posted timestamps — add "X days ago" display to all listing cards and ad view pages
+- [ ] 04-05: Northern Ireland locations — add NI provinces, counties, and localities to location hierarchy; update location picker UI
+- [ ] 04-06: Mark as sold — sold status with optional sale price, "Sold" badge on listing cards and ad pages
+
+---
+
+### Phase 5: Launch Hardening
+
+**Goal**: The platform is safe to expose to the public internet — no spam can flood through the moderation gap, real inventory exists to greet first visitors, and the mobile experience works for the 65% of Irish users on phone.
+
+**Depends on**: Phase 4 (launch gate requires full feature set to be testable end-to-end)
+
+**Requirements**: TRST-04, TRST-06, TRST-07, LNCH-01, LNCH-02, LNCH-03, LNCH-04
+
+**Success Criteria** (what must be TRUE):
+1. An ad posted by a new account (fewer than 3 approved ads or younger than 7 days) is held in a pending state that is not publicly visible and carries `noindex` — it does not appear in search results or browse pages until moderation clears it
+2. The bicycles category has at least 30 real, non-spam listings active and publicly visible before the sitemap is submitted to Google Search Console
+3. A critical path user journey (post ad, browse, view, contact seller) tested on a real mobile device shows no blocking UX issues — layout does not break on 375px width
+4. Commercial reseller patterns (bulk posting, price lists, dealer language) are detected and flagged for moderation review — the platform enforces private-seller-only policy
+5. Production hosting cost for the current load is reviewed and confirmed within the budget ceiling — no services are on a default trial tier that will auto-escalate
+6. Anti-scam safety guidance is displayed during ad creation and when viewing ads — meeting tips, payment safety, common scam warnings
+7. Private-seller-only trust messaging is displayed prominently across the platform — positioning fogr.ai as the honest alternative
+
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: New-account moderation hold queue — pending state on new-account listings, noindex until AI moderation clears, established account auto-approve logic
+- [ ] 05-02: Content seeding — seed script via Supabase service role, source and insert 30+ real bicycle listings across Dublin/Leinster counties
+- [ ] 05-03: Mobile audit — test critical path on 375px, fix any blocking layout or interaction issues
+- [ ] 05-04: Commercial reseller detection — heuristics for bulk posting and dealer language, route flagged listings to moderation queue
+- [ ] 05-05: Safety guidance — anti-scam tips on ad creation form and ad view pages (meeting safely, payment safety)
+- [ ] 05-06: Private-seller trust messaging — prominent trust language throughout platform (tagline, footer, about page, ad creation)
+
+---
+
+### Phase 6: Infrastructure and Cost Control
+
+**Goal**: The platform can run unattended — failures are visible before users notice them, costs do not surprise, and data is recoverable if something goes wrong.
+
+**Depends on**: Phase 5 (infrastructure hardening finalizes the platform for ongoing operation post-launch)
+
+**Requirements**: INFR-01, INFR-02, INFR-03, INFR-04, INFR-05
+
+**Success Criteria** (what must be TRUE):
+1. Automated database backups run on a schedule and a restore from backup has been verified to produce a working database
+2. A site-down event or stuck moderation cron generates an alert to the operator within 5 minutes — the operator does not discover failures from user complaints
+3. Spending on Supabase, Cloudflare, OpenAI, and the email service each have alerts configured at a threshold below their hard limits — no bill arrives as a surprise
+4. If OpenAI is unreachable, ads queue for later moderation rather than being rejected — the platform degrades gracefully rather than blocking posting
+5. R2 image storage has a documented backup or redundancy strategy — a single storage failure does not permanently destroy user-uploaded images
+
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: Database backups — configure Supabase automated backups (requires Pro tier), document and test restore procedure
+- [ ] 06-02: Monitoring and alerting — configure uptime monitoring for critical endpoints, alert on cron worker failures and R2 errors
+- [ ] 06-03: Cost guardrails — set spending alerts on all external services at 75% of intended monthly ceiling
+- [ ] 06-04: Graceful degradation — OpenAI unavailable path queues ads; email unavailable path retries; surface no hard failures to posting users
+- [ ] 06-05: R2 redundancy — evaluate and implement backup strategy for image storage (cross-bucket copy, periodic export, or equivalent)
+
+---
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Slug Migration | 0/3 | Not started | - |
+| 2. SEO Foundation | 0/8 | Not started | - |
+| 3. Email Infrastructure | 0/5 | Not started | - |
+| 4. Engagement and Retention | 0/6 | Not started | - |
+| 5. Launch Hardening | 0/6 | Not started | - |
+| 6. Infrastructure and Cost Control | 0/5 | Not started | - |
+
+---
+*Roadmap created: 2026-03-11*
+*Last updated: 2026-03-11 after FB Marketplace research — 38 requirements, 6 phases*
