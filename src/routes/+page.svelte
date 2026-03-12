@@ -133,6 +133,24 @@
 	});
 </script>
 
+<svelte:head>
+	{#if data?.seo}
+		<title>{data.seo.title}</title>
+		<meta name="description" content={data.seo.description} />
+		<link rel="canonical" href={data.seo.canonical} />
+		<meta property="og:title" content={data.seo.og.title} />
+		<meta property="og:description" content={data.seo.og.description} />
+		<meta property="og:image" content={data.seo.og.image} />
+		<meta property="og:url" content={data.seo.og.url} />
+		<meta property="og:type" content={data.seo.og.type} />
+		<meta property="og:site_name" content={data.seo.og.siteName} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={data.seo.og.title} />
+		<meta name="twitter:description" content={data.seo.og.description} />
+		<meta name="twitter:image" content={data.seo.og.image} />
+	{/if}
+</svelte:head>
+
 <section class="search">
 	<div class="search__inner">
 		<div class="search__copy">

@@ -2,8 +2,14 @@ import type { PageServerLoad } from './$types';
 import { redirect, error } from '@sveltejs/kit';
 import type { AdCard, ModerationAction } from '../../../../types/ad-types';
 import { isUuidParam, parseSlugShortId } from '$lib/server/slugs';
+import { PUBLIC_R2_BASE } from '$env/static/public';
+import { buildAdTitle, buildDescription, buildCanonical } from '$lib/seo/meta';
+import { productJsonLd } from '$lib/seo/jsonld';
+import { buildAdOg } from '$lib/seo/og';
+import { categoryToSlug } from '$lib/category-browse';
+import type { Category } from '$lib/constants';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, url }) => {
 	// Case 1: UUID parameter -- 301 redirect to slug URL
 	if (isUuidParam(params.slug)) {
 		const { data } = await locals.supabase
@@ -32,10 +38,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	if (dbError) throw error(500, 'Could not load listing.');
 	if (!ad) throw error(404, 'Ad not found');
 
-	// Access check: non-active or expired ads are only visible to the owner
+	// Access check: expired ads are publicly visible (with noindex for SEO).
+	// Non-active ads (moderation-removed, pending) are only visible to the owner.
 	const nowIso = new Date().toISOString();
 	const isExpired = ad.expires_at && ad.expires_at <= nowIso;
-	const isNonPublic = ad.status !== 'active' || isExpired;
+	const isNonPublic = ad.status !== 'active' && !isExpired;
 
 	let user = null;
 	let isOwner = false;
@@ -109,6 +116,21 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		moderation = mod ?? null;
 	}
 
+	// Extract county name from location profile data for SEO
+	const locationData = ad.location_profile_data as Record<string, unknown> | null;
+	const countyObj = locationData?.county as { name?: string } | null | undefined;
+	const countyName = countyObj?.name ?? null;
+
+	// Build R2 image URL for the first image (if any)
+	const firstImageKey = ad.image_keys?.[0];
+	const r2Base = PUBLIC_R2_BASE.replace(/\/+$/, '');
+	const imageUrl = firstImageKey
+		? `${r2Base}/${firstImageKey.replace(/^\/+/, '')}`
+		: null;
+
+	// Get category slug for OG fallback image
+	const catSlug = categoryToSlug(ad.category as Category) || 'home-garden';
+
 	return {
 		ad: mapped,
 		moderation: moderation ?? null,
@@ -118,6 +140,37 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			firmPrice: ad.firm_price ?? false,
 			minOffer: ad.min_offer ?? null,
 			autoDeclineMessage: ad.auto_decline_message ?? null
+		},
+		seo: {
+			title: buildAdTitle(ad.title, countyName),
+			description: buildDescription(ad.description),
+			canonical: buildCanonical(url.origin, `/ad/${ad.slug}`),
+			og: buildAdOg(
+				{
+					title: ad.title,
+					description: ad.description,
+					slug: ad.slug!,
+					imageUrl,
+					categorySlug: catSlug,
+					countyName
+				},
+				url.origin
+			),
+			jsonLd: productJsonLd(
+				{
+					title: ad.title,
+					description: ad.description,
+					slug: ad.slug!,
+					price: ad.price,
+					currency: ad.currency ?? 'EUR',
+					imageUrl,
+					category: ad.category,
+					countyName,
+					isExpired: !!isExpired
+				},
+				url.origin
+			),
+			robots: isExpired ? 'noindex' : undefined
 		}
 	};
 };

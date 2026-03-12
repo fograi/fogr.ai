@@ -8,8 +8,12 @@ import {
 	getLocalityOptionById,
 	getLocalityOptionsByCountyId
 } from '$lib/location-hierarchy';
+import { buildHomepageTitle, buildCanonical } from '$lib/seo/meta';
+import { buildHomepageOg } from '$lib/seo/og';
 
 const DEFAULT_LIMIT = 24;
+
+const HOMEPAGE_DESCRIPTION = 'Buy and sell second-hand items across Ireland. Browse classified ads for bicycles, electronics, home and garden, and more on Fogr.ai.';
 
 export const load: PageServerLoad = async ({ fetch, url }) => {
 	const { page, limit } = getPagination(url.searchParams, DEFAULT_LIMIT, 100);
@@ -53,7 +57,13 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 				counties: getCountyOptions(),
 				localities: countyId ? getLocalityOptionsByCountyId(countyId) : []
 			},
-			error: { message, requestId }
+			error: { message, requestId },
+			seo: {
+				title: buildHomepageTitle(),
+				description: HOMEPAGE_DESCRIPTION,
+				canonical: buildCanonical(url.origin, '/'),
+				og: buildHomepageOg(url.origin)
+			}
 		};
 	}
 
@@ -91,6 +101,12 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 		locationOptions: {
 			counties: getCountyOptions(),
 			localities: countyId ? getLocalityOptionsByCountyId(countyId) : []
+		},
+		seo: {
+			title: buildHomepageTitle(),
+			description: HOMEPAGE_DESCRIPTION,
+			canonical: buildCanonical(url.origin, '/'),
+			og: buildHomepageOg(url.origin)
 		}
 	};
 };

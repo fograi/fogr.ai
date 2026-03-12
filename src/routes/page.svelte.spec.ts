@@ -22,14 +22,27 @@ function buildPageData(overrides: Record<string, unknown> = {}) {
 		page: 1,
 		nextPage: null,
 		requestId: undefined,
-		q: '',
-		category: '',
+		q: '' as const,
+		category: '' as const,
 		priceState: '',
 		countyId: '',
 		localityId: '',
 		locationOptions: {
 			counties: [],
 			localities: []
+		},
+		seo: {
+			title: 'Buy & Sell Second-Hand in Ireland | Fogr.ai \u2014 F\u00f3gra\u00ed',
+			description: 'Buy and sell second-hand items across Ireland.',
+			canonical: 'http://localhost/',
+			og: {
+				title: 'Buy & Sell Second-Hand in Ireland',
+				description: 'Buy and sell second-hand items across Ireland.',
+				image: 'http://localhost/og-fallback/home-garden.png',
+				url: 'http://localhost',
+				type: 'website',
+				siteName: 'Fogr.ai'
+			}
 		},
 		...overrides
 	};

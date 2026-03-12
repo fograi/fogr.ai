@@ -2,6 +2,8 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { AdCard, ApiAdRow } from '../../../../types/ad-types';
 import { getPagination } from '$lib/server/pagination';
+import { buildCategoryTitle, buildDescription, buildCanonical } from '$lib/seo/meta';
+import { buildCategoryOg } from '$lib/seo/og';
 import {
 	asCategorySort,
 	asPositiveIntString,
@@ -135,6 +137,12 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 				bikeType: bikeTypeOptions,
 				bikeCondition: BIKE_CONDITION_OPTIONS,
 				bikeSize: [...BIKE_ADULT_SIZE_PRESETS, ...BIKE_KIDS_SIZE_PRESETS]
+			},
+			seo: {
+				title: buildCategoryTitle(category),
+				description: `Browse second-hand ${category.toLowerCase()} listings for sale in Ireland on Fogr.ai`,
+				canonical: buildCanonical(url.origin, url.pathname),
+				og: buildCategoryOg(category, null, url.origin, url.pathname)
 			}
 		};
 	}
@@ -189,6 +197,12 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 			bikeType: bikeTypeOptions,
 			bikeCondition: BIKE_CONDITION_OPTIONS,
 			bikeSize: [...BIKE_ADULT_SIZE_PRESETS, ...BIKE_KIDS_SIZE_PRESETS]
+		},
+		seo: {
+			title: buildCategoryTitle(category),
+			description: `Browse ${mapped.length}+ second-hand ${category.toLowerCase()} listings for sale in Ireland on Fogr.ai`,
+			canonical: buildCanonical(url.origin, url.pathname),
+			og: buildCategoryOg(category, null, url.origin, url.pathname)
 		}
 	};
 };

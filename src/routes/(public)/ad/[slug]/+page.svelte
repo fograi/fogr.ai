@@ -4,6 +4,7 @@
 	import MessageComposer from '$lib/components/messages/MessageComposer.svelte';
 	import type { AdCard, ModerationAction } from '../../../../types/ad-types';
 	import { ModerationIcon, ReportIcon, ShareIcon } from '$lib/icons';
+	import type { OgData } from '$lib/seo/og';
 	export let data: {
 		ad: AdCard;
 		moderation?: ModerationAction | null;
@@ -13,6 +14,14 @@
 			firmPrice?: boolean;
 			minOffer?: number | null;
 			autoDeclineMessage?: string | null;
+		};
+		seo?: {
+			title: string;
+			description: string;
+			canonical: string;
+			og: OgData;
+			jsonLd: Record<string, unknown>;
+			robots?: string;
 		};
 	};
 
@@ -201,6 +210,28 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	{#if data?.seo}
+		<title>{data.seo.title}</title>
+		<meta name="description" content={data.seo.description} />
+		<link rel="canonical" href={data.seo.canonical} />
+		{#if data.seo.robots}
+			<meta name="robots" content={data.seo.robots} />
+		{/if}
+		<meta property="og:title" content={data.seo.og.title} />
+		<meta property="og:description" content={data.seo.og.description} />
+		<meta property="og:image" content={data.seo.og.image} />
+		<meta property="og:url" content={data.seo.og.url} />
+		<meta property="og:type" content={data.seo.og.type} />
+		<meta property="og:site_name" content={data.seo.og.siteName} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={data.seo.og.title} />
+		<meta name="twitter:description" content={data.seo.og.description} />
+		<meta name="twitter:image" content={data.seo.og.image} />
+		{@html `<script type="application/ld+json">${JSON.stringify(data.seo.jsonLd).replace(/</g, '\\u003c')}</script>`}
+	{/if}
+</svelte:head>
 
 	{#if data?.ad}
 		{#if data.ad.status === 'pending'}
