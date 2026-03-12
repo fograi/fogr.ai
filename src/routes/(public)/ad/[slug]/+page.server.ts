@@ -42,12 +42,23 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 	// Non-active ads (moderation-removed, pending) are only visible to the owner.
 	const nowIso = new Date().toISOString();
 	const isExpired = ad.expires_at && ad.expires_at <= nowIso;
-	const isNonPublic = ad.status !== 'active' && !isExpired;
+
+	// 410 Gone: expired more than 90 days ago
+	if (isExpired && ad.expires_at) {
+		const daysSinceExpiry =
+			(Date.now() - new Date(ad.expires_at).getTime()) / (1000 * 60 * 60 * 24);
+		if (daysSinceExpiry > 90) {
+			throw error(410, 'This ad has been removed');
+		}
+	}
+
+	// Moderation-removed ads (rejected, removed, pending): owner-only
+	const isModRemoved = ad.status !== 'active' && ad.status !== 'expired' && !isExpired;
 
 	let user = null;
 	let isOwner = false;
 
-	if (isNonPublic) {
+	if (isModRemoved) {
 		const {
 			data: { user: authUser }
 		} = await locals.supabase.auth.getUser();
@@ -116,6 +127,85 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		moderation = mod ?? null;
 	}
 
+	// Fetch similar active listings when the ad is expired
+	let similarAds: AdCard[] = [];
+	if (isExpired) {
+		const locationData = ad.location_profile_data as Record<string, unknown> | null;
+		const countyId = (locationData?.county as Record<string, unknown> | undefined)?.id as
+			| string
+			| undefined;
+
+		type SimilarRow = {
+			id: string;
+			slug: string | null;
+			title: string;
+			price: number | null;
+			image_keys: string[] | null;
+			description: string | null;
+			category: string | null;
+			currency: string | null;
+			category_profile_data: unknown;
+			location_profile_data: unknown;
+			firm_price: boolean | null;
+			min_offer: number | null;
+		};
+
+		let similarRaw: SimilarRow[] = [];
+
+		// Step 1: Try same category + same county (if county is available)
+		if (countyId) {
+			const { data: countyMatches } = await locals.supabase
+				.from('ads')
+				.select(
+					'id, slug, title, price, image_keys, description, category, currency, category_profile_data, location_profile_data, firm_price, min_offer'
+				)
+				.eq('status', 'active')
+				.gt('expires_at', nowIso)
+				.eq('category', ad.category)
+				.filter('location_profile_data->county->>id', 'eq', countyId)
+				.not('id', 'eq', ad.id)
+				.limit(6);
+
+			if (countyMatches && countyMatches.length >= 3) {
+				similarRaw = countyMatches as unknown as SimilarRow[];
+			}
+		}
+
+		// Step 2: Fallback to category-only if county query returned < 3 results (or no county)
+		if (similarRaw.length < 3) {
+			const { data: categoryMatches } = await locals.supabase
+				.from('ads')
+				.select(
+					'id, slug, title, price, image_keys, description, category, currency, category_profile_data, location_profile_data, firm_price, min_offer'
+				)
+				.eq('status', 'active')
+				.gt('expires_at', nowIso)
+				.eq('category', ad.category)
+				.not('id', 'eq', ad.id)
+				.limit(6);
+
+			similarRaw = (categoryMatches ?? []) as unknown as SimilarRow[];
+		}
+
+		// Map to AdCard format
+		similarAds = similarRaw.map((s) => ({
+			id: s.id,
+			slug: s.slug ?? undefined,
+			title: s.title,
+			price: s.price ?? null,
+			img: s.image_keys?.[0] ?? '',
+			description: s.description ?? '',
+			category: s.category ?? '',
+			categoryProfileData:
+				(s.category_profile_data as Record<string, unknown> | null) ?? null,
+			locationProfileData:
+				(s.location_profile_data as Record<string, unknown> | null) ?? null,
+			currency: s.currency ?? undefined,
+			firmPrice: s.firm_price ?? false,
+			minOffer: s.min_offer ?? null
+		}));
+	}
+
 	// Extract county name from location profile data for SEO
 	const locationData = ad.location_profile_data as Record<string, unknown> | null;
 	const countyObj = locationData?.county as { name?: string } | null | undefined;
@@ -135,6 +225,8 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		ad: mapped,
 		moderation: moderation ?? null,
 		isOwner,
+		isExpired: !!isExpired,
+		similarAds,
 		ownerMessages,
 		offerRules: {
 			firmPrice: ad.firm_price ?? false,
