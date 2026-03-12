@@ -27,14 +27,13 @@ export function buildAdOg(
 	},
 	origin: string
 ): OgData {
-	const titleSuffix = ad.countyName ? ` for Sale in ${ad.countyName}` : ' for Sale';
 	return {
-		title: `${ad.title}${titleSuffix}`,
+		title: ad.title,
 		description: buildDescription(ad.description),
 		image: ad.imageUrl || `${origin}/og-fallback/${ad.categorySlug}.png`,
 		url: `${origin}/ad/${ad.slug}`,
 		type: 'product',
-		siteName: 'Fogr.ai'
+		siteName: 'fógr.aí'
 	};
 }
 
@@ -46,22 +45,22 @@ export function buildCategoryOg(
 ): OgData {
 	const location = countyName || 'Ireland';
 	return {
-		title: `Second-Hand ${category} for Sale in ${location}`,
-		description: `Browse second-hand ${category.toLowerCase()} listings for sale in ${location} on Fogr.ai`,
+		title: countyName ? `${category} in ${countyName}` : category,
+		description: `Browse second-hand ${category.toLowerCase()} listings for sale in ${location} on fógr.aí`,
 		image: `${origin}/og-fallback/home-garden.png`,
 		url: `${origin}${pathname}`,
 		type: 'website',
-		siteName: 'Fogr.ai'
+		siteName: 'fógr.aí'
 	};
 }
 
 export function buildHomepageOg(origin: string): OgData {
 	return {
 		title: 'Buy & Sell Second-Hand in Ireland',
-		description: 'Buy and sell second-hand items across Ireland. Browse classified ads for bicycles, electronics, home and garden, and more on Fogr.ai.',
+		description: 'Buy and sell second-hand items across Ireland. Browse classified ads for bicycles, electronics, home and garden, and more on fógr.aí.',
 		image: `${origin}/og-fallback/home-garden.png`,
 		url: origin,
 		type: 'website',
-		siteName: 'Fogr.ai'
+		siteName: 'fógr.aí'
 	};
 }

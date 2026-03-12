@@ -31,7 +31,7 @@
 	<meta property="og:description" content={data.seo.description} />
 	<meta property="og:url" content={data.seo.canonical} />
 	<meta property="og:type" content="website" />
-	<meta property="og:site_name" content="Fogr.ai" />
+	<meta property="og:site_name" content="fógr.aí" />
 	<meta property="og:image" content="{data.seo.canonical.split('/').slice(0, 3).join('/')}/og-fallback/{data.categorySlug}.png" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={data.seo.title} />
@@ -46,7 +46,7 @@
 <section class="programmatic-page">
 	<header class="head">
 		<a class="back" href={resolve('/')} rel="external">&lt;&nbsp;All listings</a>
-		<h1>Second-Hand {data.category} for Sale in Ireland</h1>
+		<h1>{data.category}</h1>
 	</header>
 
 	<div class="stats">
