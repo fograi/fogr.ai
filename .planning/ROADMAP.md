@@ -7,6 +7,7 @@ Fogr.ai is a near-MVP Irish classifieds platform with core functionality already
 ## Phases
 
 **Phase Numbering:**
+
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
@@ -30,6 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Requirements**: SEO-01
 
 **Success Criteria** (what must be TRUE):
+
 1. Visiting `/ad/trek-domane-road-bike-dublin-a1b2c3` opens the correct ad — the URL contains the ad title and a short ID suffix, not a UUID
 2. Visiting an old UUID URL (`/ad/550e8400-e29b-41d4-...`) redirects with HTTP 301 to the new slug URL
 3. New ads posted after the migration automatically get a slug assigned at insert time — no manual step required
@@ -39,6 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 2 plans
 
 Plans:
+
 - [x] 01-01-PLAN.md — DB migration, slug generation function with tests, backfill script, wire into POST handler
 - [x] 01-02-PLAN.md — Route migration (UUID/canonical redirects), update all ad link references across codebase
 
@@ -53,6 +56,7 @@ Plans:
 **Requirements**: SEO-02, SEO-03, SEO-04, SEO-05, SEO-06, SEO-07, SEO-08, SEO-09, TRST-03, TRST-05
 
 **Success Criteria** (what must be TRUE):
+
 1. Every ad page has a unique `<title>`, `<meta description>`, and `<link rel="canonical">` that reflect the listing content
 2. Google's Rich Results Test validates Product schema on an ad page and ItemList/BreadcrumbList on a category page
 3. `/sitemap.xml` is accessible, contains only active approved listings with valid slugs, and updates dynamically as ads are posted or expire
@@ -65,6 +69,7 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
+
 - [x] 02-01-PLAN.md — SEO utility modules (meta, jsonld, og) + meta tags, OG, JSON-LD, canonical on ad/category/home pages
 - [x] 02-02-PLAN.md — Param matchers + programmatic SEO pages (category-only, county-only, category+county)
 - [x] 02-03-PLAN.md — Dynamic sitemap.xml + robots.txt endpoints
@@ -83,6 +88,7 @@ Plans:
 **Requirements**: EMAL-01, EMAL-02, EMAL-03, EMAL-04, EMAL-05, EMAL-06
 
 **Success Criteria** (what must be TRUE):
+
 1. A seller who posts an ad receives an email when it is approved by moderation, with a link to the live ad page using its slug URL
 2. A seller who posts an ad receives an email when it is rejected by moderation, including the stated rejection reason
 3. A user who receives a message receives an email notification within the cron cycle — the email does not reveal the sender's identity
@@ -90,14 +96,14 @@ Plans:
 5. Every email contains a working one-click unsubscribe link; clicking it immediately suppresses that email type without requiring login
 6. Sending an email does not block the ad posting flow — failures queue for retry and do not surface as user-facing errors
 
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 03-01: Resend integration — install SDK, configure API key, verify send from cron worker and messages API route
-- [ ] 03-02: Email templates — ad approved, ad rejected, new message received (using React Email server-side rendering)
-- [ ] 03-03: Unsubscribe token mechanism — generate tokens, store preferences, handle unsubscribe endpoint
-- [ ] 03-04: Cron worker email dispatch — wire moderation outcome emails and new-message emails into cron worker
-- [ ] 03-05: Email retry queue and graceful failure — failed sends enqueue for retry; email failures do not propagate as user-visible errors
+
+- [ ] 03-01-PLAN.md — DB migrations (email_preferences, saved_searches) + email core utilities (send, templates, unsubscribe tokens, preferences)
+- [ ] 03-02-PLAN.md — Unsubscribe flow (RFC 8058 API endpoint + browser confirmation page with re-subscribe)
+- [ ] 03-03-PLAN.md — Wire email sending into cron worker (approve/reject) + messages API (new message notification)
+- [ ] 03-04-PLAN.md — Saved search daily digest cron dispatch (08:00 UTC, top 3 listings, preference-aware)
 
 ---
 
@@ -110,6 +116,7 @@ Plans:
 **Requirements**: ENGR-01, ENGR-02, ENGR-03, ENGR-04, ENGR-05, ENGR-06, ENGR-07, TRST-01, TRST-02
 
 **Success Criteria** (what must be TRUE):
+
 1. A logged-in user can tap a "Save" button on any ad and find it later in their watchlist page
 2. A logged-in user can create a saved search with category, location, and keyword filters, and manage or delete it from their profile
 3. When a new ad matches a user's saved search, the user receives an email alert — the email includes one-click unsubscribe and is GDPR-opt-in
@@ -120,6 +127,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
+
 - [ ] 04-01: Watchlist — `watchlist` Supabase table, save/unsave ad UI, watchlist management page
 - [ ] 04-02: Saved searches — `saved_searches` Supabase table, search save UI with filters, manage/delete saved searches page
 - [ ] 04-03: Saved search email alerts — cron job for alert matching and Resend dispatch, opt-in model, GDPR unsubscribe compliance distinct from transactional
@@ -138,6 +146,7 @@ Plans:
 **Requirements**: TRST-04, TRST-06, TRST-07, LNCH-01, LNCH-02, LNCH-03, LNCH-04
 
 **Success Criteria** (what must be TRUE):
+
 1. An ad posted by a new account (fewer than 3 approved ads or younger than 7 days) is held in a pending state that is not publicly visible and carries `noindex` — it does not appear in search results or browse pages until moderation clears it
 2. The bicycles category has at least 30 real, non-spam listings active and publicly visible before the sitemap is submitted to Google Search Console
 3. A critical path user journey (post ad, browse, view, contact seller) tested on a real mobile device shows no blocking UX issues — layout does not break on 375px width
@@ -149,6 +158,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
+
 - [ ] 05-01: New-account moderation hold queue — pending state on new-account listings, noindex until AI moderation clears, established account auto-approve logic
 - [ ] 05-02: Content seeding — seed script via Supabase service role, source and insert 30+ real bicycle listings across Dublin/Leinster counties
 - [ ] 05-03: Mobile audit — test critical path on 375px, fix any blocking layout or interaction issues
@@ -167,6 +177,7 @@ Plans:
 **Requirements**: INFR-01, INFR-02, INFR-03, INFR-04, INFR-05
 
 **Success Criteria** (what must be TRUE):
+
 1. Automated database backups run on a schedule and a restore from backup has been verified to produce a working database
 2. A site-down event or stuck moderation cron generates an alert to the operator within 5 minutes — the operator does not discover failures from user complaints
 3. Spending on Supabase, Cloudflare, OpenAI, and the email service each have alerts configured at a threshold below their hard limits — no bill arrives as a surprise
@@ -176,6 +187,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
+
 - [ ] 06-01: Database backups — configure Supabase automated backups (requires Pro tier), document and test restore procedure
 - [ ] 06-02: Monitoring and alerting — configure uptime monitoring for critical endpoints, alert on cron worker failures and R2 errors
 - [ ] 06-03: Cost guardrails — set spending alerts on all external services at 75% of intended monthly ceiling
@@ -189,15 +201,16 @@ Plans:
 **Execution Order:**
 Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Slug Migration | 2/2 | Complete (pending verification) | 2026-03-11 |
-| 2. SEO Foundation | 6/6 | Complete | 2026-03-12 |
-| 3. Email Infrastructure | 0/5 | Not started | - |
-| 4. Engagement and Retention | 0/6 | Not started | - |
-| 5. Launch Hardening | 0/6 | Not started | - |
-| 6. Infrastructure and Cost Control | 0/5 | Not started | - |
+| Phase                              | Plans Complete | Status                          | Completed  |
+| ---------------------------------- | -------------- | ------------------------------- | ---------- |
+| 1. Slug Migration                  | 2/2            | Complete (pending verification) | 2026-03-11 |
+| 2. SEO Foundation                  | 6/6            | Complete                        | 2026-03-12 |
+| 3. Email Infrastructure            | 0/4            | Not started                     | -          |
+| 4. Engagement and Retention        | 0/6            | Not started                     | -          |
+| 5. Launch Hardening                | 0/6            | Not started                     | -          |
+| 6. Infrastructure and Cost Control | 0/5            | Not started                     | -          |
 
 ---
-*Roadmap created: 2026-03-11*
-*Last updated: 2026-03-12 -- Phase 2 complete (6/6 plans, including gap closure for county page og:image)*
+
+_Roadmap created: 2026-03-11_
+_Last updated: 2026-03-12 -- Phase 3 planned (4 plans in 3 waves)_
