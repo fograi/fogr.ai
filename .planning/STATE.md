@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-12T16:24:08Z"
-last_activity: 2026-03-12 -- Phase 2 plan 03 executed (sitemap.xml and robots.txt endpoints)
+stopped_at: Completed 02-05-PLAN.md (Phase 2 complete)
+last_updated: "2026-03-12T16:33:40Z"
+last_activity: 2026-03-12 -- Phase 2 plan 05 executed (JSON-LD structured data + public access audit)
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 6
-  percent: 35
+  completed_plans: 7
+  percent: 41
 ---
 
 # Project State
@@ -25,29 +25,29 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 
 ## Current Position
 
-Phase: 2 of 6 (SEO Foundation) -- IN PROGRESS
-Plan: 4 of 5 complete in current phase
+Phase: 2 of 6 (SEO Foundation) -- COMPLETE
+Plan: 5 of 5 complete in current phase
 Status: Executing
-Last activity: 2026-03-12 -- Phase 2 plan 03 executed (sitemap.xml and robots.txt endpoints)
+Last activity: 2026-03-12 -- Phase 2 plan 05 executed (JSON-LD structured data + public access audit)
 
-Progress: [###▓░░░░░░] 35%
+Progress: [####░░░░░░] 41%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 7
 - Average duration: 7min
-- Total execution time: 42min
+- Total execution time: 47min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Slug Migration | 2/2 | 14min | 7min |
-| 2. SEO Foundation | 4/5 | 28min | 7min |
+| 2. SEO Foundation | 5/5 | 33min | 7min |
 
 **Recent Trend:**
-- Last 5 plans: 5min, 9min, 7min, 4min, 8min
+- Last 5 plans: 9min, 7min, 4min, 8min, 5min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -84,6 +84,8 @@ Recent decisions affecting current work:
 - [02-04]: Similar listings use county-filter-first approach: >= 3 county matches uses locality, otherwise falls back to category-only
 - [02-04]: Report button hidden on expired ads since they auto-remove
 - [02-04]: Expired ads publicly visible without login; only moderation-removed ads remain owner-only gated
+- [02-05]: JSON-LD rendered as separate script tags (ItemList + BreadcrumbList) per Google recommendation
+- [02-05]: All public routes verified anonymous-accessible -- no auth walls block crawlers
 
 ### Pending Todos
 
@@ -98,6 +100,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-12T16:24:08Z
-Stopped at: Completed 02-03-PLAN.md
-Resume file: .planning/phases/02-seo-foundation/02-03-SUMMARY.md
+Last session: 2026-03-12T16:33:40Z
+Stopped at: Completed 02-05-PLAN.md (Phase 2 complete)
+Resume file: .planning/phases/02-seo-foundation/02-05-SUMMARY.md

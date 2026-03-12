@@ -13,7 +13,7 @@ Fogr.ai is a near-MVP Irish classifieds platform with core functionality already
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Slug Migration** - Migrate ad URLs from UUIDs to human-readable slugs — load-bearing prerequisite for all SEO work
-- [ ] **Phase 2: SEO Foundation** - Ship per-page meta tags, JSON-LD structured data, sitemap, robots.txt, canonical URLs, Open Graph tags, programmatic pages, and expired ad handling
+- [x] **Phase 2: SEO Foundation** - Ship per-page meta tags, JSON-LD structured data, sitemap, robots.txt, canonical URLs, Open Graph tags, programmatic pages, and expired ad handling
 - [ ] **Phase 3: Email Infrastructure** - Integrate Resend transactional email with templates for all lifecycle events
 - [ ] **Phase 4: Engagement and Retention** - Watchlist, saved searches, email alerts, Northern Ireland location support, and posted timestamps
 - [ ] **Phase 5: Launch Hardening** - New-account moderation hold queue, mobile audit, commercial reseller detection, and content seeding
@@ -69,7 +69,7 @@ Plans:
 - [x] 02-02-PLAN.md — Param matchers + programmatic SEO pages (category-only, county-only, category+county)
 - [x] 02-03-PLAN.md — Dynamic sitemap.xml + robots.txt endpoints
 - [x] 02-04-PLAN.md — Expired ad handling (public access, similar listings, 410 at 90 days)
-- [ ] 02-05-PLAN.md — Programmatic page JSON-LD (ItemList, BreadcrumbList) + public browsing audit
+- [x] 02-05-PLAN.md — Programmatic page JSON-LD (ItemList, BreadcrumbList) + public browsing audit
 
 ---
 
@@ -191,7 +191,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Slug Migration | 2/2 | Complete (pending verification) | 2026-03-11 |
-| 2. SEO Foundation | 4/5 | Executing | - |
+| 2. SEO Foundation | 5/5 | Complete | 2026-03-12 |
 | 3. Email Infrastructure | 0/5 | Not started | - |
 | 4. Engagement and Retention | 0/6 | Not started | - |
 | 5. Launch Hardening | 0/6 | Not started | - |
@@ -199,4 +199,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-03-11*
-*Last updated: 2026-03-12 -- Phase 2 plan 03 complete (sitemap.xml and robots.txt endpoints)*
+*Last updated: 2026-03-12 -- Phase 2 complete (all 5 SEO foundation plans executed)*
