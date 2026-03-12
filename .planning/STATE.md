@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-12T14:29:50.660Z"
-last_activity: 2026-03-12 -- Phase 1 verified, database cleared, moving to Phase 2
+status: executing
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-12T16:10:04Z"
+last_activity: 2026-03-12 -- Phase 2 plan 02 executed (programmatic SEO pages with param matchers)
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 16
+  total_plans: 4
+  completed_plans: 4
+  percent: 24
 ---
 
 # Project State
@@ -21,33 +21,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone in Ireland can post and find classified ads with minimal effort -- brief, honest listings without noise
-**Current focus:** Phase 2 -- SEO Foundation (ready to plan)
+**Current focus:** Phase 2 -- SEO Foundation (executing)
 
 ## Current Position
 
-Phase: 2 of 6 (SEO Foundation) -- NOT STARTED
-Plan: 0 of 8 in current phase
-Status: Ready to plan
-Last activity: 2026-03-12 -- Phase 1 verified, database cleared, moving to Phase 2
+Phase: 2 of 6 (SEO Foundation) -- IN PROGRESS
+Plan: 2 of 5 complete in current phase
+Status: Executing
+Last activity: 2026-03-12 -- Phase 2 plan 02 executed (programmatic SEO pages with param matchers)
 
-Progress: [##░░░░░░░░] 16%
+Progress: [##▓░░░░░░░] 24%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 7min
-- Total execution time: 14min
+- Total plans completed: 3
+- Average duration: 8min
+- Total execution time: 23min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Slug Migration | 2/2 | 14min | 7min |
+| 2. SEO Foundation | 1/5 | 9min | 9min |
 
 **Recent Trend:**
-- Last 5 plans: 9min, 5min
-- Trend: accelerating
+- Last 5 plans: 9min, 5min, 9min
+- Trend: stable
 
 *Updated after each plan completion*
 
@@ -70,6 +71,10 @@ Recent decisions affecting current work:
 - [01-02]: Ad page queries Supabase directly by short_id -- avoids modifying UUID-based cache keys
 - [01-02]: Admin appeals and messages pages keep UUID links with 301 redirect fallback
 - [01-02]: Homepage and category page mappers include slug in AdCard data
+- [02-01]: Expired ads changed from owner-only to publicly visible with noindex -- preserves inbound link equity
+- [02-01]: OG fallback images generated via sharp from SVG with category-colored gradient backgrounds
+- [02-01]: JSON-LD serialized with XSS prevention via .replace(/</g, '\\u003c')
+- [02-01]: SEO data pattern established: server load returns seo object consumed by svelte:head block
 
 ### Pending Todos
 
@@ -84,6 +89,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-12T14:29:50.657Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-seo-foundation/02-CONTEXT.md
+Last session: 2026-03-12T16:09:49Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: .planning/phases/02-seo-foundation/02-01-SUMMARY.md

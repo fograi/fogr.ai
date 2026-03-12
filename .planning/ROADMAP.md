@@ -65,7 +65,7 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — SEO utility modules (meta, jsonld, og) + meta tags, OG, JSON-LD, canonical on ad/category/home pages
+- [x] 02-01-PLAN.md — SEO utility modules (meta, jsonld, og) + meta tags, OG, JSON-LD, canonical on ad/category/home pages
 - [ ] 02-02-PLAN.md — Param matchers + programmatic SEO pages (category-only, county-only, category+county)
 - [ ] 02-03-PLAN.md — Dynamic sitemap.xml + robots.txt endpoints
 - [ ] 02-04-PLAN.md — Expired ad handling (public access, similar listings, 410 at 90 days)
@@ -191,7 +191,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Slug Migration | 2/2 | Complete (pending verification) | 2026-03-11 |
-| 2. SEO Foundation | 0/5 | Planning complete | - |
+| 2. SEO Foundation | 1/5 | Executing | - |
 | 3. Email Infrastructure | 0/5 | Not started | - |
 | 4. Engagement and Retention | 0/6 | Not started | - |
 | 5. Launch Hardening | 0/6 | Not started | - |
@@ -199,4 +199,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-03-11*
-*Last updated: 2026-03-12 -- Phase 2 planned (5 plans in 3 waves)*
+*Last updated: 2026-03-12 -- Phase 2 plan 01 complete (SEO meta tags, OG, JSON-LD)*
