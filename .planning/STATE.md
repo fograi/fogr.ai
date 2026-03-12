@@ -35,19 +35,19 @@ Progress: [##▓░░░░░░░] 24%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: 8min
-- Total execution time: 23min
+- Total execution time: 30min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Slug Migration | 2/2 | 14min | 7min |
-| 2. SEO Foundation | 1/5 | 9min | 9min |
+| 2. SEO Foundation | 2/5 | 16min | 8min |
 
 **Recent Trend:**
-- Last 5 plans: 9min, 5min, 9min
+- Last 5 plans: 9min, 5min, 9min, 7min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -75,6 +75,9 @@ Recent decisions affecting current work:
 - [02-01]: OG fallback images generated via sharp from SVG with category-colored gradient backgrounds
 - [02-01]: JSON-LD serialized with XSS prevention via .replace(/</g, '\\u003c')
 - [02-01]: SEO data pattern established: server load returns seo object consumed by svelte:head block
+- [02-02]: Flat URL structure with param matchers: /bikes, /dublin, /bikes/dublin -- no /category/ prefix
+- [02-02]: County slug utility in src/lib/seo/county-slugs.ts for reuse by sitemap and expired ads
+- [02-02]: noindex threshold set to 3 listings per user decision in CONTEXT.md
 
 ### Pending Todos
 
@@ -89,6 +92,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-12T16:09:49Z
-Stopped at: Completed 02-01-PLAN.md
-Resume file: .planning/phases/02-seo-foundation/02-01-SUMMARY.md
+Last session: 2026-03-12T16:10:04Z
+Stopped at: Completed 02-02-PLAN.md
+Resume file: .planning/phases/02-seo-foundation/02-02-SUMMARY.md
