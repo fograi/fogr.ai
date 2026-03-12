@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import AdCardWide from '$lib/components/AdCardWide.svelte';
+	import AdCardComponent from '$lib/components/AdCard.svelte';
 	import MessageComposer from '$lib/components/messages/MessageComposer.svelte';
 	import type { AdCard, ModerationAction } from '../../../../types/ad-types';
 	import { ModerationIcon, ReportIcon, ShareIcon } from '$lib/icons';
@@ -9,6 +10,8 @@
 		ad: AdCard;
 		moderation?: ModerationAction | null;
 		isOwner?: boolean;
+		isExpired?: boolean;
+		similarAds?: AdCard[];
 		ownerMessages?: { count: number } | null;
 		offerRules?: {
 			firmPrice?: boolean;
@@ -239,9 +242,9 @@
 				Pending review. Your ad will be visible once moderation completes.
 			</div>
 		{/if}
-		{#if data.ad.status === 'expired'}
+		{#if data.isExpired || data.ad.status === 'expired'}
 			<div class="expired" role="status" aria-live="polite">
-				This ad has expired.
+				This ad has expired. Browse similar listings below.
 			</div>
 		{/if}
 		<AdCardWide {...data.ad} showActions={false} showExpires={data.isOwner ?? false} />
@@ -253,7 +256,7 @@
 				</span>
 				Share
 			</button>
-			{#if !data.isOwner}
+			{#if !data.isOwner && !data.isExpired}
 				<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
 					<span class="btn-icon accent-orange" aria-hidden="true">
 						<ReportIcon size={16} strokeWidth={1.8} />
@@ -286,7 +289,7 @@
 					<p class="owner-hint">Want more interest? Use the Share button above.</p>
 				{/if}
 			</section>
-		{:else}
+		{:else if !data.isExpired}
 			<MessageComposer
 				adId={data.ad.id}
 				price={data.ad.price ?? null}
@@ -294,6 +297,17 @@
 				firmPrice={data.offerRules?.firmPrice ?? false}
 				on:flag={() => openPanel('report')}
 			/>
+		{/if}
+
+		{#if data.isExpired && data.similarAds && data.similarAds.length > 0}
+			<section class="similar-listings">
+				<h2>Similar active listings</h2>
+				<ul class="similar-grid">
+					{#each data.similarAds as similarAd (similarAd.id)}
+						<AdCardComponent {...similarAd} />
+					{/each}
+				</ul>
+			</section>
 		{/if}
 
 		{#if reportOpen}
@@ -807,5 +821,22 @@
 	.report-submit[disabled] {
 		opacity: 0.6;
 		cursor: default;
+	}
+	.similar-listings {
+		max-width: 960px;
+		margin: 24px auto 16px;
+		padding: 0 var(--page-pad);
+	}
+	.similar-listings h2 {
+		margin: 0 0 12px;
+		font-size: 1.1rem;
+	}
+	.similar-grid {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 14px;
 	}
 </style>
