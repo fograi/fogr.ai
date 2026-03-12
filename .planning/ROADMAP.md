@@ -58,21 +58,18 @@ Plans:
 3. `/sitemap.xml` is accessible, contains only active approved listings with valid slugs, and updates dynamically as ads are posted or expire
 4. `/robots.txt` references the sitemap URL and correctly blocks crawling of private/admin routes
 5. Open Graph preview renders correctly when an ad URL is pasted into WhatsApp or Twitter (shows title, description, image)
-6. Programmatic pages exist for category+location combinations (e.g., `/bicycles/dublin`) and only appear in the sitemap when they have at least 5 active listings
+6. Programmatic pages exist for category+location combinations (e.g., `/bicycles/dublin`) and only appear in the sitemap when they have at least 3 active listings
 7. An expired ad page returns HTTP 200 with a "This ad has expired" message and similar active listings rather than a 404; it carries a `noindex` directive
 8. All ad browsing and viewing pages load without requiring a login — anonymous crawlers can access all public content
 
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 02-01: Per-page meta tags — title, meta description, canonical on all public routes (ad pages, category pages, location pages, home)
-- [ ] 02-02: JSON-LD structured data — Product schema on ad pages, ItemList + BreadcrumbList on category/location pages
-- [ ] 02-03: Open Graph and Twitter Card meta tags on ad pages
-- [ ] 02-04: Dynamic sitemap endpoint using super-sitemap — active approved ads + category/location pages with listing count gate
-- [ ] 02-05: robots.txt update — sitemap directive, block admin/private routes
-- [ ] 02-06: Programmatic SEO pages — category+location combination routes with listing count gate (min 5 listings to index)
-- [ ] 02-07: Expired ad handling — return 200 + noindex with similar listings; schedule 410 at 90 days post-expiry
-- [ ] 02-08: Public browsing — audit and remove any login walls on browse/view routes; verify anonymous access end-to-end
+- [ ] 02-01-PLAN.md — SEO utility modules (meta, jsonld, og) + meta tags, OG, JSON-LD, canonical on ad/category/home pages
+- [ ] 02-02-PLAN.md — Param matchers + programmatic SEO pages (category-only, county-only, category+county)
+- [ ] 02-03-PLAN.md — Dynamic sitemap.xml + robots.txt endpoints
+- [ ] 02-04-PLAN.md — Expired ad handling (public access, similar listings, 410 at 90 days)
+- [ ] 02-05-PLAN.md — Programmatic page JSON-LD (ItemList, BreadcrumbList) + public browsing audit
 
 ---
 
@@ -194,7 +191,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Slug Migration | 2/2 | Complete (pending verification) | 2026-03-11 |
-| 2. SEO Foundation | 0/8 | Not started | - |
+| 2. SEO Foundation | 0/5 | Planning complete | - |
 | 3. Email Infrastructure | 0/5 | Not started | - |
 | 4. Engagement and Retention | 0/6 | Not started | - |
 | 5. Launch Hardening | 0/6 | Not started | - |
@@ -202,4 +199,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-03-11*
-*Last updated: 2026-03-11 -- Phase 1 complete (2/2 plans), pending human verification*
+*Last updated: 2026-03-12 -- Phase 2 planned (5 plans in 3 waves)*
