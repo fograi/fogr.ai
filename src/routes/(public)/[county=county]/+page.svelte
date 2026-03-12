@@ -32,9 +32,11 @@
 	<meta property="og:url" content={data.seo.canonical} />
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="Fogr.ai" />
+	<meta property="og:image" content="{data.seo.canonical.split('/').slice(0, 3).join('/')}/og-fallback/home-garden.png" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={data.seo.title} />
 	<meta name="twitter:description" content={data.seo.description} />
+	<meta name="twitter:image" content="{data.seo.canonical.split('/').slice(0, 3).join('/')}/og-fallback/home-garden.png" />
 	{#if data.seo?.jsonLd}
 		{#each data.seo.jsonLd as ld}
 			{@html `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`}
