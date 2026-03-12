@@ -5,6 +5,7 @@ import { getPagination } from '$lib/server/pagination';
 import { slugToCategory, categoryToSlug } from '$lib/category-browse';
 import { countySlugToOption } from '$lib/seo/county-slugs';
 import { buildCategoryTitle, buildDescription, buildCanonical } from '$lib/seo/meta';
+import { itemListJsonLd, breadcrumbJsonLd } from '$lib/seo/jsonld';
 
 const DEFAULT_LIMIT = 24;
 const NOINDEX_THRESHOLD = 3;
@@ -40,7 +41,18 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 				title: buildCategoryTitle(category, county.name),
 				description: `Browse second-hand ${category.toLowerCase()} listings for sale in ${county.name} on Fogr.ai.`,
 				canonical: buildCanonical(url.origin, url.pathname),
-				robots: 'noindex'
+				robots: 'noindex',
+				jsonLd: [
+					itemListJsonLd([], url.origin),
+					breadcrumbJsonLd(
+						[
+							{ name: 'Home', url: '/' },
+							{ name: category, url: `/${categorySlug}` },
+							{ name: county.name, url: `/${categorySlug}/${county.slug}` }
+						],
+						url.origin
+					)
+				]
 			},
 			page,
 			nextPage: null
@@ -95,7 +107,21 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 			title: buildCategoryTitle(category, county.name),
 			description: buildDescription(descParts.join(' ')),
 			canonical: buildCanonical(url.origin, url.pathname),
-			robots: shouldNoindex ? 'noindex' : 'index, follow'
+			robots: shouldNoindex ? 'noindex' : 'index, follow',
+			jsonLd: [
+				itemListJsonLd(
+					ads.map((ad) => ({ name: ad.title, url: `/ad/${ad.slug}` })),
+					url.origin
+				),
+				breadcrumbJsonLd(
+					[
+						{ name: 'Home', url: '/' },
+						{ name: category, url: `/${categorySlug}` },
+						{ name: county.name, url: `/${categorySlug}/${county.slug}` }
+					],
+					url.origin
+				)
+			]
 		},
 		page,
 		nextPage: nextPage ?? null

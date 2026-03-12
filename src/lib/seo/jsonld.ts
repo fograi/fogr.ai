@@ -2,6 +2,7 @@
  * JSON-LD structured data builders for SEO.
  *
  * Product schema for ad pages following Google Product Snippet guidelines.
+ * ItemList + BreadcrumbList schemas for programmatic category/county pages.
  */
 
 export interface AdSeoData {
@@ -47,4 +48,35 @@ export function productJsonLd(
 	}
 
 	return jsonLd;
+}
+
+export function itemListJsonLd(
+	items: Array<{ name: string; url: string }>,
+	origin: string
+): Record<string, unknown> {
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'ItemList',
+		itemListElement: items.map((item, i) => ({
+			'@type': 'ListItem',
+			position: i + 1,
+			url: `${origin}${item.url}`
+		}))
+	};
+}
+
+export function breadcrumbJsonLd(
+	crumbs: Array<{ name: string; url: string }>,
+	origin: string
+): Record<string, unknown> {
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: crumbs.map((crumb, i) => ({
+			'@type': 'ListItem',
+			position: i + 1,
+			name: crumb.name,
+			item: `${origin}${crumb.url}`
+		}))
+	};
 }

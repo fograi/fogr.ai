@@ -36,6 +36,11 @@
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={data.seo.title} />
 	<meta name="twitter:description" content={data.seo.description} />
+	{#if data.seo?.jsonLd}
+		{#each data.seo.jsonLd as ld}
+			{@html `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`}
+		{/each}
+	{/if}
 </svelte:head>
 
 <section class="programmatic-page">

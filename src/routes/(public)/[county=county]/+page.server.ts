@@ -4,6 +4,7 @@ import type { AdCard, ApiAdRow } from '../../../types/ad-types';
 import { getPagination } from '$lib/server/pagination';
 import { countySlugToOption } from '$lib/seo/county-slugs';
 import { buildCountyTitle, buildDescription, buildCanonical } from '$lib/seo/meta';
+import { itemListJsonLd, breadcrumbJsonLd } from '$lib/seo/jsonld';
 
 const DEFAULT_LIMIT = 24;
 const NOINDEX_THRESHOLD = 3;
@@ -34,7 +35,17 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 				title: buildCountyTitle(county.name),
 				description: `Browse second-hand classifieds for sale in ${county.name} on Fogr.ai.`,
 				canonical: buildCanonical(url.origin, url.pathname),
-				robots: 'noindex'
+				robots: 'noindex',
+				jsonLd: [
+					itemListJsonLd([], url.origin),
+					breadcrumbJsonLd(
+						[
+							{ name: 'Home', url: '/' },
+							{ name: county.name, url: `/${county.slug}` }
+						],
+						url.origin
+					)
+				]
 			},
 			page,
 			nextPage: null
@@ -89,7 +100,20 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 			title: buildCountyTitle(county.name),
 			description: buildDescription(descParts.join(' ')),
 			canonical: buildCanonical(url.origin, url.pathname),
-			robots: shouldNoindex ? 'noindex' : 'index, follow'
+			robots: shouldNoindex ? 'noindex' : 'index, follow',
+			jsonLd: [
+				itemListJsonLd(
+					ads.map((ad) => ({ name: ad.title, url: `/ad/${ad.slug}` })),
+					url.origin
+				),
+				breadcrumbJsonLd(
+					[
+						{ name: 'Home', url: '/' },
+						{ name: county.name, url: `/${county.slug}` }
+					],
+					url.origin
+				)
+			]
 		},
 		page,
 		nextPage: nextPage ?? null

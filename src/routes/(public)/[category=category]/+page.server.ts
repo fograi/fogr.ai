@@ -4,6 +4,7 @@ import type { AdCard, ApiAdRow } from '../../../types/ad-types';
 import { getPagination } from '$lib/server/pagination';
 import { slugToCategory, categoryToSlug } from '$lib/category-browse';
 import { buildCategoryTitle, buildDescription, buildCanonical } from '$lib/seo/meta';
+import { itemListJsonLd, breadcrumbJsonLd } from '$lib/seo/jsonld';
 
 const DEFAULT_LIMIT = 24;
 const NOINDEX_THRESHOLD = 3;
@@ -35,7 +36,17 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 				title: buildCategoryTitle(category),
 				description: `Browse second-hand ${category.toLowerCase()} listings for sale in Ireland on Fogr.ai.`,
 				canonical: buildCanonical(url.origin, url.pathname),
-				robots: 'noindex'
+				robots: 'noindex',
+				jsonLd: [
+					itemListJsonLd([], url.origin),
+					breadcrumbJsonLd(
+						[
+							{ name: 'Home', url: '/' },
+							{ name: category, url: `/${categorySlug}` }
+						],
+						url.origin
+					)
+				]
 			},
 			page,
 			nextPage: null
@@ -90,7 +101,20 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 			title: buildCategoryTitle(category),
 			description: buildDescription(descParts.join(' ')),
 			canonical: buildCanonical(url.origin, url.pathname),
-			robots: shouldNoindex ? 'noindex' : 'index, follow'
+			robots: shouldNoindex ? 'noindex' : 'index, follow',
+			jsonLd: [
+				itemListJsonLd(
+					ads.map((ad) => ({ name: ad.title, url: `/ad/${ad.slug}` })),
+					url.origin
+				),
+				breadcrumbJsonLd(
+					[
+						{ name: 'Home', url: '/' },
+						{ name: category, url: `/${categorySlug}` }
+					],
+					url.origin
+				)
+			]
 		},
 		page,
 		nextPage: nextPage ?? null
