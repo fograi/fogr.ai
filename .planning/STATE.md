@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-12T16:10:04Z"
-last_activity: 2026-03-12 -- Phase 2 plan 02 executed (programmatic SEO pages with param matchers)
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-03-12T16:18:51Z"
+last_activity: 2026-03-12 -- Phase 2 plan 04 executed (expired ad pages with similar listings)
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 24
+  total_plans: 5
+  completed_plans: 5
+  percent: 29
 ---
 
 # Project State
@@ -26,29 +26,29 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 2 of 6 (SEO Foundation) -- IN PROGRESS
-Plan: 2 of 5 complete in current phase
+Plan: 3 of 5 complete in current phase
 Status: Executing
-Last activity: 2026-03-12 -- Phase 2 plan 02 executed (programmatic SEO pages with param matchers)
+Last activity: 2026-03-12 -- Phase 2 plan 04 executed (expired ad pages with similar listings)
 
-Progress: [##▓░░░░░░░] 24%
+Progress: [##▓░░░░░░░] 29%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 8min
-- Total execution time: 30min
+- Total plans completed: 5
+- Average duration: 7min
+- Total execution time: 34min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Slug Migration | 2/2 | 14min | 7min |
-| 2. SEO Foundation | 2/5 | 16min | 8min |
+| 2. SEO Foundation | 3/5 | 20min | 7min |
 
 **Recent Trend:**
-- Last 5 plans: 9min, 5min, 9min, 7min
-- Trend: stable
+- Last 5 plans: 9min, 5min, 9min, 7min, 4min
+- Trend: stable/improving
 
 *Updated after each plan completion*
 
@@ -78,6 +78,9 @@ Recent decisions affecting current work:
 - [02-02]: Flat URL structure with param matchers: /bikes, /dublin, /bikes/dublin -- no /category/ prefix
 - [02-02]: County slug utility in src/lib/seo/county-slugs.ts for reuse by sitemap and expired ads
 - [02-02]: noindex threshold set to 3 listings per user decision in CONTEXT.md
+- [02-04]: Similar listings use county-filter-first approach: >= 3 county matches uses locality, otherwise falls back to category-only
+- [02-04]: Report button hidden on expired ads since they auto-remove
+- [02-04]: Expired ads publicly visible without login; only moderation-removed ads remain owner-only gated
 
 ### Pending Todos
 
@@ -92,6 +95,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-12T16:10:04Z
-Stopped at: Completed 02-02-PLAN.md
-Resume file: .planning/phases/02-seo-foundation/02-02-SUMMARY.md
+Last session: 2026-03-12T16:18:51Z
+Stopped at: Completed 02-04-PLAN.md
+Resume file: .planning/phases/02-seo-foundation/02-04-SUMMARY.md
