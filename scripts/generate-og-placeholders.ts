@@ -45,7 +45,7 @@ function buildSvg(label: string, color: string): string {
   <text x="${WIDTH / 2}" y="${HEIGHT / 2 + 50}" text-anchor="middle"
     font-family="system-ui, -apple-system, sans-serif"
     font-size="36" font-weight="600" fill="rgba(255,255,255,0.75)"
-    letter-spacing="0.04em">Fogr.ai</text>
+    letter-spacing="0.04em">fógr.aí</text>
 </svg>`;
 }
 
