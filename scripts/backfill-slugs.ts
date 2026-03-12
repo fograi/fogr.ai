@@ -34,6 +34,35 @@ interface AdRow {
 }
 
 async function backfill(): Promise<void> {
+	// Pre-flight: verify the slug column exists in the database
+	const { error: preflight } = await supabase.from('ads').select('slug').limit(1);
+
+	if (preflight && preflight.message.includes('does not exist')) {
+		console.error('');
+		console.error('ERROR: The slug and short_id columns do not exist in the ads table.');
+		console.error('');
+		console.error('You must apply the migration first. Open the Supabase SQL Editor at:');
+		console.error('  https://supabase.com/dashboard → SQL Editor');
+		console.error('');
+		console.error('Then run the following SQL:');
+		console.error('');
+		console.error('  ALTER TABLE public.ads');
+		console.error('    ADD COLUMN IF NOT EXISTS slug text,');
+		console.error('    ADD COLUMN IF NOT EXISTS short_id text;');
+		console.error('');
+		console.error('  CREATE UNIQUE INDEX IF NOT EXISTS ads_short_id_unique_idx');
+		console.error('    ON public.ads (short_id);');
+		console.error('');
+		console.error('  CREATE UNIQUE INDEX IF NOT EXISTS ads_slug_unique_idx');
+		console.error('    ON public.ads (slug);');
+		console.error('');
+		console.error('After the migration is applied, re-run this script.');
+		process.exit(1);
+	}
+
+	console.log('Pre-flight check passed: slug column exists.');
+	console.log('');
+
 	let processed = 0;
 	let batch = 0;
 
