@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02-PLAN.md (awaiting human verification checkpoint)
-last_updated: "2026-03-11T21:19:27Z"
-last_activity: 2026-03-11 — Completed Plan 02 (route migration) of Phase 1, awaiting verification
+stopped_at: Phase 1 verified. Ready to plan Phase 2.
+last_updated: "2026-03-12T00:00:00Z"
+last_activity: 2026-03-12 — Phase 1 verified by human. Database cleared (empty table). Ready for Phase 2.
 progress:
   total_phases: 6
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone in Ireland can post and find classified ads with minimal effort -- brief, honest listings without noise
-**Current focus:** Phase 1 -- Slug Migration (completed, awaiting verification)
+**Current focus:** Phase 2 -- SEO Foundation (ready to plan)
 
 ## Current Position
 
-Phase: 1 of 6 (Slug Migration) -- COMPLETE (pending verification)
-Plan: 2 of 2 in current phase
-Status: Awaiting human verification checkpoint
-Last activity: 2026-03-11 -- Completed Plan 02 (route migration) of Phase 1
+Phase: 2 of 6 (SEO Foundation) -- NOT STARTED
+Plan: 0 of 8 in current phase
+Status: Ready to plan
+Last activity: 2026-03-12 -- Phase 1 verified, database cleared, moving to Phase 2
 
 Progress: [##░░░░░░░░] 16%
 
@@ -73,9 +73,8 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Run backfill script (`scripts/backfill-slugs.ts`) against database before deploying
-- Regenerate Supabase types after migration runs on actual database
-- Run human verification of slug routing (checkpoint from Plan 02)
+- Regenerate Supabase types after confirming schema is stable
+- [Phase 1 note]: Database was emptied during verification -- no existing ads to backfill. New ads get slugs automatically via POST handler.
 
 ### Blockers/Concerns
 
