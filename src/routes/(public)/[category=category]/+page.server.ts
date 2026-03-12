@@ -1,0 +1,98 @@
+import { error } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+import type { AdCard, ApiAdRow } from '../../../types/ad-types';
+import { getPagination } from '$lib/server/pagination';
+import { slugToCategory, categoryToSlug } from '$lib/category-browse';
+import { buildCategoryTitle, buildDescription, buildCanonical } from '$lib/seo/meta';
+
+const DEFAULT_LIMIT = 24;
+const NOINDEX_THRESHOLD = 3;
+
+export const load: PageServerLoad = async ({ params, fetch, url }) => {
+	const category = slugToCategory(params.category);
+	if (!category) throw error(404, 'Category not found.');
+
+	const categorySlug = categoryToSlug(category);
+	const { page, limit } = getPagination(url.searchParams, DEFAULT_LIMIT, 100);
+
+	const query = new URLSearchParams({
+		page: String(page),
+		limit: String(limit),
+		category
+	});
+
+	const res = await fetch(`/api/ads?${query.toString()}`);
+	if (!res.ok) {
+		return {
+			ads: [] as AdCard[],
+			category,
+			categorySlug,
+			countyName: null,
+			countySlug: null,
+			listingCount: 0,
+			priceRange: { min: null, max: null },
+			seo: {
+				title: buildCategoryTitle(category),
+				description: `Browse second-hand ${category.toLowerCase()} listings for sale in Ireland on Fogr.ai.`,
+				canonical: buildCanonical(url.origin, url.pathname),
+				robots: 'noindex'
+			},
+			page,
+			nextPage: null
+		};
+	}
+
+	const { ads: rawAds, nextPage } = (await res.json()) as {
+		ads: ApiAdRow[];
+		nextPage?: number | null;
+	};
+
+	const ads: AdCard[] = rawAds.map((ad) => ({
+		id: ad.id,
+		slug: ad.slug ?? undefined,
+		title: ad.title,
+		price: ad.price ?? null,
+		img: ad.image_keys?.[0] ?? '',
+		description: ad.description ?? '',
+		category: ad.category ?? '',
+		categoryProfileData: ad.category_profile_data ?? null,
+		locationProfileData: ad.location_profile_data ?? null,
+		currency: ad.currency ?? undefined,
+		firmPrice: ad.firm_price ?? false,
+		minOffer: ad.min_offer ?? null
+	}));
+
+	const prices = rawAds
+		.map((ad) => ad.price)
+		.filter((p): p is number => typeof p === 'number' && p > 0);
+	const priceRange = {
+		min: prices.length > 0 ? Math.min(...prices) : null,
+		max: prices.length > 0 ? Math.max(...prices) : null
+	};
+
+	const listingCount = rawAds.length;
+	const shouldNoindex = listingCount < NOINDEX_THRESHOLD;
+
+	const descParts = [`Browse ${listingCount} second-hand ${category.toLowerCase()} listings for sale in Ireland on Fogr.ai.`];
+	if (priceRange.min !== null && priceRange.max !== null) {
+		descParts.push(`Prices from EUR ${priceRange.min} to EUR ${priceRange.max}.`);
+	}
+
+	return {
+		ads,
+		category,
+		categorySlug,
+		countyName: null,
+		countySlug: null,
+		listingCount,
+		priceRange,
+		seo: {
+			title: buildCategoryTitle(category),
+			description: buildDescription(descParts.join(' ')),
+			canonical: buildCanonical(url.origin, url.pathname),
+			robots: shouldNoindex ? 'noindex' : 'index, follow'
+		},
+		page,
+		nextPage: nextPage ?? null
+	};
+};
