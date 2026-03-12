@@ -40,6 +40,16 @@ Integrate Resend transactional email so the platform can send reliable, GDPR-com
 - Daily digest cron — one email per saved search per day with new matches since last run
 - Email content: count + top 3 listings (title, price, link) + "View all" link to search page
 
+### Regulatory compliance
+
+- **No tracking pixels, no open tracking, no click tracking** — eliminates CNIL 2025 dual-consent requirement and UK DUA Act 2025 extended tracking rules entirely
+- **List-Unsubscribe + List-Unsubscribe-Post headers** (RFC 8058) on every non-transactional email — required by Gmail (Jun 2024), Yahoo (Jun 2024), Microsoft/Outlook (May 2025). Resend supports this natively when unsubscribe URL is provided. Must be covered by DKIM signature (Resend handles DKIM when domain is verified)
+- **DSA Article 17 Statement of Reasons** — moderation emails (takedown, SoR, appeal outcome) are legally required notifications under DSA. Cannot be suppressed by unsubscribe. Must be sent in a language the user understands, on a "durable medium" (email qualifies). Existing template structure already compliant
+- **DSA Article 16 Notice acknowledgment** — reporters must be notified that their report was reviewed. Existing report system should confirm receipt (verify in implementation)
+- **Unsubscribe processing** — must take effect immediately (our HMAC approach is instant). RFC 8058 requires processing within 48 hours maximum
+- **DKIM + SPF + DMARC** — verify fogr.ai domain in Resend dashboard. Required for deliverability and RFC 8058 compliance
+- **UK DUA Act 2025** (effective Feb 2026) — requires complaints handling procedure. Not email-specific; note for Phase 5 (Launch Hardening)
+
 ### Claude's Discretion
 
 - HTML template design details (colors, spacing, logo placement)
@@ -89,8 +99,9 @@ No specific requirements — open to standard approaches
 ## Deferred Ideas
 
 - "Save this search" UI button on browse/category pages — Phase 4 (Engagement and Retention)
-- Email analytics/open tracking — not needed at launch
+- Email analytics/open tracking — explicitly not implementing (also avoids CNIL dual-consent requirement)
 - Marketing/bulk email — out of scope
+- Complaints handling procedure — UK DUA Act 2025 requirement, defer to Phase 5 (Launch Hardening)
 
 </deferred>
 
