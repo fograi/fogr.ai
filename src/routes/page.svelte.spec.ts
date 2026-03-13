@@ -1,7 +1,20 @@
 import { page } from 'vitest/browser';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
+import { readable } from 'svelte/store';
 import Page from './+page.svelte';
+
+vi.mock('$app/stores', () => ({
+	page: readable({
+		url: new URL('http://localhost/'),
+		params: {},
+		data: { user: null, isAdmin: false },
+		status: 200,
+		error: null,
+		form: null,
+		route: { id: '/' }
+	})
+}));
 
 function buildPageData(overrides: Record<string, unknown> = {}) {
 	return {

@@ -1,12 +1,14 @@
 <script lang="ts">
 	import AdCard from '$lib/components/AdCard.svelte';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/stores';
 
 	let { data } = $props();
+	let saveBusy = $state(false);
+	let saveResult: 'saved' | 'error' | null = $state(null);
 
-	const basePath = $derived(
-		`/${data.categorySlug}/${data.countySlug}`
-	);
+	const basePath = $derived(`/${data.categorySlug}/${data.countySlug}`);
+	const user = $derived($page.data.user);
 
 	function buildPageHref(targetPage: number) {
 		if (targetPage <= 1) return basePath;
@@ -18,6 +20,39 @@
 			? `EUR ${data.priceRange.min} - EUR ${data.priceRange.max}`
 			: null
 	);
+
+	function jsonLdScript(ld: unknown): string {
+		return (
+			'<script type="application/ld+json">' +
+			JSON.stringify(ld).replace(/</g, '\\u003c') +
+			'<' +
+			'/script>'
+		);
+	}
+
+	async function saveSearch() {
+		if (saveBusy) return;
+		saveBusy = true;
+		saveResult = null;
+		try {
+			const res = await fetch('/api/saved-searches', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					category: data.category,
+					county: data.countyId
+				})
+			});
+			if (!res.ok) throw new Error('Failed');
+			saveResult = 'saved';
+			setTimeout(() => (saveResult = null), 3000);
+		} catch {
+			saveResult = 'error';
+			setTimeout(() => (saveResult = null), 3000);
+		} finally {
+			saveBusy = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -32,13 +67,20 @@
 	<meta property="og:url" content={data.seo.canonical} />
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="fógr.aí" />
-	<meta property="og:image" content="{data.seo.canonical.split('/').slice(0, 3).join('/')}/og-fallback/{data.categorySlug}.png" />
+	<meta
+		property="og:image"
+		content="{data.seo.canonical
+			.split('/')
+			.slice(0, 3)
+			.join('/')}/og-fallback/{data.categorySlug}.png"
+	/>
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={data.seo.title} />
 	<meta name="twitter:description" content={data.seo.description} />
 	{#if data.seo?.jsonLd}
-		{#each data.seo.jsonLd as ld}
-			{@html `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`}
+		{#each data.seo.jsonLd as ld, i (i)}
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- trusted JSON-LD from server -->
+			{@html jsonLdScript(ld)}
 		{/each}
 	{/if}
 </svelte:head>
@@ -58,8 +100,31 @@
 	</div>
 
 	<div class="active-filters" aria-label="Active filters">
-		<a class="filter-chip filter-chip--link" href="/{data.categorySlug}">{data.category}</a>
-		<a class="filter-chip filter-chip--link" href="/{data.countySlug}">{data.countyName}</a>
+		<a
+			class="filter-chip filter-chip--link"
+			href={resolve('/(public)/[category=category]', { category: data.categorySlug })}
+			>{data.category}</a
+		>
+		<a
+			class="filter-chip filter-chip--link"
+			href={resolve('/(public)/[county=county]', { county: data.countySlug })}>{data.countyName}</a
+		>
+		{#if user}
+			<button
+				type="button"
+				class="filter-chip save-btn"
+				disabled={saveBusy || saveResult === 'saved'}
+				onclick={saveSearch}
+			>
+				{#if saveResult === 'saved'}
+					Search saved!
+				{:else if saveResult === 'error'}
+					Could not save
+				{:else}
+					Save this search
+				{/if}
+			</button>
+		{/if}
 	</div>
 
 	{#if data.ads.length > 0}
@@ -138,6 +203,19 @@
 	}
 	.filter-chip--link:hover {
 		background: color-mix(in srgb, var(--fg) 12%, var(--surface));
+	}
+	.save-btn {
+		cursor: pointer;
+		color: var(--accent-green);
+		border-color: color-mix(in srgb, var(--accent-green) 40%, transparent);
+		background: var(--surface);
+	}
+	.save-btn:hover:not([disabled]) {
+		background: color-mix(in srgb, var(--accent-green) 10%, var(--surface));
+	}
+	.save-btn[disabled] {
+		opacity: 0.7;
+		cursor: default;
 	}
 	.grid {
 		list-style: none;

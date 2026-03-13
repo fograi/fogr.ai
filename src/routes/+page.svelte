@@ -2,11 +2,14 @@
 	import { onMount } from 'svelte';
 	import AdCard from '../lib/components/AdCard.svelte';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/stores';
 	import { CATEGORIES } from '$lib/constants';
 	import { SearchIcon } from '$lib/icons';
 
 	let { data } = $props();
 	let loggedError = false;
+	let saveBusy = $state(false);
+	let saveResult: 'saved' | 'error' | null = $state(null);
 
 	let container: HTMLUListElement;
 	const q = $derived(data?.q ?? '');
@@ -21,6 +24,33 @@
 	let mobileScopeOpen = $state(false);
 	let scopeOpenInitialized = false;
 	let previousHasScopeFilters = false;
+	const user = $derived($page.data.user);
+	const hasActiveFilters = $derived(Boolean(category || countyId || q));
+
+	async function saveSearch() {
+		if (saveBusy) return;
+		saveBusy = true;
+		saveResult = null;
+		try {
+			const res = await fetch('/api/saved-searches', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					category: category || undefined,
+					county: countyId || undefined,
+					query: q || undefined
+				})
+			});
+			if (!res.ok) throw new Error('Failed');
+			saveResult = 'saved';
+			setTimeout(() => (saveResult = null), 3000);
+		} catch {
+			saveResult = 'error';
+			setTimeout(() => (saveResult = null), 3000);
+		} finally {
+			saveBusy = false;
+		}
+	}
 
 	function getLocationLabel(
 		options: ReadonlyArray<{ id: string; name: string }>,
@@ -65,13 +95,13 @@
 	}
 
 	function buildPageHref(targetPage: number) {
-		const params = new URLSearchParams({ page: String(targetPage) });
-		if (q) params.set('q', q);
-		if (category) params.set('category', category);
-		if (priceState) params.set('price_state', priceState);
-		if (countyId) params.set('county_id', countyId);
-		if (localityId) params.set('locality_id', localityId);
-		return `${resolve('/')}?${params.toString()}`;
+		const parts = [`page=${targetPage}`];
+		if (q) parts.push(`q=${encodeURIComponent(q)}`);
+		if (category) parts.push(`category=${encodeURIComponent(category)}`);
+		if (priceState) parts.push(`price_state=${encodeURIComponent(priceState)}`);
+		if (countyId) parts.push(`county_id=${encodeURIComponent(countyId)}`);
+		if (localityId) parts.push(`locality_id=${encodeURIComponent(localityId)}`);
+		return `${resolve('/')}?${parts.join('&')}`;
 	}
 
 	function layout() {
@@ -231,6 +261,25 @@
 			{#if q || category || priceState || countyId || localityId}
 				<a class="clear" href={resolve('/')} rel="external">Clear filters</a>
 			{/if}
+
+			{#if user && hasActiveFilters}
+				<div class="save-search">
+					<button
+						type="button"
+						class="save-search__btn"
+						disabled={saveBusy || saveResult === 'saved'}
+						onclick={saveSearch}
+					>
+						{#if saveResult === 'saved'}
+							Search saved!
+						{:else if saveResult === 'error'}
+							Could not save
+						{:else}
+							Save this search
+						{/if}
+					</button>
+				</div>
+			{/if}
 		</form>
 	</div>
 </section>
@@ -381,6 +430,27 @@
 		font-weight: 600;
 		padding: 0 6px;
 		justify-self: end;
+	}
+	.save-search {
+		justify-self: end;
+	}
+	.save-search__btn {
+		padding: 6px 14px;
+		border-radius: 999px;
+		border: 1px solid var(--hairline);
+		background: var(--surface);
+		color: var(--accent-green);
+		font-weight: 700;
+		cursor: pointer;
+		font-size: 0.88rem;
+	}
+	.save-search__btn:hover:not([disabled]) {
+		border-color: color-mix(in srgb, var(--accent-green) 55%, transparent);
+		background: color-mix(in srgb, var(--accent-green) 10%, var(--surface));
+	}
+	.save-search__btn[disabled] {
+		opacity: 0.7;
+		cursor: default;
 	}
 	@media (max-width: 720px) {
 		.search {

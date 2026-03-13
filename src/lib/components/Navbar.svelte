@@ -15,7 +15,8 @@
 		LinkIcon,
 		LoginIcon,
 		LogoutIcon,
-		MessagesIcon
+		MessagesIcon,
+		SearchIcon
 	} from '$lib/icons';
 
 	export let title = 'fogr.ai';
@@ -26,13 +27,15 @@
 		| '/(app)/post'
 		| '/(app)/account'
 		| '/(app)/messages'
-		| '/(app)/ads';
+		| '/(app)/ads'
+		| '/(app)/saved-searches';
 	const baseLinks: Array<{ href: NavHref; label: string }> = [];
 	let authedLinks: Array<{ href: NavHref; label: string }> = baseLinks;
 	const navIcons: Partial<Record<NavHref, typeof MessagesIcon>> = {
 		'/(app)/messages': MessagesIcon,
 		'/(app)/account': AccountIcon,
 		'/(app)/ads': AdsIcon,
+		'/(app)/saved-searches': SearchIcon,
 		'/(app)/post': LinkIcon,
 		'/(public)/about': LinkIcon
 	};
@@ -131,7 +134,8 @@
 				...baseLinks,
 				{ href: '/(app)/account', label: 'Account' },
 				{ href: '/(app)/messages', label: 'Messages' },
-				{ href: '/(app)/ads', label: 'My ads' }
+				{ href: '/(app)/ads', label: 'My ads' },
+				{ href: '/(app)/saved-searches', label: 'Saved searches' }
 			]
 		: baseLinks;
 
@@ -144,9 +148,11 @@
 <header class="nav" class:hidden>
 	<div class="wrap">
 		<a class="brand" href={resolve('/')} aria-label={title}>
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- trusted SVG import -->
 			<span class="brand__logo" aria-hidden="true">{@html logoSvg}</span>
 		</a>
 
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- primaryHref built with resolve() -->
 		<a class="primary-cta" href={primaryHref}>Post ad</a>
 
 		<button
