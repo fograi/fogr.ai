@@ -155,16 +155,15 @@ Plans:
 6. Anti-scam safety guidance is displayed during ad creation and when viewing ads — meeting tips, payment safety, common scam warnings
 7. Private-seller-only trust messaging is displayed prominently across the platform — positioning fogr.ai as the honest alternative
 
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
 
-- [ ] 05-01: New-account moderation hold queue — pending state on new-account listings, noindex until AI moderation clears, established account auto-approve logic
-- [ ] 05-02: Content seeding — seed script via Supabase service role, source and insert 30+ real bicycle listings across Dublin/Leinster counties
-- [ ] 05-03: Mobile audit — test critical path on 375px, fix any blocking layout or interaction issues
-- [ ] 05-04: Commercial reseller detection — heuristics for bulk posting and dealer language, route flagged listings to moderation queue
-- [ ] 05-05: Safety guidance — anti-scam tips on ad creation form and ad view pages (meeting safely, payment safety)
-- [ ] 05-06: Private-seller trust messaging — prominent trust language throughout platform (tagline, footer, about page, ad creation)
+- [ ] 05-01-PLAN.md — Backend hardening: new-account noindex enforcement, reseller detection heuristics, private-seller validation in POST handler
+- [ ] 05-02-PLAN.md — Safety and trust UI: safety tips module, /safety page, accordion on ad view, safety checklist + private-seller elements in post form
+- [ ] 05-03-PLAN.md — Trust content pages: homepage hero copy, about page rewrite with brand story, footer trust messaging + safety link
+- [ ] 05-04-PLAN.md — Content seeding: seed script with ~192 locally-flavoured bicycle listings across all 32 counties
+- [ ] 05-05-PLAN.md — Mobile audit at 375px viewport + production cost review checkpoint
 
 ---
 
@@ -207,10 +206,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. SEO Foundation                  | 6/6            | Complete                        | 2026-03-12 |
 | 3. Email Infrastructure            | 4/4            | Complete                        | 2026-03-13 |
 | 4. Engagement and Retention        | 6/6            | Complete                        | 2026-03-13 |
-| 5. Launch Hardening                | 0/6            | Not started                     | -          |
+| 5. Launch Hardening                | 0/5            | Planned                         | -          |
 | 6. Infrastructure and Cost Control | 0/5            | Not started                     | -          |
 
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-13 -- Phase 4 complete (saved search JSONB fix)_
+_Last updated: 2026-03-13 -- Phase 5 planned (5 plans in 2 waves)_
