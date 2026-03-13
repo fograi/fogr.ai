@@ -25,7 +25,7 @@ import {
 	validateLocationProfileData
 } from '$lib/server/ads-validation';
 import { isSameOrigin } from '$lib/server/csrf';
-import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
+import { E2E_MOCK_AD, E2E_MOCK_AD_SOLD, E2E_MOCK_AD_OTHER, isE2eMock } from '$lib/server/e2e-mocks';
 import { recordMetric } from '$lib/server/metrics';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
@@ -740,68 +740,73 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	if (isE2eMock(platform)) {
-		const mockProfile =
-			E2E_MOCK_AD.category_profile_data && typeof E2E_MOCK_AD.category_profile_data === 'object'
-				? (E2E_MOCK_AD.category_profile_data as Record<string, unknown>)
-				: null;
-		const mockPrice = E2E_MOCK_AD.price;
-		const matchesCategory = !category || E2E_MOCK_AD.category === category;
-		const matchesPriceState =
-			!priceState ||
-			(priceState === 'free' && mockPrice === 0) ||
-			(priceState === 'poa' && mockPrice === null) ||
-			(priceState === 'fixed' && typeof mockPrice === 'number' && mockPrice > 0);
-		const matchesMinPrice =
-			minPrice === null || (typeof mockPrice === 'number' && mockPrice >= minPrice);
-		const matchesMaxPrice =
-			maxPrice === null || (typeof mockPrice === 'number' && mockPrice <= maxPrice);
-		const matchesBikeSubtype =
-			!bikeSubtype || (mockProfile?.subtype as string | undefined) === bikeSubtype;
-		const matchesBikeType = !bikeType || (mockProfile?.bikeType as string | undefined) === bikeType;
-		const matchesBikeCondition =
-			!bikeCondition || (mockProfile?.condition as string | undefined) === bikeCondition;
-		const matchesBikeSize =
-			!bikeSizePreset || (mockProfile?.sizePreset as string | undefined) === bikeSizePreset;
-		const mockLocation =
-			E2E_MOCK_AD.location_profile_data && typeof E2E_MOCK_AD.location_profile_data === 'object'
-				? (E2E_MOCK_AD.location_profile_data as Record<string, unknown>)
-				: null;
-		const mockCountyId =
-			mockLocation &&
-			typeof mockLocation.county === 'object' &&
-			mockLocation.county &&
-			'id' in mockLocation.county &&
-			typeof (mockLocation.county as Record<string, unknown>).id === 'string'
-				? ((mockLocation.county as Record<string, unknown>).id as string)
-				: '';
-		const mockLocalityId =
-			mockLocation &&
-			typeof mockLocation.locality === 'object' &&
-			mockLocation.locality &&
-			'id' in mockLocation.locality &&
-			typeof (mockLocation.locality as Record<string, unknown>).id === 'string'
-				? ((mockLocation.locality as Record<string, unknown>).id as string)
-				: '';
-		const matchesCounty = !countyId || mockCountyId === countyId;
-		const matchesLocality = !localityId || mockLocalityId === localityId;
-		const shouldInclude =
-			matchesCategory &&
-			matchesPriceState &&
-			matchesMinPrice &&
-			matchesMaxPrice &&
-			matchesBikeSubtype &&
-			matchesBikeType &&
-			matchesBikeCondition &&
-			matchesBikeSize &&
-			matchesCounty &&
-			matchesLocality;
+		const allMocks = [E2E_MOCK_AD, E2E_MOCK_AD_SOLD, E2E_MOCK_AD_OTHER];
+		const matchedAds = allMocks.filter((mock) => {
+			const mockProfile =
+				mock.category_profile_data && typeof mock.category_profile_data === 'object'
+					? (mock.category_profile_data as Record<string, unknown>)
+					: null;
+			const mockPrice = mock.price;
+			const matchesCategory = !category || mock.category === category;
+			const matchesPriceState =
+				!priceState ||
+				(priceState === 'free' && mockPrice === 0) ||
+				(priceState === 'poa' && mockPrice === null) ||
+				(priceState === 'fixed' && typeof mockPrice === 'number' && mockPrice > 0);
+			const matchesMinPrice =
+				minPrice === null || (typeof mockPrice === 'number' && mockPrice >= minPrice);
+			const matchesMaxPrice =
+				maxPrice === null || (typeof mockPrice === 'number' && mockPrice <= maxPrice);
+			const matchesBikeSubtype =
+				!bikeSubtype || (mockProfile?.subtype as string | undefined) === bikeSubtype;
+			const matchesBikeType =
+				!bikeType || (mockProfile?.bikeType as string | undefined) === bikeType;
+			const matchesBikeCondition =
+				!bikeCondition || (mockProfile?.condition as string | undefined) === bikeCondition;
+			const matchesBikeSize =
+				!bikeSizePreset || (mockProfile?.sizePreset as string | undefined) === bikeSizePreset;
+			const mockLocation =
+				mock.location_profile_data && typeof mock.location_profile_data === 'object'
+					? (mock.location_profile_data as Record<string, unknown>)
+					: null;
+			const mockCountyId =
+				mockLocation &&
+				typeof mockLocation.county === 'object' &&
+				mockLocation.county &&
+				'id' in mockLocation.county &&
+				typeof (mockLocation.county as Record<string, unknown>).id === 'string'
+					? ((mockLocation.county as Record<string, unknown>).id as string)
+					: '';
+			const mockLocalityId =
+				mockLocation &&
+				typeof mockLocation.locality === 'object' &&
+				mockLocation.locality &&
+				'id' in mockLocation.locality &&
+				typeof (mockLocation.locality as Record<string, unknown>).id === 'string'
+					? ((mockLocation.locality as Record<string, unknown>).id as string)
+					: '';
+			const matchesCounty = !countyId || mockCountyId === countyId;
+			const matchesLocality = !localityId || mockLocalityId === localityId;
+			return (
+				matchesCategory &&
+				matchesPriceState &&
+				matchesMinPrice &&
+				matchesMaxPrice &&
+				matchesBikeSubtype &&
+				matchesBikeType &&
+				matchesBikeCondition &&
+				matchesBikeSize &&
+				matchesCounty &&
+				matchesLocality
+			);
+		});
 
 		return json(
 			{
 				success: true,
-				ads: shouldInclude ? [E2E_MOCK_AD] : [],
+				ads: matchedAds,
 				page: 1,
-				limit: 1,
+				limit: matchedAds.length,
 				nextPage: null,
 				requestId
 			},

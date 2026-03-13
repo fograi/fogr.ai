@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
-import { E2E_MOCK_AD, isE2eMock } from '$lib/server/e2e-mocks';
+import { E2E_MOCK_AD, E2E_MOCK_AD_SOLD, isE2eMock } from '$lib/server/e2e-mocks';
 
 type AdRow = {
 	id: string;
@@ -19,22 +19,22 @@ type AdRow = {
 
 export const load: PageServerLoad = async ({ locals, platform, url }) => {
 	if (isE2eMock(platform)) {
+		const mockAds = [E2E_MOCK_AD, E2E_MOCK_AD_SOLD];
 		return {
-			ads: [
-				{
-					id: E2E_MOCK_AD.id,
-					slug: E2E_MOCK_AD.slug,
-					title: E2E_MOCK_AD.title,
-					price: E2E_MOCK_AD.price,
-					currency: E2E_MOCK_AD.currency,
-					category: E2E_MOCK_AD.category,
-					image_keys: E2E_MOCK_AD.image_keys,
-					status: E2E_MOCK_AD.status,
-					created_at: E2E_MOCK_AD.created_at,
-					updated_at: E2E_MOCK_AD.updated_at,
-					expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString()
-				}
-			]
+			ads: mockAds.map((mock) => ({
+				id: mock.id,
+				slug: mock.slug,
+				title: mock.title,
+				price: mock.price,
+				currency: mock.currency,
+				category: mock.category,
+				image_keys: mock.image_keys,
+				status: mock.status,
+				created_at: mock.created_at,
+				updated_at: mock.updated_at,
+				expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
+				sale_price: mock.sale_price ?? null
+			}))
 		};
 	}
 

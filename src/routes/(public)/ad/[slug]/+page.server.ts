@@ -8,8 +8,73 @@ import { productJsonLd } from '$lib/seo/jsonld';
 import { buildAdOg } from '$lib/seo/og';
 import { categoryToSlug } from '$lib/category-browse';
 import type { Category } from '$lib/constants';
+import {
+	isE2eMock,
+	E2E_MOCK_AD,
+	E2E_MOCK_AD_SOLD,
+	E2E_MOCK_AD_OTHER,
+	E2E_MOCK_USER
+} from '$lib/server/e2e-mocks';
 
-export const load: PageServerLoad = async ({ params, locals, url }) => {
+export const load: PageServerLoad = async ({ params, locals, url, platform }) => {
+	// E2E mock path — return mock data without hitting the database
+	if (isE2eMock(platform)) {
+		const allMocks = [E2E_MOCK_AD, E2E_MOCK_AD_SOLD, E2E_MOCK_AD_OTHER];
+		const mockAd = allMocks.find(
+			(m) => m.slug === params.slug || m.short_id === params.slug || m.id === params.slug
+		);
+		if (mockAd) {
+			const isOwner = mockAd.user_id === E2E_MOCK_USER.id;
+			const mapped: AdCard = {
+				id: mockAd.id,
+				slug: mockAd.slug ?? undefined,
+				title: mockAd.title,
+				price: mockAd.price,
+				img: mockAd.image_keys?.[0] ?? '',
+				description: mockAd.description,
+				category: mockAd.category,
+				categoryProfileData:
+					(mockAd.category_profile_data as Record<string, unknown> | null) ?? null,
+				locationProfileData:
+					(mockAd.location_profile_data as Record<string, unknown> | null) ?? null,
+				currency: mockAd.currency ?? undefined,
+				status: mockAd.status,
+				firmPrice: mockAd.firm_price ?? false,
+				minOffer: mockAd.min_offer ?? null,
+				createdAt: mockAd.created_at ?? undefined,
+				salePrice: mockAd.sale_price ?? null
+			};
+			return {
+				ad: mapped,
+				moderation: null,
+				isOwner,
+				isExpired: false,
+				isSaved: false,
+				similarAds: [],
+				ownerMessages: isOwner ? { count: 0 } : null,
+				offerRules: {
+					firmPrice: mockAd.firm_price ?? false,
+					minOffer: mockAd.min_offer ?? null,
+					autoDeclineMessage: mockAd.auto_decline_message ?? null
+				},
+				seo: {
+					title: mockAd.title,
+					description: mockAd.description,
+					canonical: `${url.origin}/ad/${mockAd.slug}`,
+					og: {
+						title: mockAd.title,
+						description: mockAd.description,
+						image: '',
+						url: `${url.origin}/ad/${mockAd.slug}`,
+						type: 'website',
+						siteName: 'fogr.ai'
+					},
+					jsonLd: {},
+					robots: undefined
+				}
+			};
+		}
+	}
 	// Case 1: UUID parameter -- 301 redirect to slug URL
 	if (isUuidParam(params.slug)) {
 		const { data } = await locals.supabase

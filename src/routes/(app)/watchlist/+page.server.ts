@@ -1,8 +1,33 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { AdCard } from '../../../types/ad-types';
+import { isE2eMock, E2E_MOCK_AD } from '$lib/server/e2e-mocks';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ locals, url, platform }) => {
+	if (isE2eMock(platform)) {
+		const ads: AdCard[] = [
+			{
+				id: E2E_MOCK_AD.id,
+				slug: E2E_MOCK_AD.slug ?? undefined,
+				title: E2E_MOCK_AD.title,
+				price: E2E_MOCK_AD.price,
+				img: E2E_MOCK_AD.image_keys?.[0] ?? '',
+				description: E2E_MOCK_AD.description,
+				category: E2E_MOCK_AD.category,
+				categoryProfileData:
+					(E2E_MOCK_AD.category_profile_data as Record<string, unknown> | null) ?? null,
+				locationProfileData:
+					(E2E_MOCK_AD.location_profile_data as Record<string, unknown> | null) ?? null,
+				currency: E2E_MOCK_AD.currency ?? undefined,
+				firmPrice: E2E_MOCK_AD.firm_price ?? false,
+				minOffer: E2E_MOCK_AD.min_offer ?? null,
+				createdAt: E2E_MOCK_AD.created_at ?? undefined,
+				status: E2E_MOCK_AD.status ?? undefined,
+				salePrice: E2E_MOCK_AD.sale_price ?? null
+			}
+		];
+		return { ads };
+	}
 	const user = await locals.getUser();
 	if (!user) throw redirect(303, `/login?redirectTo=${encodeURIComponent(url.pathname)}`);
 

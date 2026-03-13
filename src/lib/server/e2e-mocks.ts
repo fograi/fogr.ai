@@ -93,6 +93,97 @@ export const E2E_MOCK_MESSAGES = [
 	}
 ];
 
+export const E2E_MOCK_AD_SOLD: ApiAdRow = {
+	id: 'e2e-ad-2',
+	user_id: '00000000-0000-0000-0000-000000000000',
+	title: 'E2E Sold Ad',
+	description: 'This bike has been sold.',
+	category: 'Bikes',
+	category_profile_data: {
+		version: 1,
+		profile: 'bikes',
+		subtype: 'adult',
+		bikeType: 'road',
+		condition: 'used_good',
+		sizePreset: 'M',
+		reasonForSelling: 'Upgrading bike',
+		usageSummary: 'Weekend rides',
+		knownIssues: 'No known issues'
+	},
+	location_profile_data: {
+		version: 2,
+		level: 'county',
+		primary: { id: 'ie/leinster/dublin', name: 'Dublin', type: 'county' },
+		selected: [{ id: 'ie/leinster/dublin', name: 'Dublin', type: 'county' }],
+		selectedNodeIds: ['ie/leinster/dublin'],
+		island: { id: 'ie', name: 'Ireland' },
+		province: { id: 'ie/leinster', name: 'Leinster' },
+		county: { id: 'ie/leinster/dublin', name: 'Dublin' },
+		locality: { id: 'ie/leinster/dublin/ard-na-greine', name: 'Ard Na Gréine' }
+	},
+	price: 200,
+	currency: 'EUR',
+	slug: 'e2e-sold-ad-dublin-e2emock2',
+	short_id: 'e2emock2',
+	image_keys: [],
+	firm_price: false,
+	min_offer: null,
+	auto_decline_message: null,
+	status: 'sold',
+	sale_price: 180,
+	created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+	updated_at: new Date().toISOString()
+};
+
+export const E2E_MOCK_AD_OTHER: ApiAdRow = {
+	id: 'e2e-ad-3',
+	user_id: '11111111-1111-1111-1111-111111111111',
+	title: 'E2E Other User Ad',
+	description: 'An ad posted by a different user.',
+	category: 'Bikes',
+	category_profile_data: {
+		version: 1,
+		profile: 'bikes',
+		subtype: 'adult',
+		bikeType: 'mountain',
+		condition: 'used_fair',
+		sizePreset: 'L'
+	},
+	location_profile_data: {
+		version: 2,
+		level: 'county',
+		primary: { id: 'ie/leinster/dublin', name: 'Dublin', type: 'county' },
+		selected: [{ id: 'ie/leinster/dublin', name: 'Dublin', type: 'county' }],
+		selectedNodeIds: ['ie/leinster/dublin'],
+		island: { id: 'ie', name: 'Ireland' },
+		province: { id: 'ie/leinster', name: 'Leinster' },
+		county: { id: 'ie/leinster/dublin', name: 'Dublin' },
+		locality: null
+	},
+	price: 95,
+	currency: 'EUR',
+	slug: 'e2e-other-ad-dublin-e2emock3',
+	short_id: 'e2emock3',
+	image_keys: [],
+	firm_price: false,
+	min_offer: null,
+	auto_decline_message: null,
+	status: 'active',
+	created_at: new Date().toISOString(),
+	updated_at: null
+};
+
+export const E2E_MOCK_SAVED_SEARCH = {
+	id: 'e2e-search-1',
+	name: 'Bikes in Dublin',
+	category: 'Bikes',
+	county: 'ie/leinster/dublin',
+	locality: null,
+	query: null,
+	notify: true,
+	created_at: new Date().toISOString()
+};
+
 export function isE2eMock(platform?: App.Platform): boolean {
 	const envRecord = platform?.env as unknown as Record<string, unknown> | undefined;
 	const platformFlag = envRecord ? envRecord.E2E_MOCK === '1' : false;

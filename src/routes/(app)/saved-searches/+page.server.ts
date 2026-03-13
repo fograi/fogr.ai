@@ -1,6 +1,10 @@
 import type { PageServerLoad } from './$types';
+import { isE2eMock, E2E_MOCK_SAVED_SEARCH } from '$lib/server/e2e-mocks';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, platform }) => {
+	if (isE2eMock(platform)) {
+		return { searches: [E2E_MOCK_SAVED_SEARCH] };
+	}
 	const {
 		data: { user }
 	} = await locals.supabase.auth.getUser();
