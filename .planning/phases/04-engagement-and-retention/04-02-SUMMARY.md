@@ -129,3 +129,7 @@ Relative timestamps on all ad cards and sold badge overlays with 7-day browse vi
 - 7-day sold window filter in API query confirmed
 - `formatFullDate` used on ad detail page for posted date
 - All tests pass (6/6)
+
+## Self-Check: PASSED
+
+All 10 modified files exist. Commits a86061b and b0a034e verified. SUMMARY.md created.

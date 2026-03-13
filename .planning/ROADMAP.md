@@ -129,7 +129,7 @@ Plans:
 Plans:
 
 - [x] 04-01-PLAN.md — DB migrations (watchlist table, sale_price column) + shared utilities (relative-time, NI currency mapping, type updates)
-- [ ] 04-02-PLAN.md — Timestamps and sold badges on AdCard/AdCardWide + 7-day sold visibility window in browse queries
+- [x] 04-02-PLAN.md — Timestamps and sold badges on AdCard/AdCardWide + 7-day sold visibility window in browse queries
 - [ ] 04-03-PLAN.md — Watchlist feature: save/unsave API, ad page save button, watchlist page with AdCard grid, navbar link
 - [ ] 04-04-PLAN.md — Saved search creation UI + management page: "Save this search" on browse pages, CRUD API, management under account area
 - [ ] 04-05-PLAN.md — Mark as Sold with sale price prompt + GBP currency selector on post form with NI county detection
