@@ -30,7 +30,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 	const { data: ad, error: dbError } = await locals.supabase
 		.from('ads')
 		.select(
-			'id, user_id, slug, title, description, category, category_profile_data, location_profile_data, price, currency, image_keys, status, created_at, updated_at, expires_at, firm_price, min_offer, auto_decline_message'
+			'id, user_id, slug, title, description, category, category_profile_data, location_profile_data, price, currency, image_keys, status, created_at, updated_at, expires_at, firm_price, min_offer, auto_decline_message, sale_price'
 		)
 		.eq('short_id', shortId)
 		.maybeSingle();
@@ -110,7 +110,9 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		status: ad.status,
 		expiresAt: ad.expires_at ?? undefined,
 		firmPrice: ad.firm_price ?? false,
-		minOffer: ad.min_offer ?? null
+		minOffer: ad.min_offer ?? null,
+		createdAt: ad.created_at ?? undefined,
+		salePrice: ad.sale_price ?? null
 	};
 
 	let moderation: ModerationAction | null = null;
@@ -196,10 +198,8 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 			img: s.image_keys?.[0] ?? '',
 			description: s.description ?? '',
 			category: s.category ?? '',
-			categoryProfileData:
-				(s.category_profile_data as Record<string, unknown> | null) ?? null,
-			locationProfileData:
-				(s.location_profile_data as Record<string, unknown> | null) ?? null,
+			categoryProfileData: (s.category_profile_data as Record<string, unknown> | null) ?? null,
+			locationProfileData: (s.location_profile_data as Record<string, unknown> | null) ?? null,
 			currency: s.currency ?? undefined,
 			firmPrice: s.firm_price ?? false,
 			minOffer: s.min_offer ?? null
@@ -214,9 +214,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 	// Build R2 image URL for the first image (if any)
 	const firstImageKey = ad.image_keys?.[0];
 	const r2Base = PUBLIC_R2_BASE.replace(/\/+$/, '');
-	const imageUrl = firstImageKey
-		? `${r2Base}/${firstImageKey.replace(/^\/+/, '')}`
-		: null;
+	const imageUrl = firstImageKey ? `${r2Base}/${firstImageKey.replace(/^\/+/, '')}` : null;
 
 	// Get category slug for OG fallback image
 	const catSlug = categoryToSlug(ad.category as Category) || 'home-garden';

@@ -13,7 +13,8 @@ import { buildHomepageOg } from '$lib/seo/og';
 
 const DEFAULT_LIMIT = 24;
 
-const HOMEPAGE_DESCRIPTION = 'Buy and sell second-hand items across Ireland. Browse classified ads for bicycles, electronics, home and garden, and more on Fogr.ai.';
+const HOMEPAGE_DESCRIPTION =
+	'Buy and sell second-hand items across Ireland. Browse classified ads for bicycles, electronics, home and garden, and more on Fogr.ai.';
 
 export const load: PageServerLoad = async ({ fetch, url }) => {
 	const { page, limit } = getPagination(url.searchParams, DEFAULT_LIMIT, 100);
@@ -85,7 +86,10 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 		locationProfileData: ad.location_profile_data ?? null,
 		currency: ad.currency ?? undefined,
 		firmPrice: ad.firm_price ?? false,
-		minOffer: ad.min_offer ?? null
+		minOffer: ad.min_offer ?? null,
+		createdAt: ad.created_at ?? undefined,
+		status: ad.status ?? undefined,
+		salePrice: ad.sale_price ?? null
 	}));
 
 	return {

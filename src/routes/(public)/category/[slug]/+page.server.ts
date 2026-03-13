@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { AdCard, ApiAdRow } from '../../../../types/ad-types';
 import { getPagination } from '$lib/server/pagination';
-import { buildCategoryTitle, buildDescription, buildCanonical } from '$lib/seo/meta';
+import { buildCategoryTitle, buildCanonical } from '$lib/seo/meta';
 import { buildCategoryOg } from '$lib/seo/og';
 import {
 	asCategorySort,
@@ -165,7 +165,10 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 		locationProfileData: ad.location_profile_data ?? null,
 		currency: ad.currency ?? undefined,
 		firmPrice: ad.firm_price ?? false,
-		minOffer: ad.min_offer ?? null
+		minOffer: ad.min_offer ?? null,
+		createdAt: ad.created_at ?? undefined,
+		status: ad.status ?? undefined,
+		salePrice: ad.sale_price ?? null
 	}));
 
 	return {

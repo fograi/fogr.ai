@@ -33,6 +33,7 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 			ads: [] as AdCard[],
 			category,
 			categorySlug,
+			countyId: county.id,
 			countyName: county.name,
 			countySlug: county.slug,
 			listingCount: 0,
@@ -76,7 +77,10 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 		locationProfileData: ad.location_profile_data ?? null,
 		currency: ad.currency ?? undefined,
 		firmPrice: ad.firm_price ?? false,
-		minOffer: ad.min_offer ?? null
+		minOffer: ad.min_offer ?? null,
+		createdAt: ad.created_at ?? undefined,
+		status: ad.status ?? undefined,
+		salePrice: ad.sale_price ?? null
 	}));
 
 	const prices = rawAds
@@ -90,7 +94,9 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 	const listingCount = rawAds.length;
 	const shouldNoindex = listingCount < NOINDEX_THRESHOLD;
 
-	const descParts = [`Browse ${listingCount} second-hand ${category.toLowerCase()} listings for sale in ${county.name} on Fogr.ai.`];
+	const descParts = [
+		`Browse ${listingCount} second-hand ${category.toLowerCase()} listings for sale in ${county.name} on Fogr.ai.`
+	];
 	if (priceRange.min !== null && priceRange.max !== null) {
 		descParts.push(`Prices from EUR ${priceRange.min} to EUR ${priceRange.max}.`);
 	}
@@ -99,6 +105,7 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 		ads,
 		category,
 		categorySlug,
+		countyId: county.id,
 		countyName: county.name,
 		countySlug: county.slug,
 		listingCount,

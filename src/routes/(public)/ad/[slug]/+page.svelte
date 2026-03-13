@@ -6,6 +6,8 @@
 	import type { AdCard, ModerationAction } from '../../../../types/ad-types';
 	import { ModerationIcon, ReportIcon, ShareIcon } from '$lib/icons';
 	import type { OgData } from '$lib/seo/og';
+	import { formatFullDate } from '$lib/utils/relative-time';
+	import { formatMoney } from '$lib/utils/price';
 	export let data: {
 		ad: AdCard;
 		moderation?: ModerationAction | null;
@@ -66,8 +68,21 @@
 
 	$: reportDetailsCount = reportDetails.length;
 	$: appealDetailsCount = appealDetails.length;
-	$: decisionSource =
-		data.moderation ? (data.moderation.report_id ? 'User report' : 'Own-initiative review') : '';
+	$: decisionSource = data.moderation
+		? data.moderation.report_id
+			? 'User report'
+			: 'Own-initiative review'
+		: '';
+	$: postedDate = data.ad?.createdAt ? formatFullDate(data.ad.createdAt) : '';
+	$: salePriceLabel =
+		data.ad?.status === 'sold' && data.ad?.salePrice
+			? `Sold for ${formatMoney(data.ad.salePrice, data.ad.currency ?? 'EUR')}`
+			: '';
+
+	const LT = '<';
+	$: jsonLdHtml = data?.seo?.jsonLd
+		? `<script type="application/ld+json">${JSON.stringify(data.seo.jsonLd).replace(new RegExp(LT, 'g'), '\\u003c')}${LT}/script>`
+		: '';
 
 	const formatDecisionDate = (iso?: string) =>
 		iso
@@ -232,278 +247,299 @@
 		<meta name="twitter:title" content={data.seo.og.title} />
 		<meta name="twitter:description" content={data.seo.og.description} />
 		<meta name="twitter:image" content={data.seo.og.image} />
-		{@html `<script type="application/ld+json">${JSON.stringify(data.seo.jsonLd).replace(/</g, '\\u003c')}</script>`}
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -- XSS-safe: JSON.stringify + u003c escape -->
+		{@html jsonLdHtml}
 	{/if}
 </svelte:head>
 
-	{#if data?.ad}
-		{#if data.ad.status === 'pending'}
-			<div class="pending" role="status" aria-live="polite">
-				Pending review. Your ad will be visible once moderation completes.
-			</div>
-		{/if}
-		{#if data.isExpired || data.ad.status === 'expired'}
-			<div class="expired" role="status" aria-live="polite">
-				This ad has expired. Browse similar listings below.
-			</div>
-		{/if}
-		<AdCardWide {...data.ad} showActions={false} showExpires={data.isOwner ?? false} />
+{#if data?.ad}
+	{#if data.ad.status === 'pending'}
+		<div class="pending" role="status" aria-live="polite">
+			Pending review. Your ad will be visible once moderation completes.
+		</div>
+	{/if}
+	{#if data.isExpired || data.ad.status === 'expired'}
+		<div class="expired" role="status" aria-live="polite">
+			This ad has expired. Browse similar listings below.
+		</div>
+	{/if}
+	<AdCardWide {...data.ad} showActions={false} showExpires={data.isOwner ?? false} />
 
-		<section class="action-rail" aria-label="Ad actions">
-			<button type="button" class="btn primary" on:click={share}>
-				<span class="btn-icon accent-green" aria-hidden="true">
-					<ShareIcon size={16} strokeWidth={1.8} />
+	<div class="ad-meta" aria-label="Ad details">
+		{#if postedDate}
+			<p class="posted-date">Posted {postedDate}</p>
+		{/if}
+		{#if salePriceLabel}
+			<p class="sale-price">{salePriceLabel}</p>
+		{/if}
+	</div>
+
+	<section class="action-rail" aria-label="Ad actions">
+		<button type="button" class="btn primary" on:click={share}>
+			<span class="btn-icon accent-green" aria-hidden="true">
+				<ShareIcon size={16} strokeWidth={1.8} />
+			</span>
+			Share
+		</button>
+		{#if !data.isOwner && !data.isExpired}
+			<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
+				<span class="btn-icon accent-orange" aria-hidden="true">
+					<ReportIcon size={16} strokeWidth={1.8} />
 				</span>
-				Share
+				Report
 			</button>
-			{#if !data.isOwner && !data.isExpired}
-				<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
-					<span class="btn-icon accent-orange" aria-hidden="true">
-						<ReportIcon size={16} strokeWidth={1.8} />
-					</span>
-					Report
-				</button>
-			{/if}
-			{#if data.moderation}
-				<button type="button" class="btn ghost" on:click={() => openPanel('moderation')}>
-					<span class="btn-icon" aria-hidden="true">
-						<ModerationIcon size={16} strokeWidth={1.8} />
-					</span>
-					Moderation decision
-				</button>
+		{/if}
+		{#if data.moderation}
+			<button type="button" class="btn ghost" on:click={() => openPanel('moderation')}>
+				<span class="btn-icon" aria-hidden="true">
+					<ModerationIcon size={16} strokeWidth={1.8} />
+				</span>
+				Moderation decision
+			</button>
+		{/if}
+	</section>
+
+	{#if data.isOwner}
+		<section class="owner-note">
+			{#if (data.ownerMessages?.count ?? 0) > 0}
+				<p>
+					You have {data.ownerMessages?.count}
+					{data.ownerMessages?.count === 1 ? 'conversation' : 'conversations'} about this listing.
+				</p>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a class="owner-link" href="/messages">Open messages</a>
+			{:else}
+				<p>No buyer messages yet.</p>
+				<p class="owner-hint">If someone contacts you, you’ll see it in Messages.</p>
+				<p class="owner-hint">Want more interest? Use the Share button above.</p>
 			{/if}
 		</section>
+	{:else if !data.isExpired}
+		<MessageComposer
+			adId={data.ad.id}
+			price={data.ad.price ?? null}
+			currency={data.ad.currency ?? 'EUR'}
+			firmPrice={data.offerRules?.firmPrice ?? false}
+			on:flag={() => openPanel('report')}
+		/>
+	{/if}
 
-		{#if data.isOwner}
-			<section class="owner-note">
-				{#if (data.ownerMessages?.count ?? 0) > 0}
-					<p>
-						You have {data.ownerMessages?.count}
-						{data.ownerMessages?.count === 1 ? 'conversation' : 'conversations'} about this
-						listing.
+	{#if data.isExpired && data.similarAds && data.similarAds.length > 0}
+		<section class="similar-listings">
+			<h2>Similar active listings</h2>
+			<ul class="similar-grid">
+				{#each data.similarAds as similarAd (similarAd.id)}
+					<AdCardComponent {...similarAd} />
+				{/each}
+			</ul>
+		</section>
+	{/if}
+
+	{#if reportOpen}
+		<section class="panel report-panel" bind:this={reportPanel}>
+			<div class="panel-head">
+				<h2>Report</h2>
+				<button type="button" class="panel-close" on:click={() => (reportOpen = false)}>
+					Close
+				</button>
+			</div>
+			<div class="report-card">
+				<p class="report-intro">Report content that breaks our rules. We review quickly.</p>
+
+				{#if reportSuccess}
+					<p class="report-success" aria-live="polite">
+						Thanks — report received{reportId ? ` (ref: ${reportId})` : ''}.
 					</p>
-					<a class="owner-link" href="/messages">Open messages</a>
-				{:else}
-					<p>No buyer messages yet.</p>
-					<p class="owner-hint">If someone contacts you, you’ll see it in Messages.</p>
-					<p class="owner-hint">Want more interest? Use the Share button above.</p>
-				{/if}
-			</section>
-		{:else if !data.isExpired}
-			<MessageComposer
-				adId={data.ad.id}
-				price={data.ad.price ?? null}
-				currency={data.ad.currency ?? 'EUR'}
-				firmPrice={data.offerRules?.firmPrice ?? false}
-				on:flag={() => openPanel('report')}
-			/>
-		{/if}
-
-		{#if data.isExpired && data.similarAds && data.similarAds.length > 0}
-			<section class="similar-listings">
-				<h2>Similar active listings</h2>
-				<ul class="similar-grid">
-					{#each data.similarAds as similarAd (similarAd.id)}
-						<AdCardComponent {...similarAd} />
-					{/each}
-				</ul>
-			</section>
-		{/if}
-
-		{#if reportOpen}
-			<section class="panel report-panel" bind:this={reportPanel}>
-				<div class="panel-head">
-					<h2>Report</h2>
-					<button type="button" class="panel-close" on:click={() => (reportOpen = false)}>
-						Close
-					</button>
-				</div>
-				<div class="report-card">
-					<p class="report-intro">Report content that breaks our rules. We review quickly.</p>
-
-					{#if reportSuccess}
-						<p class="report-success" aria-live="polite">
-							Thanks — report received{reportId ? ` (ref: ${reportId})` : ''}.
-						</p>
-						{#if reportId}
-							<div class="report-actions">
-								<button type="button" class="report-copy" on:click={copyReportId}>
-									{reportCopied ? 'Copied' : 'Copy report ID'}
-								</button>
-								{#if reportCopyError}
-									<p class="report-error" aria-live="assertive">{reportCopyError}</p>
-								{/if}
-							</div>
-							<p class="report-followup">
-								Track it on
-								<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
-							</p>
-						{/if}
-						<p class="report-note">
-							We review reports quickly. Some decisions may use automated tools.
-						</p>
-					{:else}
-						<form class="report-form" on:submit|preventDefault={submitReport}>
-							<label for="report-name">Your name</label>
-							<input
-								id="report-name"
-								type="text"
-								bind:value={reportName}
-								autocomplete="name"
-								required
-								aria-invalid={reportAttempted ? !reportName.trim() : undefined}
-							/>
-
-							<label for="report-email">Your email</label>
-							<input
-								id="report-email"
-								type="email"
-								bind:value={reportEmail}
-								autocomplete="email"
-								required
-								aria-invalid={
-									reportAttempted
-										? !reportEmail.trim() ||
-											!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(reportEmail.trim())
-										: undefined
-								}
-							/>
-
-							<label for="report-reason">Reason</label>
-							<select
-								id="report-reason"
-								bind:value={reportReason}
-								required
-								aria-invalid={reportAttempted ? !reportReason : undefined}
-							>
-								{#each reportReasons as reason}
-									<option value={reason.value}>{reason.label}</option>
-								{/each}
-							</select>
-
-							<label for="report-details">
-								Details
-								<span class="field-meta">
-									<span class="hint">Tell us what is wrong and why.</span>
-									<span class="char-count">
-										{reportDetailsCount}/{MIN_REPORT_DETAILS} min
-									</span>
-								</span>
-							</label>
-							<textarea
-								id="report-details"
-								rows="5"
-								bind:value={reportDetails}
-								minlength={MIN_REPORT_DETAILS}
-								required
-								placeholder="Describe the issue and where it appears."
-								aria-invalid={
-									reportAttempted
-										? reportDetails.trim().length < MIN_REPORT_DETAILS
-										: undefined
-								}
-							></textarea>
-
-							<label class="checkbox">
-								<input
-									type="checkbox"
-									bind:checked={reportGoodFaith}
-									required
-									aria-invalid={reportAttempted ? !reportGoodFaith : undefined}
-								/>
-								<span>I confirm this report is made in good faith.</span>
-							</label>
-
-							{#if reportError}
-								<p class="report-error" aria-live="assertive">{reportError}</p>
-							{/if}
-
-							<button type="submit" class="report-submit" disabled={reportSending}>
-								{reportSending ? 'Sending...' : 'Submit report'}
+					{#if reportId}
+						<div class="report-actions">
+							<button type="button" class="report-copy" on:click={copyReportId}>
+								{reportCopied ? 'Copied' : 'Copy report ID'}
 							</button>
-						</form>
-					{/if}
-				</div>
-			</section>
-		{/if}
-
-		{#if data.moderation}
-			<details class="panel" bind:this={moderationPanel} bind:open={moderationOpen}>
-				<summary>Moderation decision</summary>
-				<div class="moderation-card">
-					<p class="moderation-meta">Only visible to the ad owner when signed in.</p>
-					<p class="moderation-meta">Decision source: {decisionSource}</p>
-					<p class="moderation-meta">
-						{data.moderation.action_type.replace('_', ' ')} on
-						{formatDecisionDate(data.moderation.created_at)}
-					</p>
-					<p><strong>Reason category:</strong> {data.moderation.reason_category}</p>
-					<p><strong>Facts and circumstances:</strong></p>
-					<p class="moderation-details">{data.moderation.reason_details}</p>
-					{#if data.moderation.legal_basis}
-						<p class="moderation-legal">
-							<strong>Legal or policy basis:</strong> {data.moderation.legal_basis}
-						</p>
-					{/if}
-					<p class="moderation-meta">
-						Decision type: {data.moderation.automated ? 'Automated' : 'Manual'}
-					</p>
-
-					<details class="appeal">
-						<summary>Challenge this decision</summary>
-						<div class="appeal-body">
-						<p class="appeal-intro">
-							If you think this decision is wrong, submit an appeal. We will review it as soon as
-							we can.
-						</p>
-							{#if appealSuccess}
-								<p class="appeal-success" aria-live="polite">
-									Appeal received{appealId ? ` (ref: ${appealId})` : ''}.
-								</p>
-							{:else}
-								<form class="appeal-form" on:submit|preventDefault={submitAppeal}>
-									<label for="appeal-details">
-										Your explanation
-										<span class="field-meta">
-											<span class="hint">Explain why you think this should be changed.</span>
-											<span class="char-count">
-												{appealDetailsCount}/{MIN_APPEAL_DETAILS} min
-											</span>
-										</span>
-									</label>
-									<textarea
-										id="appeal-details"
-										rows="4"
-										bind:value={appealDetails}
-										minlength={MIN_APPEAL_DETAILS}
-										required
-										placeholder="Share any facts or context we should reconsider."
-										aria-invalid={
-											appealAttempted
-												? appealDetails.trim().length < MIN_APPEAL_DETAILS
-												: undefined
-										}
-									></textarea>
-
-									{#if appealError}
-										<p class="appeal-error" aria-live="assertive">{appealError}</p>
-									{/if}
-
-									<button type="submit" class="appeal-submit" disabled={appealSending}>
-										{appealSending ? 'Sending...' : 'Submit appeal'}
-									</button>
-								</form>
+							{#if reportCopyError}
+								<p class="report-error" aria-live="assertive">{reportCopyError}</p>
 							{/if}
 						</div>
-					</details>
-				</div>
-			</details>
-		{/if}
+						<p class="report-followup">
+							Track it on
+							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+							<a href={`/report-status?reportId=${encodeURIComponent(reportId)}`}>report status</a>.
+						</p>
+					{/if}
+					<p class="report-note">
+						We review reports quickly. Some decisions may use automated tools.
+					</p>
+				{:else}
+					<form class="report-form" on:submit|preventDefault={submitReport}>
+						<label for="report-name">Your name</label>
+						<input
+							id="report-name"
+							type="text"
+							bind:value={reportName}
+							autocomplete="name"
+							required
+							aria-invalid={reportAttempted ? !reportName.trim() : undefined}
+						/>
+
+						<label for="report-email">Your email</label>
+						<input
+							id="report-email"
+							type="email"
+							bind:value={reportEmail}
+							autocomplete="email"
+							required
+							aria-invalid={reportAttempted
+								? !reportEmail.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(reportEmail.trim())
+								: undefined}
+						/>
+
+						<label for="report-reason">Reason</label>
+						<select
+							id="report-reason"
+							bind:value={reportReason}
+							required
+							aria-invalid={reportAttempted ? !reportReason : undefined}
+						>
+							{#each reportReasons as reason (reason.value)}
+								<option value={reason.value}>{reason.label}</option>
+							{/each}
+						</select>
+
+						<label for="report-details">
+							Details
+							<span class="field-meta">
+								<span class="hint">Tell us what is wrong and why.</span>
+								<span class="char-count">
+									{reportDetailsCount}/{MIN_REPORT_DETAILS} min
+								</span>
+							</span>
+						</label>
+						<textarea
+							id="report-details"
+							rows="5"
+							bind:value={reportDetails}
+							minlength={MIN_REPORT_DETAILS}
+							required
+							placeholder="Describe the issue and where it appears."
+							aria-invalid={reportAttempted
+								? reportDetails.trim().length < MIN_REPORT_DETAILS
+								: undefined}
+						></textarea>
+
+						<label class="checkbox">
+							<input
+								type="checkbox"
+								bind:checked={reportGoodFaith}
+								required
+								aria-invalid={reportAttempted ? !reportGoodFaith : undefined}
+							/>
+							<span>I confirm this report is made in good faith.</span>
+						</label>
+
+						{#if reportError}
+							<p class="report-error" aria-live="assertive">{reportError}</p>
+						{/if}
+
+						<button type="submit" class="report-submit" disabled={reportSending}>
+							{reportSending ? 'Sending...' : 'Submit report'}
+						</button>
+					</form>
+				{/if}
+			</div>
+		</section>
+	{/if}
+
+	{#if data.moderation}
+		<details class="panel" bind:this={moderationPanel} bind:open={moderationOpen}>
+			<summary>Moderation decision</summary>
+			<div class="moderation-card">
+				<p class="moderation-meta">Only visible to the ad owner when signed in.</p>
+				<p class="moderation-meta">Decision source: {decisionSource}</p>
+				<p class="moderation-meta">
+					{data.moderation.action_type.replace('_', ' ')} on
+					{formatDecisionDate(data.moderation.created_at)}
+				</p>
+				<p><strong>Reason category:</strong> {data.moderation.reason_category}</p>
+				<p><strong>Facts and circumstances:</strong></p>
+				<p class="moderation-details">{data.moderation.reason_details}</p>
+				{#if data.moderation.legal_basis}
+					<p class="moderation-legal">
+						<strong>Legal or policy basis:</strong>
+						{data.moderation.legal_basis}
+					</p>
+				{/if}
+				<p class="moderation-meta">
+					Decision type: {data.moderation.automated ? 'Automated' : 'Manual'}
+				</p>
+
+				<details class="appeal">
+					<summary>Challenge this decision</summary>
+					<div class="appeal-body">
+						<p class="appeal-intro">
+							If you think this decision is wrong, submit an appeal. We will review it as soon as we
+							can.
+						</p>
+						{#if appealSuccess}
+							<p class="appeal-success" aria-live="polite">
+								Appeal received{appealId ? ` (ref: ${appealId})` : ''}.
+							</p>
+						{:else}
+							<form class="appeal-form" on:submit|preventDefault={submitAppeal}>
+								<label for="appeal-details">
+									Your explanation
+									<span class="field-meta">
+										<span class="hint">Explain why you think this should be changed.</span>
+										<span class="char-count">
+											{appealDetailsCount}/{MIN_APPEAL_DETAILS} min
+										</span>
+									</span>
+								</label>
+								<textarea
+									id="appeal-details"
+									rows="4"
+									bind:value={appealDetails}
+									minlength={MIN_APPEAL_DETAILS}
+									required
+									placeholder="Share any facts or context we should reconsider."
+									aria-invalid={appealAttempted
+										? appealDetails.trim().length < MIN_APPEAL_DETAILS
+										: undefined}
+								></textarea>
+
+								{#if appealError}
+									<p class="appeal-error" aria-live="assertive">{appealError}</p>
+								{/if}
+
+								<button type="submit" class="appeal-submit" disabled={appealSending}>
+									{appealSending ? 'Sending...' : 'Submit appeal'}
+								</button>
+							</form>
+						{/if}
+					</div>
+				</details>
+			</div>
+		</details>
+	{/if}
 {:else}
 	<p>Ad not found.</p>
 {/if}
 
 <style>
+	.ad-meta {
+		max-width: 960px;
+		margin: 4px auto 0;
+		padding: 0 var(--page-pad);
+		text-align: center;
+	}
+	.posted-date {
+		margin: 0;
+		font-size: 0.85rem;
+		color: color-mix(in srgb, var(--fg) 55%, transparent);
+	}
+	.sale-price {
+		margin: 6px 0 0;
+		font-size: 1.1rem;
+		font-weight: 900;
+	}
 	.pending {
 		max-width: 960px;
 		margin: 16px auto 8px;

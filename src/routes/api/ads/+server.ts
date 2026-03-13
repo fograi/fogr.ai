@@ -537,8 +537,7 @@ export const POST: RequestHandler = async (event) => {
 				: null;
 
 		// === NEW === 1) Insert row first to get id (with slug collision retry)
-		const countyName =
-			locationProfileValidation.locationProfileData?.county?.name ?? null;
+		const countyName = locationProfileValidation.locationProfileData?.county?.name ?? null;
 		const MAX_SLUG_RETRIES = 3;
 		let inserted: { id: string; slug: string | null } | null = null;
 		let insErr: { code?: string; message?: string; details?: string } | null = null;
@@ -826,13 +825,16 @@ export const GET: RequestHandler = async (event) => {
 		if (hit) return hit;
 	}
 
+	const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
 	let query = locals.supabase
 		.from('ads')
 		.select(
-			'id,slug,title,description,price,currency,category,category_profile_data,location_profile_data,image_keys,created_at,firm_price,min_offer'
+			'id,slug,title,description,price,currency,category,category_profile_data,location_profile_data,image_keys,created_at,updated_at,firm_price,min_offer,status,sale_price'
 		)
-		.eq('status', PUBLIC_AD_STATUS)
-		.gt('expires_at', nowIso);
+		.or(
+			`and(status.eq.active,expires_at.gt.${nowIso}),and(status.eq.sold,updated_at.gt.${sevenDaysAgo})`
+		);
 
 	if (category) query = query.eq('category', category);
 	if (q.length >= 2) {
