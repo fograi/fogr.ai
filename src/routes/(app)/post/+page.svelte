@@ -32,6 +32,7 @@
 	import ImageDrop from '$lib/components/post/ImageDrop.svelte';
 	import { createModerationClient } from '$lib/clients/moderationClient';
 	import { formatPriceLabel } from '$lib/utils/price';
+	import { getDefaultCurrency } from '$lib/utils/currency';
 
 	export let data: { ageConfirmed?: boolean };
 
@@ -63,6 +64,7 @@
 	let lastBikeTitleSeed = '';
 	let lastBikeDescriptionSeed = '';
 	let currency = 'EUR';
+	let prevCountyId = '';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
 	let step = 1;
@@ -151,6 +153,12 @@
 	}
 	$: usedPresetOnly =
 		isBikes && !titleManuallyEdited && !descriptionManuallyEdited && !bikeSizeManualEdited;
+
+	// Auto-default currency based on county (GBP for NI, EUR for everything else)
+	$: if (locationCountyId && locationCountyId !== prevCountyId) {
+		currency = getDefaultCurrency(locationCountyId);
+		prevCountyId = locationCountyId;
+	}
 
 	// live moderation check while typing
 	$: {
@@ -465,6 +473,7 @@
 		locale,
 		showRewardWhenMissing: true
 	});
+	// eslint-disable-next-line svelte/no-immutable-reactive-statements -- depends on locationCountyId/locationLocalityId via buildLocationProfileCandidate
 	$: previewLocation = formatLocationSummary(buildLocationProfileCandidate());
 </script>
 
@@ -567,6 +576,19 @@
 				{loading}
 				{showErrors}
 			/>
+			{#if category !== 'Free / Giveaway' && category !== 'Lost and Found'}
+				<fieldset class="currency-toggle">
+					<legend>Currency</legend>
+					<label class="currency-option">
+						<input type="radio" bind:group={currency} value="EUR" disabled={loading} />
+						EUR
+					</label>
+					<label class="currency-option">
+						<input type="radio" bind:group={currency} value="GBP" disabled={loading} />
+						GBP
+					</label>
+				</fieldset>
+			{/if}
 			<div class="actions">
 				<button type="button" class="btn ghost" on:click={goBack} disabled={loading}> Back </button>
 				<button type="button" class="btn primary" on:click={goNext} disabled={loading}>
@@ -802,6 +824,32 @@
 	}
 	.btn.ghost {
 		background: transparent;
+	}
+	.currency-toggle {
+		border: 1px solid var(--hairline);
+		border-radius: 12px;
+		padding: 10px 14px;
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		margin: 0;
+	}
+	.currency-toggle legend {
+		font-weight: 700;
+		padding: 0 4px;
+	}
+	.currency-option {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.currency-option input[type='radio'] {
+		width: 16px;
+		height: 16px;
+		margin: 0;
+		cursor: pointer;
 	}
 
 	.modal-backdrop {
