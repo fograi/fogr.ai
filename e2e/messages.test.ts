@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('ad page auto-declines low offer', async ({ page }) => {
-	await page.goto('/ad/e2e-ad-1');
+	await page.goto('/ad/e2e-other-ad-dublin-e2emock3');
 	await page.getByRole('button', { name: 'Make an offer' }).click();
 	await page.fill('#offer-amount', '5');
 	await page.getByRole('button', { name: 'Send message' }).click();
@@ -9,7 +9,7 @@ test('ad page auto-declines low offer', async ({ page }) => {
 });
 
 test('ad page keeps contact details private', async ({ page }) => {
-	await page.goto('/ad/e2e-ad-1');
+	await page.goto('/ad/e2e-other-ad-dublin-e2emock3');
 	await page.getByRole('button', { name: 'Send message' }).click();
 	await expect(page.getByRole('button', { name: 'Reveal email' })).toHaveCount(0);
 	await expect(page.getByRole('link', { name: 'e2e@example.com' })).toHaveCount(0);

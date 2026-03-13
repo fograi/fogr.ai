@@ -488,10 +488,10 @@ test('ad detail page renders with mocked data', async ({ page }) => {
 });
 
 test('report form submits and shows reference', async ({ page }) => {
-	await page.goto('/ad/e2e-ad-1');
+	await page.goto('/ad/e2e-other-ad-dublin-e2emock3');
 	await page.getByRole('button', { name: 'Report' }).click();
 
-	await page.route('**/api/ads/e2e-ad-1/report', async (route) => {
+	await page.route('**/api/ads/e2e-ad-3/report', async (route) => {
 		if (route.request().method() !== 'POST') return route.continue();
 		return route.fulfill({
 			status: 200,

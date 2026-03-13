@@ -166,8 +166,8 @@ export const E2E_MOCK_AD_OTHER: ApiAdRow = {
 	short_id: 'e2emock3',
 	image_keys: [],
 	firm_price: false,
-	min_offer: null,
-	auto_decline_message: null,
+	min_offer: 10,
+	auto_decline_message: 'Thanks — minimum offer is €10.',
 	status: 'active',
 	created_at: new Date().toISOString(),
 	updated_at: null
