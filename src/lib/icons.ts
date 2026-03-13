@@ -1,4 +1,5 @@
 import Baby from 'lucide-svelte/icons/baby';
+import Heart from 'lucide-svelte/icons/heart';
 import Bike from 'lucide-svelte/icons/bike';
 import Folder from 'lucide-svelte/icons/folder';
 import Gift from 'lucide-svelte/icons/gift';
@@ -45,3 +46,4 @@ export const AccountIcon = UserRound;
 export const AdsIcon = List;
 export const LoginIcon = LogIn;
 export const LogoutIcon = LogOut;
+export const WatchlistIcon = Heart;

@@ -16,6 +16,7 @@
 		created_at: string;
 		updated_at: string | null;
 		expires_at: string;
+		sale_price?: number | null;
 	};
 
 	export let data: { ads: AdRow[] };
@@ -25,6 +26,8 @@
 	let busyId: string | null = null;
 	let notice = '';
 	let err = '';
+	let soldAdId: string | null = null;
+	let salePrice = '';
 
 	const STATUS_ORDER = ['active', 'pending', 'sold', 'archived', 'expired', 'rejected'] as const;
 	const STATUS_LABELS: Record<string, string> = {
@@ -58,9 +61,7 @@
 		});
 
 	const formatDate = (iso?: string | null) =>
-		iso
-			? new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium' }).format(new Date(iso))
-			: '';
+		iso ? new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium' }).format(new Date(iso)) : '';
 
 	async function setStatus(ad: AdRow, nextStatus: 'active' | 'sold' | 'archived') {
 		err = '';
@@ -78,6 +79,39 @@
 			}
 			ads = ads.map((row) => (row.id === ad.id ? { ...row, status: nextStatus } : row));
 			notice = 'Status updated.';
+		} catch (e: unknown) {
+			err = e instanceof Error ? e.message : 'Could not update status.';
+		} finally {
+			busyId = null;
+		}
+	}
+
+	async function confirmSold(ad: AdRow) {
+		err = '';
+		notice = '';
+		busyId = ad.id;
+		try {
+			const price = salePrice ? parseInt(salePrice, 10) : null;
+			const res = await fetch(`/api/ads/${ad.id}/status`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					status: 'sold',
+					sale_price: price && price > 0 ? price : null
+				})
+			});
+			const body = (await res.json().catch(() => ({}))) as { success?: boolean; message?: string };
+			if (!res.ok || body.success === false) {
+				throw new Error(body.message || 'Could not update status.');
+			}
+			ads = ads.map((row) =>
+				row.id === ad.id
+					? { ...row, status: 'sold', sale_price: price && price > 0 ? price : null }
+					: row
+			);
+			notice = 'Marked as sold.';
+			soldAdId = null;
+			salePrice = '';
 		} catch (e: unknown) {
 			err = e instanceof Error ? e.message : 'Could not update status.';
 		} finally {
@@ -121,7 +155,7 @@
 		>
 			All <span class="count">{ads.length}</span>
 		</button>
-		{#each STATUS_ORDER as status}
+		{#each STATUS_ORDER as status (status)}
 			<button
 				type="button"
 				class:active={filter === status}
@@ -177,6 +211,7 @@
 					</div>
 
 					<div class="actions">
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 						<a class="btn ghost" href={`/ad/${ad.slug ?? ad.id}`}>View</a>
 						{#if ['active', 'pending', 'archived'].includes(ad.status)}
 							<a class="btn ghost" href={resolve(`/ads/${ad.id}/edit`)}>Edit</a>
@@ -188,14 +223,49 @@
 							Copy link
 						</button>
 						{#if ad.status === 'active'}
-							<button
-								type="button"
-								class="btn"
-								disabled={busyId === ad.id}
-								on:click={() => setStatus(ad, 'sold')}
-							>
-								Mark sold
-							</button>
+							{#if soldAdId === ad.id}
+								<div class="sold-form">
+									<label class="sold-label">
+										Sale price (optional)
+										<input
+											type="number"
+											bind:value={salePrice}
+											placeholder="e.g. 350"
+											min="0"
+											class="sold-input"
+										/>
+									</label>
+									<div class="sold-actions">
+										<button
+											type="button"
+											class="btn"
+											disabled={busyId === ad.id}
+											on:click={() => confirmSold(ad)}
+										>
+											Confirm sold
+										</button>
+										<button
+											type="button"
+											class="btn ghost"
+											on:click={() => {
+												soldAdId = null;
+												salePrice = '';
+											}}
+										>
+											Cancel
+										</button>
+									</div>
+								</div>
+							{:else}
+								<button
+									type="button"
+									class="btn"
+									disabled={busyId === ad.id}
+									on:click={() => (soldAdId = ad.id)}
+								>
+									Mark sold
+								</button>
+							{/if}
 							<button
 								type="button"
 								class="btn"
@@ -444,6 +514,34 @@
 	.muted {
 		color: color-mix(in srgb, var(--fg) 55%, transparent);
 		font-size: 0.85rem;
+	}
+	.sold-form {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 8px 0;
+		width: 100%;
+	}
+	.sold-label {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		font-weight: 600;
+		font-size: 0.85rem;
+		color: color-mix(in srgb, var(--fg) 75%, transparent);
+	}
+	.sold-input {
+		padding: 8px 10px;
+		border: 1px solid var(--hairline);
+		border-radius: 8px;
+		background: var(--bg);
+		color: var(--fg);
+		font-size: 0.9rem;
+		width: 120px;
+	}
+	.sold-actions {
+		display: flex;
+		gap: 6px;
 	}
 
 	@media (max-width: 860px) {

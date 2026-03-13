@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ params, request, locals, url, platf
 	const adId = params.id?.trim() ?? '';
 	if (!adId) return errorResponse('Missing ad id.', 400);
 
-	let body: { status?: string } = {};
+	let body: { status?: string; sale_price?: number | null } = {};
 	try {
 		body = (await request.json()) as typeof body;
 	} catch {
@@ -59,9 +59,24 @@ export const POST: RequestHandler = async ({ params, request, locals, url, platf
 		return errorResponse(message, 400);
 	}
 
+	const updatePayload: Record<string, unknown> = {
+		status: nextStatus,
+		updated_at: new Date().toISOString()
+	};
+
+	// Add sale_price when marking as sold
+	if (nextStatus === 'sold' && typeof body.sale_price === 'number' && body.sale_price > 0) {
+		updatePayload.sale_price = body.sale_price;
+	}
+
+	// Clear sale_price when reactivating from sold
+	if (nextStatus === 'active' && ad.status === 'sold') {
+		updatePayload.sale_price = null;
+	}
+
 	const { error: updateError } = await locals.supabase
 		.from('ads')
-		.update({ status: nextStatus, updated_at: new Date().toISOString() })
+		.update(updatePayload)
 		.eq('id', adId);
 
 	if (updateError) return errorResponse('Could not update status.', 500);

@@ -4,7 +4,7 @@
 	import AdCardComponent from '$lib/components/AdCard.svelte';
 	import MessageComposer from '$lib/components/messages/MessageComposer.svelte';
 	import type { AdCard, ModerationAction } from '../../../../types/ad-types';
-	import { ModerationIcon, ReportIcon, ShareIcon } from '$lib/icons';
+	import { ModerationIcon, ReportIcon, ShareIcon, WatchlistIcon } from '$lib/icons';
 	import type { OgData } from '$lib/seo/og';
 	import { formatFullDate } from '$lib/utils/relative-time';
 	import { formatMoney } from '$lib/utils/price';
@@ -13,6 +13,7 @@
 		moderation?: ModerationAction | null;
 		isOwner?: boolean;
 		isExpired?: boolean;
+		isSaved?: boolean;
 		similarAds?: AdCard[];
 		ownerMessages?: { count: number } | null;
 		offerRules?: {
@@ -66,6 +67,42 @@
 	let appealId = '';
 	let moderationOpen = false;
 
+	// Mark as Sold inline form state
+	let soldFormOpen = false;
+	let soldSalePrice = '';
+	let soldBusy = false;
+	let soldErr = '';
+	let soldOk = '';
+
+	async function confirmSoldFromDetail() {
+		soldErr = '';
+		soldOk = '';
+		soldBusy = true;
+		try {
+			const price = soldSalePrice ? parseInt(soldSalePrice, 10) : null;
+			const res = await fetch(`/api/ads/${data.ad.id}/status`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					status: 'sold',
+					sale_price: price && price > 0 ? price : null
+				})
+			});
+			const body = (await res.json().catch(() => ({}))) as { success?: boolean; message?: string };
+			if (!res.ok || body.success === false) {
+				throw new Error(body.message || 'Could not update status.');
+			}
+			data.ad = { ...data.ad, status: 'sold', salePrice: price && price > 0 ? price : null };
+			soldOk = 'Marked as sold.';
+			soldFormOpen = false;
+			soldSalePrice = '';
+		} catch (e: unknown) {
+			soldErr = e instanceof Error ? e.message : 'Could not update status.';
+		} finally {
+			soldBusy = false;
+		}
+	}
+
 	$: reportDetailsCount = reportDetails.length;
 	$: appealDetailsCount = appealDetails.length;
 	$: decisionSource = data.moderation
@@ -90,6 +127,24 @@
 					new Date(iso)
 				)
 			: '';
+
+	let isSaved = data.isSaved ?? false;
+	let saveBusy = false;
+
+	async function toggleWatchlist() {
+		saveBusy = true;
+		try {
+			const method = isSaved ? 'DELETE' : 'POST';
+			const res = await fetch('/api/watchlist', {
+				method,
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ ad_id: data.ad.id })
+			});
+			if (res.ok) isSaved = !isSaved;
+		} finally {
+			saveBusy = false;
+		}
+	}
 
 	async function share() {
 		try {
@@ -282,6 +337,12 @@
 			Share
 		</button>
 		{#if !data.isOwner && !data.isExpired}
+			<button type="button" class="btn ghost" disabled={saveBusy} on:click={toggleWatchlist}>
+				<span class="btn-icon accent-red" aria-hidden="true">
+					<WatchlistIcon size={16} strokeWidth={1.8} fill={isSaved ? 'currentColor' : 'none'} />
+				</span>
+				{isSaved ? 'Saved' : 'Save'}
+			</button>
 			<button type="button" class="btn ghost" on:click={() => openPanel('report')}>
 				<span class="btn-icon accent-orange" aria-hidden="true">
 					<ReportIcon size={16} strokeWidth={1.8} />
@@ -298,6 +359,56 @@
 			</button>
 		{/if}
 	</section>
+
+	{#if data.isOwner && data.ad.status === 'active'}
+		<section class="owner-sold-section">
+			{#if soldOk}
+				<p class="sold-ok" role="status">{soldOk}</p>
+			{/if}
+			{#if soldErr}
+				<p class="sold-err" role="alert">{soldErr}</p>
+			{/if}
+			{#if soldFormOpen}
+				<div class="sold-form">
+					<label class="sold-label">
+						Sale price (optional)
+						<input
+							type="number"
+							bind:value={soldSalePrice}
+							placeholder="e.g. 350"
+							min="0"
+							class="sold-input"
+						/>
+					</label>
+					<div class="sold-actions">
+						<button
+							type="button"
+							class="action-rail-btn"
+							disabled={soldBusy}
+							on:click={confirmSoldFromDetail}
+						>
+							Confirm sold
+						</button>
+						<button
+							type="button"
+							class="action-rail-btn ghost"
+							on:click={() => {
+								soldFormOpen = false;
+								soldSalePrice = '';
+								soldErr = '';
+							}}
+						>
+							Cancel
+						</button>
+					</div>
+				</div>
+			{:else}
+				<button type="button" class="action-rail-btn" on:click={() => (soldFormOpen = true)}>
+					Mark as sold
+				</button>
+			{/if}
+		</section>
+	{/if}
 
 	{#if data.isOwner}
 		<section class="owner-note">
@@ -592,6 +703,9 @@
 	.action-rail .btn-icon.accent-orange {
 		color: var(--accent-orange);
 	}
+	.action-rail .btn-icon.accent-red {
+		color: #e74c3c;
+	}
 	.action-rail .btn.primary {
 		background: var(--fg);
 		color: var(--bg);
@@ -599,6 +713,81 @@
 	}
 	.action-rail .btn.ghost {
 		background: transparent;
+	}
+	.owner-sold-section {
+		max-width: 720px;
+		margin: 0 auto 12px;
+		padding: 12px 14px;
+		border: 1px solid var(--hairline);
+		border-radius: 12px;
+		background: var(--surface);
+		text-align: center;
+	}
+	.sold-form {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+	}
+	.sold-label {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		font-weight: 600;
+		font-size: 0.85rem;
+		color: color-mix(in srgb, var(--fg) 75%, transparent);
+	}
+	.sold-input {
+		padding: 8px 10px;
+		border: 1px solid var(--hairline);
+		border-radius: 8px;
+		background: var(--bg);
+		color: var(--fg);
+		font-size: 0.9rem;
+		width: 120px;
+	}
+	.sold-actions {
+		display: flex;
+		gap: 8px;
+	}
+	.sold-ok {
+		margin: 0 0 8px;
+		padding: 8px 10px;
+		border-radius: 8px;
+		background: var(--mint-bg);
+		color: var(--accent-green);
+		border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent);
+		font-weight: 700;
+	}
+	.sold-err {
+		margin: 0 0 8px;
+		padding: 8px 10px;
+		border-radius: 8px;
+		background: var(--tangerine-bg);
+		color: var(--accent-orange);
+		border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent);
+		font-weight: 700;
+	}
+	.action-rail-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		padding: 10px 14px;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+		background: var(--fg);
+		color: var(--bg);
+		cursor: pointer;
+		font-weight: 700;
+	}
+	.action-rail-btn.ghost {
+		background: transparent;
+		color: inherit;
+	}
+	.action-rail-btn[disabled] {
+		opacity: 0.6;
+		cursor: default;
 	}
 	.owner-note {
 		max-width: 720px;

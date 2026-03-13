@@ -14,6 +14,7 @@ type AdRow = {
 	created_at: string;
 	updated_at: string | null;
 	expires_at: string;
+	sale_price?: number | null;
 };
 
 export const load: PageServerLoad = async ({ locals, platform, url }) => {
@@ -42,7 +43,9 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 
 	const { data, error: listError } = await locals.supabase
 		.from('ads')
-		.select('id,slug,title,price,currency,category,image_keys,status,created_at,updated_at,expires_at')
+		.select(
+			'id,slug,title,price,currency,category,image_keys,status,created_at,updated_at,expires_at,sale_price'
+		)
 		.eq('user_id', user.id)
 		.order('updated_at', { ascending: false })
 		.order('created_at', { ascending: false });

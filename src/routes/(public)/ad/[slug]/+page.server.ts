@@ -82,6 +82,18 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		isOwner = !!user && user.id === ad.user_id;
 	}
 
+	// Check if logged-in non-owner has saved this ad
+	let isSaved = false;
+	if (user && !isOwner) {
+		const { data: watchItem } = await locals.supabase
+			.from('watchlist')
+			.select('id')
+			.eq('user_id', user.id)
+			.eq('ad_id', ad.id)
+			.maybeSingle();
+		isSaved = !!watchItem;
+	}
+
 	let ownerMessages: { count: number } | null = null;
 
 	if (isOwner && user) {
@@ -224,6 +236,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		moderation: moderation ?? null,
 		isOwner,
 		isExpired: !!isExpired,
+		isSaved,
 		similarAds,
 		ownerMessages,
 		offerRules: {

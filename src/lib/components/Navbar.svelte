@@ -16,7 +16,8 @@
 		LoginIcon,
 		LogoutIcon,
 		MessagesIcon,
-		SearchIcon
+		SearchIcon,
+		WatchlistIcon
 	} from '$lib/icons';
 
 	export let title = 'fogr.ai';
@@ -28,6 +29,7 @@
 		| '/(app)/account'
 		| '/(app)/messages'
 		| '/(app)/ads'
+		| '/(app)/watchlist'
 		| '/(app)/saved-searches';
 	const baseLinks: Array<{ href: NavHref; label: string }> = [];
 	let authedLinks: Array<{ href: NavHref; label: string }> = baseLinks;
@@ -35,6 +37,7 @@
 		'/(app)/messages': MessagesIcon,
 		'/(app)/account': AccountIcon,
 		'/(app)/ads': AdsIcon,
+		'/(app)/watchlist': WatchlistIcon,
 		'/(app)/saved-searches': SearchIcon,
 		'/(app)/post': LinkIcon,
 		'/(public)/about': LinkIcon
@@ -135,6 +138,7 @@
 				{ href: '/(app)/account', label: 'Account' },
 				{ href: '/(app)/messages', label: 'Messages' },
 				{ href: '/(app)/ads', label: 'My ads' },
+				{ href: '/(app)/watchlist', label: 'Watchlist' },
 				{ href: '/(app)/saved-searches', label: 'Saved searches' }
 			]
 		: baseLinks;
