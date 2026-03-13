@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: '2026-03-13T18:16:04.950Z'
-last_activity: 2026-03-13 -- Phase 3 complete (email infrastructure)
+stopped_at: Completed 04-01-PLAN.md
+last_updated: '2026-03-13T18:47:38Z'
+last_activity: 2026-03-13 -- Phase 4 plan 01 complete (foundation migrations and utilities)
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
-  percent: 61
+  total_plans: 18
+  completed_plans: 13
+  percent: 72
 ---
 
 # Project State
@@ -21,36 +21,37 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone in Ireland can post and find classified ads with minimal effort -- brief, honest listings without noise
-**Current focus:** Phase 3 -- Email Infrastructure (executing)
+**Current focus:** Phase 4 -- Engagement and Retention (executing)
 
 ## Current Position
 
-Phase: 3 of 6 (Email Infrastructure) -- COMPLETE
-Plan: 4 of 4 complete in current phase
+Phase: 4 of 6 (Engagement and Retention) -- IN PROGRESS
+Plan: 1 of 6 complete in current phase
 Status: Executing
-Last activity: 2026-03-13 -- Phase 3 complete (email infrastructure)
+Last activity: 2026-03-13 -- Phase 4 plan 01 complete (foundation migrations and utilities)
 
-Progress: [######░░░░] 61%
+Progress: [#######░░░] 72%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 5min
-- Total execution time: 62min
+- Total execution time: 65min
 
 **By Phase:**
 
-| Phase                   | Plans | Total | Avg/Plan |
-| ----------------------- | ----- | ----- | -------- |
-| 1. Slug Migration       | 2/2   | 14min | 7min     |
-| 2. SEO Foundation       | 6/6   | 34min | 6min     |
-| 3. Email Infrastructure | 4/4   | 14min | 4min     |
+| Phase                     | Plans | Total | Avg/Plan |
+| ------------------------- | ----- | ----- | -------- |
+| 1. Slug Migration         | 2/2   | 14min | 7min     |
+| 2. SEO Foundation         | 6/6   | 34min | 6min     |
+| 3. Email Infrastructure   | 4/4   | 14min | 4min     |
+| 4. Engagement & Retention | 1/6   | 3min  | 3min     |
 
 **Recent Trend:**
 
-- Last 5 plans: 5min, 1min, 5min, 7min, 2min
+- Last 5 plans: 1min, 5min, 7min, 2min, 3min
 - Trend: stable (accelerating)
 
 _Updated after each plan completion_
@@ -104,6 +105,9 @@ Recent decisions affecting current work:
 - [03-04]: Digest runs at 08:00 UTC (morning in Ireland, 08:00-09:00 local depending on DST)
 - [03-04]: Up to 100 saved searches processed per tick; top 3 of up to 20 matching ads shown in email
 - [03-04]: last_notified_at updated per-search after send to prevent duplicate digests
+- [04-01]: NI county ID is 'ie/ulster/derry' not 'ie/ulster/londonderry' -- matches actual ireland_counties.json data
+- [04-01]: sale_price stored as integer cents matching existing price column pattern
+- [04-01]: No DB CHECK constraint change needed for GBP -- ads-validation.ts /^[A-Z]{3}$/ already accepts any 3-letter code
 
 ### Pending Todos
 
@@ -118,6 +122,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-13T18:16:04.946Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-engagement-and-retention/04-CONTEXT.md
+Last session: 2026-03-13T18:47:38Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: .planning/phases/04-engagement-and-retention/04-01-SUMMARY.md

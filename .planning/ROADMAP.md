@@ -128,7 +128,7 @@ Plans:
 
 Plans:
 
-- [ ] 04-01-PLAN.md — DB migrations (watchlist table, sale_price column) + shared utilities (relative-time, NI currency mapping, type updates)
+- [x] 04-01-PLAN.md — DB migrations (watchlist table, sale_price column) + shared utilities (relative-time, NI currency mapping, type updates)
 - [ ] 04-02-PLAN.md — Timestamps and sold badges on AdCard/AdCardWide + 7-day sold visibility window in browse queries
 - [ ] 04-03-PLAN.md — Watchlist feature: save/unsave API, ad page save button, watchlist page with AdCard grid, navbar link
 - [ ] 04-04-PLAN.md — Saved search creation UI + management page: "Save this search" on browse pages, CRUD API, management under account area
@@ -206,11 +206,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Slug Migration                  | 2/2            | Complete (pending verification) | 2026-03-11 |
 | 2. SEO Foundation                  | 6/6            | Complete                        | 2026-03-12 |
 | 3. Email Infrastructure            | 4/4            | Complete                        | 2026-03-13 |
-| 4. Engagement and Retention        | 0/6            | Planned                         | -          |
+| 4. Engagement and Retention        | 1/6            | In progress                     | -          |
 | 5. Launch Hardening                | 0/6            | Not started                     | -          |
 | 6. Infrastructure and Cost Control | 0/5            | Not started                     | -          |
 
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-13 -- Phase 4 planned (6 plans in 4 waves)_
+_Last updated: 2026-03-13 -- Phase 4 plan 01 complete (foundation migrations and utilities)_
