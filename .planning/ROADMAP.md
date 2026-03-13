@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Slug Migration** - Migrate ad URLs from UUIDs to human-readable slugs — load-bearing prerequisite for all SEO work
 - [x] **Phase 2: SEO Foundation** - Ship per-page meta tags, JSON-LD structured data, sitemap, robots.txt, canonical URLs, Open Graph tags, programmatic pages, and expired ad handling
 - [x] **Phase 3: Email Infrastructure** - Integrate Resend transactional email with templates for all lifecycle events
-- [ ] **Phase 4: Engagement and Retention** - Watchlist, saved searches, email alerts, Northern Ireland location support, and posted timestamps
+- [x] **Phase 4: Engagement and Retention** - Watchlist, saved searches, email alerts, Northern Ireland location support, and posted timestamps
 - [ ] **Phase 5: Launch Hardening** - New-account moderation hold queue, mobile audit, commercial reseller detection, and content seeding
 - [ ] **Phase 6: Infrastructure and Cost Control** - Backups, monitoring, spending alerts, graceful degradation, and R2 redundancy
 
@@ -133,7 +133,7 @@ Plans:
 - [x] 04-03-PLAN.md — Watchlist feature: save/unsave API, ad page save button, watchlist page with AdCard grid, navbar link
 - [x] 04-04-PLAN.md — Saved search creation UI + management page: "Save this search" on browse pages, CRUD API, management under account area
 - [x] 04-05-PLAN.md — Mark as Sold with sale price prompt + GBP currency selector on post form with NI county detection
-- [ ] 04-06-PLAN.md — Fix cron worker saved search JSONB matching for email alerts (critical bug: county/locality queries wrong columns)
+- [x] 04-06-PLAN.md — Fix cron worker saved search JSONB matching for email alerts (critical bug: county/locality queries wrong columns)
 
 ---
 
@@ -206,11 +206,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Slug Migration                  | 2/2            | Complete (pending verification) | 2026-03-11 |
 | 2. SEO Foundation                  | 6/6            | Complete                        | 2026-03-12 |
 | 3. Email Infrastructure            | 4/4            | Complete                        | 2026-03-13 |
-| 4. Engagement and Retention        | 5/6            | In progress                     | -          |
+| 4. Engagement and Retention        | 6/6            | Complete                        | 2026-03-13 |
 | 5. Launch Hardening                | 0/6            | Not started                     | -          |
 | 6. Infrastructure and Cost Control | 0/5            | Not started                     | -          |
 
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-13 -- Phase 4 plan 05 complete (sale price and currency support)_
+_Last updated: 2026-03-13 -- Phase 4 complete (saved search JSONB fix)_
