@@ -350,8 +350,13 @@ async function findMatchingAds(env: Env, search: SavedSearch): Promise<MatchingA
 
 	// Apply filters based on saved search criteria
 	if (search.category) url.searchParams.set('category', `eq.${search.category}`);
-	if (search.county) url.searchParams.set('county', `eq.${search.county}`);
-	if (search.locality) url.searchParams.set('locality', `eq.${search.locality}`);
+	// Fixed: use JSONB path syntax; ads table has no flat county/locality columns
+	if (search.county) {
+		url.searchParams.set('location_profile_data->county->>id', `eq.${search.county}`);
+	}
+	if (search.locality) {
+		url.searchParams.set('location_profile_data->locality->>id', `eq.${search.locality}`);
+	}
 
 	const res = await fetch(url, { headers: supabaseHeaders(env) });
 	if (!res.ok) return [];
