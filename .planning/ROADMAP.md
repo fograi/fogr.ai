@@ -132,7 +132,7 @@ Plans:
 - [x] 04-02-PLAN.md — Timestamps and sold badges on AdCard/AdCardWide + 7-day sold visibility window in browse queries
 - [x] 04-03-PLAN.md — Watchlist feature: save/unsave API, ad page save button, watchlist page with AdCard grid, navbar link
 - [x] 04-04-PLAN.md — Saved search creation UI + management page: "Save this search" on browse pages, CRUD API, management under account area
-- [ ] 04-05-PLAN.md — Mark as Sold with sale price prompt + GBP currency selector on post form with NI county detection
+- [x] 04-05-PLAN.md — Mark as Sold with sale price prompt + GBP currency selector on post form with NI county detection
 - [ ] 04-06-PLAN.md — Fix cron worker saved search JSONB matching for email alerts (critical bug: county/locality queries wrong columns)
 
 ---
@@ -213,4 +213,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-13 -- Phase 4 plan 03 complete (watchlist save/unsave and management page)_
+_Last updated: 2026-03-13 -- Phase 4 plan 05 complete (sale price and currency support)_
