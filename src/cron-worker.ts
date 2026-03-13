@@ -5,6 +5,15 @@ import type {
 	ScheduledController
 } from '@cloudflare/workers-types';
 import OpenAI from 'openai';
+import { sendEmail } from './lib/server/email/send';
+import type { EmailEnv } from './lib/server/email/send';
+import {
+	renderEmail,
+	buildAdApprovedEmailHtml,
+	buildAdRejectedEmailHtml
+} from './lib/server/email/templates';
+import { generateUnsubscribeToken, buildUnsubscribeHeaders } from './lib/server/email/unsubscribe';
+import { isEmailSuppressed } from './lib/server/email/preferences';
 
 type Env = {
 	PUBLIC_SUPABASE_URL?: string;
@@ -12,6 +21,8 @@ type Env = {
 	OPENAI_API_KEY?: string;
 	ADS_BUCKET?: R2Bucket;
 	ADS_PENDING_BUCKET?: R2Bucket;
+	RESEND_API_KEY?: string;
+	UNSUBSCRIBE_SECRET?: string;
 };
 
 type PendingAd = {
@@ -20,6 +31,7 @@ type PendingAd = {
 	description: string;
 	image_keys: string[] | null;
 	user_id: string;
+	slug?: string;
 };
 
 type ModerationDecision = 'allow' | 'flagged' | 'unavailable';
@@ -134,7 +146,7 @@ async function moderateSingleImage(
 
 async function fetchPendingAds(env: Env): Promise<PendingAd[]> {
 	const url = new URL('/rest/v1/ads', env.PUBLIC_SUPABASE_URL);
-	url.searchParams.set('select', 'id,title,description,image_keys,user_id');
+	url.searchParams.set('select', 'id,title,description,image_keys,user_id,slug');
 	url.searchParams.set('status', `eq.${PENDING_STATUS}`);
 	url.searchParams.set('order', 'created_at.asc');
 	url.searchParams.set('limit', String(BATCH_LIMIT));
@@ -203,6 +215,95 @@ async function deletePendingImages(pendingBucket: R2Bucket, keys: string[]): Pro
 	await Promise.allSettled(keys.map((key) => pendingBucket.delete(key)));
 }
 
+// ----------------- Email helpers -----------------
+
+async function getUserEmail(env: Env, userId: string): Promise<string | null> {
+	try {
+		const url = new URL(`/auth/v1/admin/users/${userId}`, env.PUBLIC_SUPABASE_URL);
+		const res = await fetch(url, {
+			headers: {
+				apikey: env.SUPABASE_SERVICE_ROLE_KEY as string,
+				Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`
+			}
+		});
+		if (!res.ok) {
+			console.error('auth_user_lookup_failed', { userId, status: res.status });
+			return null;
+		}
+		const data = (await res.json()) as { email?: string };
+		return data.email ?? null;
+	} catch (err) {
+		console.error('auth_user_lookup_failed', { userId, error: String(err) });
+		return null;
+	}
+}
+
+function buildEmailEnv(env: Env): EmailEnv {
+	return {
+		RESEND_API_KEY: env.RESEND_API_KEY ?? '',
+		PUBLIC_SUPABASE_URL: env.PUBLIC_SUPABASE_URL ?? '',
+		SUPABASE_SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+		UNSUBSCRIBE_SECRET: env.UNSUBSCRIBE_SECRET ?? ''
+	};
+}
+
+async function sendApprovalEmail(env: Env, ad: PendingAd): Promise<void> {
+	const emailEnv = buildEmailEnv(env);
+	if (!env.RESEND_API_KEY) return; // Silently skip if email not configured
+
+	// Check preferences -- ad_approved is suppressible
+	const suppressed = await isEmailSuppressed(emailEnv, ad.user_id, 'ad_approved');
+	if (suppressed) return;
+
+	const userEmail = await getUserEmail(env, ad.user_id);
+	if (!userEmail) return;
+
+	const adUrl = `https://fogr.ai/ad/${ad.slug ?? ad.id}`;
+	const token = await generateUnsubscribeToken(
+		env.UNSUBSCRIBE_SECRET ?? '',
+		ad.user_id,
+		'ad_approved'
+	);
+	const unsubUrl = `https://fogr.ai/api/unsubscribe?token=${encodeURIComponent(token)}&type=ad_approved`;
+
+	const html = renderEmail(
+		'Your listing is live on fogr.ai',
+		buildAdApprovedEmailHtml({ adTitle: ad.title, adUrl, unsubscribeUrl: unsubUrl })
+	);
+
+	await sendEmail(emailEnv, {
+		to: userEmail,
+		subject: 'Your listing is live on fogr.ai',
+		html,
+		headers: buildUnsubscribeHeaders(unsubUrl)
+	});
+}
+
+async function sendRejectionEmail(env: Env, ad: PendingAd): Promise<void> {
+	const emailEnv = buildEmailEnv(env);
+	if (!env.RESEND_API_KEY) return;
+
+	// Rejection is a moderation/DSA email -- do NOT check preferences, do NOT add unsubscribe headers
+	const userEmail = await getUserEmail(env, ad.user_id);
+	if (!userEmail) return;
+
+	const html = renderEmail(
+		'Your fogr.ai listing was not approved',
+		buildAdRejectedEmailHtml({
+			adTitle: ad.title,
+			adId: ad.id,
+			reason: 'Content does not meet community guidelines.'
+		})
+	);
+
+	await sendEmail(emailEnv, {
+		to: userEmail,
+		subject: 'Your fogr.ai listing was not approved',
+		html
+		// No headers -- no List-Unsubscribe on DSA/moderation emails
+	});
+}
+
 async function retryPendingAds(env: Env): Promise<void> {
 	const publicBucket = env.ADS_BUCKET;
 	const pendingBucket = env.ADS_PENDING_BUCKET;
@@ -265,6 +366,7 @@ async function retryPendingAds(env: Env): Promise<void> {
 		}
 		if (decision === 'flagged') {
 			await updateAdStatus(env, ad.id, REJECTED_STATUS);
+			await sendRejectionEmail(env, ad);
 			if (keys.length > 0) await deletePendingImages(pendingBucket, keys);
 			continue;
 		}
@@ -276,6 +378,7 @@ async function retryPendingAds(env: Env): Promise<void> {
 			}
 			await updateAdStatus(env, ad.id, ACTIVE_STATUS);
 			console.log('cron_ad_activated', { id: ad.id });
+			await sendApprovalEmail(env, ad);
 		} catch (err) {
 			console.error('cron_publish_failed', { id: ad.id, error: String(err) });
 		}
