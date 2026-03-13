@@ -5,6 +5,18 @@ import { detectScamPatterns } from '$lib/server/scam-patterns';
 import { E2E_MOCK_MESSAGES, isE2eMock } from '$lib/server/e2e-mocks';
 import { recordMetric } from '$lib/server/metrics';
 import { hasPaidPrice } from '$lib/utils/price';
+import { sendEmail } from '$lib/server/email/send';
+import type { EmailEnv } from '$lib/server/email/send';
+import { renderEmail, buildNewMessageEmailHtml } from '$lib/server/email/templates';
+import { generateUnsubscribeToken, buildUnsubscribeHeaders } from '$lib/server/email/unsubscribe';
+import { isEmailSuppressed } from '$lib/server/email/preferences';
+
+type PlatformEnv = {
+	RESEND_API_KEY?: string;
+	PUBLIC_SUPABASE_URL?: string;
+	SUPABASE_SERVICE_ROLE_KEY?: string;
+	UNSUBSCRIBE_SECRET?: string;
+};
 
 const ALLOWED_KINDS = new Set(['availability', 'offer', 'pickup', 'question']);
 
@@ -92,7 +104,7 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 	const { data: ad, error: adError } = await locals.supabase
 		.from('ads')
 		.select(
-			'id, user_id, status, expires_at, category, category_profile_data, firm_price, min_offer, auto_decline_message, price, currency'
+			'id, user_id, status, expires_at, category, category_profile_data, firm_price, min_offer, auto_decline_message, price, currency, title'
 		)
 		.eq('id', lookupAdId)
 		.maybeSingle();
@@ -226,6 +238,73 @@ export const POST: RequestHandler = async ({ request, locals, url, platform }) =
 			: paidPrice && ad.min_offer
 				? `Thanks — minimum offer is ${formatMoney(ad.min_offer, ad.currency ?? 'EUR')}.`
 				: '');
+
+	// Fire-and-forget email notification to recipient
+	const emailPromise = (async () => {
+		try {
+			const penv = platform?.env as PlatformEnv | undefined;
+			const env: EmailEnv = {
+				RESEND_API_KEY: penv?.RESEND_API_KEY ?? '',
+				PUBLIC_SUPABASE_URL: penv?.PUBLIC_SUPABASE_URL ?? '',
+				SUPABASE_SERVICE_ROLE_KEY: penv?.SUPABASE_SERVICE_ROLE_KEY ?? '',
+				UNSUBSCRIBE_SECRET: penv?.UNSUBSCRIBE_SECRET ?? ''
+			};
+			if (!env.RESEND_API_KEY) return; // Email not configured
+
+			const recipientId = isSeller ? (conversation?.buyer_id ?? '') : ad.user_id;
+			if (!recipientId) return;
+
+			const suppressed = await isEmailSuppressed(env, recipientId, 'messages');
+			if (suppressed) return;
+
+			// Look up recipient email via Supabase auth admin API
+			const authUrl = new URL(`/auth/v1/admin/users/${recipientId}`, env.PUBLIC_SUPABASE_URL);
+			const authRes = await fetch(authUrl, {
+				headers: {
+					apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+					Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`
+				}
+			});
+			if (!authRes.ok) return;
+			const authUser = (await authRes.json()) as { email?: string };
+			if (!authUser.email) return;
+
+			// Build ad URL using slug if available
+			const adSlugQuery = await locals.supabase
+				.from('ads')
+				.select('slug')
+				.eq('id', ad.id)
+				.maybeSingle();
+			const adSlug = adSlugQuery.data?.slug ?? ad.id;
+			const adUrl = `https://fogr.ai/ad/${adSlug}`;
+
+			const token = await generateUnsubscribeToken(env.UNSUBSCRIBE_SECRET, recipientId, 'messages');
+			const unsubUrl = `https://fogr.ai/api/unsubscribe?token=${encodeURIComponent(token)}&type=messages`;
+
+			const html = renderEmail(
+				'You have a new message on fogr.ai',
+				buildNewMessageEmailHtml({
+					adTitle: ad.title ?? 'your listing',
+					adUrl,
+					unsubscribeUrl: unsubUrl
+				})
+			);
+
+			await sendEmail(env, {
+				to: authUser.email,
+				subject: 'You have a new message on fogr.ai',
+				html,
+				headers: buildUnsubscribeHeaders(unsubUrl)
+			});
+		} catch (err) {
+			console.error('message_notification_email_failed', { error: String(err) });
+		}
+	})();
+
+	// Use waitUntil if available to ensure email completes after response
+	if (platform?.ctx?.waitUntil) {
+		platform.ctx.waitUntil(emailPromise);
+	}
 
 	return json(
 		{
