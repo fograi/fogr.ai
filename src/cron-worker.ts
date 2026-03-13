@@ -319,7 +319,13 @@ async function retryPendingAds(env: Env): Promise<void> {
 	if (missing.length > 0) {
 		throw new Error(`cron_missing_env: ${missing.join(', ')}`);
 	}
-	if (!publicBucket || !pendingBucket || !publicSupabaseUrl || !supabaseServiceRoleKey || !openAiApiKey) {
+	if (
+		!publicBucket ||
+		!pendingBucket ||
+		!publicSupabaseUrl ||
+		!supabaseServiceRoleKey ||
+		!openAiApiKey
+	) {
 		throw new Error('cron_missing_env');
 	}
 
