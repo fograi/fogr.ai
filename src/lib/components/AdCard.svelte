@@ -9,6 +9,7 @@
 	} from '$lib/category-profiles';
 	import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 	import { formatLocationSummary } from '$lib/location-profile';
+	import { formatRelativeTime } from '$lib/utils/relative-time';
 
 	export let id: number | string;
 	export let slug: string | undefined = undefined;
@@ -23,6 +24,9 @@
 	export let locale = 'en-IE';
 	export let firmPrice = false;
 	export let minOffer: number | null = null;
+	export let createdAt: string | undefined = undefined;
+	export let status: string | undefined = undefined;
+	export let salePrice: number | null = null;
 
 	$: priceLabel = formatPriceLabel({ price, category, currency, locale });
 
@@ -58,6 +62,8 @@
 		: '';
 	$: displayDescription = bikeNarrative || description;
 	$: locationSummary = formatLocationSummary(locationProfileData);
+	$: timeAgo = createdAt ? formatRelativeTime(createdAt) : '';
+	$: isSold = status === 'sold';
 
 	let isPortrait = false;
 	let hasImageError = false;
@@ -110,7 +116,9 @@
 			<div class="hdr">
 				<span class="hdr__cat">{category || 'Classifieds'}</span>
 			</div>
-			{#if offerBadge}
+			{#if isSold}
+				<div class="badges"><span class="badge sold">SOLD</span></div>
+			{:else if offerBadge}
 				<div class="badges">
 					<span class={`badge ${firmPrice ? 'firm' : 'offers'}`}>{offerBadge}</span>
 				</div>
@@ -140,8 +148,12 @@
 
 			<h3 class="title title--text">{title}</h3>
 			{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
-			{#if locationSummary}
-				<p class="location">{locationSummary}</p>
+			{#if locationSummary || timeAgo}
+				<p class="location">
+					{locationSummary}{#if locationSummary && timeAgo}
+						&middot;
+					{/if}{timeAgo}
+				</p>
 			{/if}
 
 			<!-- Price pinned to bottom-right -->
@@ -224,6 +236,11 @@
 	}
 	.badge.firm {
 		background: color-mix(in srgb, var(--fg) 16%, var(--bg));
+	}
+	.badge.sold {
+		background: color-mix(in srgb, var(--fg) 90%, var(--bg));
+		color: var(--bg);
+		font-weight: 900;
 	}
 	.bike-chips {
 		display: flex;

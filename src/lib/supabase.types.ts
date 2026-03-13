@@ -383,6 +383,45 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			saved_searches: {
+				Row: {
+					id: string;
+					user_id: string;
+					name: string | null;
+					category: string | null;
+					county: string | null;
+					locality: string | null;
+					query: string | null;
+					notify: boolean;
+					last_notified_at: string;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					user_id: string;
+					name?: string | null;
+					category?: string | null;
+					county?: string | null;
+					locality?: string | null;
+					query?: string | null;
+					notify?: boolean;
+					last_notified_at?: string;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					user_id?: string;
+					name?: string | null;
+					category?: string | null;
+					county?: string | null;
+					locality?: string | null;
+					query?: string | null;
+					notify?: boolean;
+					last_notified_at?: string;
+					created_at?: string;
+				};
+				Relationships: [];
+			};
 			watchlist: {
 				Row: {
 					id: string;

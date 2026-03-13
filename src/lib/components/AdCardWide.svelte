@@ -10,6 +10,7 @@
 	import { formatPriceLabel, hasPaidPrice } from '$lib/utils/price';
 	import { CATEGORY_ICON_MAP, DefaultCategoryIcon, ShareIcon } from '$lib/icons';
 	import { formatLocationSummary } from '$lib/location-profile';
+	import { formatRelativeTime } from '$lib/utils/relative-time';
 
 	// Props
 	export let title: string;
@@ -28,6 +29,8 @@
 	export let showExpires = false;
 	export let firmPrice = false;
 	export let minOffer: number | null = null;
+	export let createdAt: string | undefined = undefined;
+	export let salePrice: number | null = null;
 
 	// Derived
 	$: bannerBase = catBase[category?.trim?.() as keyof typeof catBase] ?? '#6B7280';
@@ -63,6 +66,8 @@
 		: '';
 	$: displayDescription = bikeNarrative || description;
 	$: locationSummary = formatLocationSummary(locationProfileData);
+	$: timeAgo = createdAt ? formatRelativeTime(createdAt) : '';
+	$: isSold = status === 'sold';
 
 	$: expiresLabel = expiresAt
 		? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(expiresAt))
@@ -178,7 +183,9 @@
 			<!-- Text meta beside/under the image -->
 			<div class="meta">
 				<h3 class="title--standalone">{title}</h3>
-				{#if offerBadge}
+				{#if isSold}
+					<div class="badges"><span class="badge sold">SOLD</span></div>
+				{:else if offerBadge}
 					<div class="badges">
 						<span class={`badge ${firmPrice ? 'firm' : 'offers'}`}>{offerBadge}</span>
 					</div>
@@ -187,8 +194,12 @@
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
-				{#if locationSummary}
-					<p class="meta-line">Location: {locationSummary}</p>
+				{#if locationSummary || timeAgo}
+					<p class="meta-line">
+						{#if locationSummary}Location: {locationSummary}{/if}{#if locationSummary && timeAgo}
+							&middot;
+						{/if}{timeAgo}
+					</p>
 				{/if}
 				{#if expiresLabel && showExpires}
 					<p class="meta-line">
@@ -230,7 +241,9 @@
 				{/if}
 
 				<h3 class="title--standalone">{title}</h3>
-				{#if offerBadge}
+				{#if isSold}
+					<div class="badges"><span class="badge sold">SOLD</span></div>
+				{:else if offerBadge}
 					<div class="badges">
 						<span class={`badge ${firmPrice ? 'firm' : 'offers'}`}>{offerBadge}</span>
 					</div>
@@ -239,8 +252,12 @@
 					<span class="price-badge">{displayedPrice}</span>
 				{/if}
 				{#if displayDescription}<p class="desc">{displayDescription}</p>{/if}
-				{#if locationSummary}
-					<p class="meta-line">Location: {locationSummary}</p>
+				{#if locationSummary || timeAgo}
+					<p class="meta-line">
+						{#if locationSummary}Location: {locationSummary}{/if}{#if locationSummary && timeAgo}
+							&middot;
+						{/if}{timeAgo}
+					</p>
 				{/if}
 				{#if expiresLabel && showExpires}
 					<p class="meta-line">
@@ -435,6 +452,11 @@
 	}
 	.badge.firm {
 		background: color-mix(in srgb, var(--fg) 16%, var(--bg));
+	}
+	.badge.sold {
+		background: color-mix(in srgb, var(--fg) 90%, var(--bg));
+		color: var(--bg);
+		font-weight: 900;
 	}
 	.bike-chips {
 		display: flex;
