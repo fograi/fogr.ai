@@ -46,15 +46,15 @@ export const buildTakedownEmail = (ctx: ModerationEmailContext): EmailTemplate =
 		? `<p><strong>Report reference:</strong> ${escapeHtml(ctx.reportId)}</p>`
 		: '';
 
-	const subject = 'Your fogr.ai listing was removed';
+	const subject = 'Your f\u00F3gr.a\u00ED listing was removed';
 	const bodyHtml = `<p>Hello,</p>
-    <p>We removed your listing on fogr.ai (ID: ${escapeHtml(ctx.adId)}).</p>
+    <p>We removed your listing on f&oacute;gr.a&iacute; (ID: ${escapeHtml(ctx.adId)}).</p>
     <p><strong>Decision:</strong> ${escapeHtml(ctx.decision)}.</p>
     <p><strong>Reason category:</strong> ${reasonCategory}.</p>
     <p><strong>Statement of reasons:</strong> ${reasonDetails}</p>
     ${legalBasis}
     ${reportLine}
-    <p>If you believe this decision is incorrect, you can appeal by signing in and opening your ad: <a href="${escapeHtml(adUrl)}">${escapeHtml(adUrl)}</a></p>
+    <p>If you believe this decision is incorrect, you can appeal by signing in to f&oacute;gr.a&iacute; and opening your ad: <a href="${escapeHtml(adUrl)}">${escapeHtml(adUrl)}</a></p>
     <p>Questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>`;
 
 	return {
@@ -72,7 +72,7 @@ export const buildStatementOfReasonsEmail = (ctx: ModerationEmailContext): Email
 		? `<p><strong>Legal or policy basis:</strong> ${escapeHtml(ctx.legalBasis)}</p>`
 		: '';
 
-	const subject = 'Statement of reasons for your fogr.ai listing';
+	const subject = 'Statement of reasons for your f\u00F3gr.a\u00ED listing';
 	const bodyHtml = `<p>Hello,</p>
     <p>This message provides the statement of reasons for a moderation decision on your listing (ID: ${escapeHtml(ctx.adId)}).</p>
     <p><strong>Decision:</strong> ${escapeHtml(ctx.decision)}.</p>
@@ -96,7 +96,7 @@ export const buildAppealOutcomeEmail = (ctx: AppealOutcomeContext): EmailTemplat
 		? `<p><strong>Appeal reference:</strong> ${escapeHtml(ctx.appealId)}</p>`
 		: '';
 
-	const subject = `Your fogr.ai appeal has been ${outcomeLabel}`;
+	const subject = `Your f\u00F3gr.a\u00ED appeal has been ${outcomeLabel}`;
 	const bodyHtml = `<p>Hello,</p>
     <p>Your appeal for listing ${escapeHtml(ctx.adId)} has been ${outcomeLabel}.</p>
     ${appealLine}

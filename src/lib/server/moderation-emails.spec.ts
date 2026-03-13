@@ -117,8 +117,8 @@ describe('moderation email templates', () => {
 			reasonDetails: 'Spam.'
 		});
 
-		expect(takedown.body).toContain('fogr.ai');
-		expect(takedown.body).toContain('Classified ads for Ireland');
+		expect(takedown.body).toContain('fogr-logo-email.png');
+		expect(takedown.body).toContain('Buy. Sell. Done.');
 		expect(takedown.body).toContain('privacy');
 		expect(takedown.body).toContain('terms');
 	});
