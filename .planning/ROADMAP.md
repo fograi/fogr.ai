@@ -100,7 +100,7 @@ Plans:
 
 Plans:
 
-- [ ] 03-01-PLAN.md — DB migrations (email_preferences, saved_searches) + email core utilities (send, templates, unsubscribe tokens, preferences)
+- [x] 03-01-PLAN.md — DB migrations (email_preferences, saved_searches) + email core utilities (send, templates, unsubscribe tokens, preferences)
 - [ ] 03-02-PLAN.md — Unsubscribe flow (RFC 8058 API endpoint + browser confirmation page with re-subscribe)
 - [ ] 03-03-PLAN.md — Wire email sending into cron worker (approve/reject) + messages API (new message notification)
 - [ ] 03-04-PLAN.md — Saved search daily digest cron dispatch (08:00 UTC, top 3 listings, preference-aware)
@@ -205,7 +205,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | ---------------------------------- | -------------- | ------------------------------- | ---------- |
 | 1. Slug Migration                  | 2/2            | Complete (pending verification) | 2026-03-11 |
 | 2. SEO Foundation                  | 6/6            | Complete                        | 2026-03-12 |
-| 3. Email Infrastructure            | 0/4            | Not started                     | -          |
+| 3. Email Infrastructure            | 1/4            | In progress                     | -          |
 | 4. Engagement and Retention        | 0/6            | Not started                     | -          |
 | 5. Launch Hardening                | 0/6            | Not started                     | -          |
 | 6. Infrastructure and Cost Control | 0/5            | Not started                     | -          |
@@ -213,4 +213,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-12 -- Phase 3 planned (4 plans in 3 waves)_
+_Last updated: 2026-03-13 -- Phase 3 plan 01 complete (email infrastructure foundation)_

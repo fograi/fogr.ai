@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: '2026-03-12T21:48:19.921Z'
-last_activity: '2026-03-12 -- Phase 2 plan 06 executed (county page og:image gap closure)'
+stopped_at: Completed 03-01-PLAN.md
+last_updated: '2026-03-13T11:58:23Z'
+last_activity: '2026-03-13 -- Phase 3 plan 01 executed (email infrastructure foundation)'
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 43
+  total_plans: 12
+  completed_plans: 9
+  percent: 47
 ---
 
 # Project State
@@ -21,36 +21,37 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone in Ireland can post and find classified ads with minimal effort -- brief, honest listings without noise
-**Current focus:** Phase 2 -- SEO Foundation (executing)
+**Current focus:** Phase 3 -- Email Infrastructure (executing)
 
 ## Current Position
 
-Phase: 2 of 6 (SEO Foundation) -- COMPLETE
-Plan: 6 of 6 complete in current phase
+Phase: 3 of 6 (Email Infrastructure) -- IN PROGRESS
+Plan: 1 of 4 complete in current phase
 Status: Executing
-Last activity: 2026-03-12 -- Phase 2 plan 06 executed (county page og:image gap closure)
+Last activity: 2026-03-13 -- Phase 3 plan 01 executed (email infrastructure foundation)
 
-Progress: [####░░░░░░] 43%
+Progress: [#####░░░░░] 47%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 6min
-- Total execution time: 48min
+- Total execution time: 53min
 
 **By Phase:**
 
-| Phase             | Plans | Total | Avg/Plan |
-| ----------------- | ----- | ----- | -------- |
-| 1. Slug Migration | 2/2   | 14min | 7min     |
-| 2. SEO Foundation | 6/6   | 34min | 6min     |
+| Phase                   | Plans | Total | Avg/Plan |
+| ----------------------- | ----- | ----- | -------- |
+| 1. Slug Migration       | 2/2   | 14min | 7min     |
+| 2. SEO Foundation       | 6/6   | 34min | 6min     |
+| 3. Email Infrastructure | 1/4   | 5min  | 5min     |
 
 **Recent Trend:**
 
-- Last 5 plans: 7min, 4min, 8min, 5min, 1min
-- Trend: stable (gap closure plan was minimal)
+- Last 5 plans: 4min, 8min, 5min, 1min, 5min
+- Trend: stable
 
 _Updated after each plan completion_
 
@@ -89,6 +90,10 @@ Recent decisions affecting current work:
 - [02-05]: JSON-LD rendered as separate script tags (ItemList + BreadcrumbList) per Google recommendation
 - [02-05]: All public routes verified anonymous-accessible -- no auth walls block crawlers
 - [02-06]: Used home-garden.png as generic OG fallback for county pages since they are not category-specific
+- [03-01]: Raw fetch() to Resend REST API instead of SDK -- matches existing cron worker Supabase REST pattern, zero new dependencies
+- [03-01]: Inline CSS in email templates for maximum email client compatibility
+- [03-01]: EmailEnv type decoupled from cron worker Env -- avoids coupling email modules to full worker type
+- [03-01]: Template builder functions return inner HTML; callers wrap with renderEmail() for composability
 
 ### Pending Todos
 
@@ -97,12 +102,12 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- [Research flag] React Email server-side rendering in SvelteKit server routes is MEDIUM confidence -- verify with a spike before building all Phase 3 templates. Fallback: call Resend REST API directly via fetch() from the cron Worker.
-- [Research flag] Saved search alert matching at scale needs schema design attention in Phase 4 -- index on `category` and `county` columns of `saved_searches` table; do not do a full-table scan per new listing.
+- [RESOLVED] React Email spike not needed -- pure TS string templates with renderEmail() confirmed working in 03-01.
+- [Research flag] Saved search alert matching at scale needs schema design attention in Phase 4 -- index on `category` and `county` columns of `saved_searches` table already created; do not do a full-table scan per new listing.
 - [Pre-launch gate] Supabase Pro upgrade ($25/mo) must happen before Phase 5 content seeding -- free tier database pauses after 1 week inactivity.
 
 ## Session Continuity
 
-Last session: 2026-03-12T21:48:19.917Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-email-infrastructure/03-CONTEXT.md
+Last session: 2026-03-13T11:58:23Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: .planning/phases/03-email-infrastructure/03-01-SUMMARY.md
