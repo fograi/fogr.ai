@@ -124,16 +124,16 @@ Plans:
 5. The location picker includes Northern Ireland counties and localities — ads can be posted to and filtered by NI locations
 6. A seller can mark their ad as "Sold" with an optional final sale price — sold ads display a "Sold" badge and create price signal data
 
-**Plans**: TBD
+**Plans:** 6 plans
 
 Plans:
 
-- [ ] 04-01: Watchlist — `watchlist` Supabase table, save/unsave ad UI, watchlist management page
-- [ ] 04-02: Saved searches — `saved_searches` Supabase table, search save UI with filters, manage/delete saved searches page
-- [ ] 04-03: Saved search email alerts — cron job for alert matching and Resend dispatch, opt-in model, GDPR unsubscribe compliance distinct from transactional
-- [ ] 04-04: Posted timestamps — add "X days ago" display to all listing cards and ad view pages
-- [ ] 04-05: Northern Ireland locations — add NI provinces, counties, and localities to location hierarchy; update location picker UI
-- [ ] 04-06: Mark as sold — sold status with optional sale price, "Sold" badge on listing cards and ad pages
+- [ ] 04-01-PLAN.md — DB migrations (watchlist table, sale_price column) + shared utilities (relative-time, NI currency mapping, type updates)
+- [ ] 04-02-PLAN.md — Timestamps and sold badges on AdCard/AdCardWide + 7-day sold visibility window in browse queries
+- [ ] 04-03-PLAN.md — Watchlist feature: save/unsave API, ad page save button, watchlist page with AdCard grid, navbar link
+- [ ] 04-04-PLAN.md — Saved search creation UI + management page: "Save this search" on browse pages, CRUD API, management under account area
+- [ ] 04-05-PLAN.md — Mark as Sold with sale price prompt + GBP currency selector on post form with NI county detection
+- [ ] 04-06-PLAN.md — Fix cron worker saved search JSONB matching for email alerts (critical bug: county/locality queries wrong columns)
 
 ---
 
@@ -206,11 +206,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Slug Migration                  | 2/2            | Complete (pending verification) | 2026-03-11 |
 | 2. SEO Foundation                  | 6/6            | Complete                        | 2026-03-12 |
 | 3. Email Infrastructure            | 4/4            | Complete                        | 2026-03-13 |
-| 4. Engagement and Retention        | 0/6            | Not started                     | -          |
+| 4. Engagement and Retention        | 0/6            | Planned                         | -          |
 | 5. Launch Hardening                | 0/6            | Not started                     | -          |
 | 6. Infrastructure and Cost Control | 0/5            | Not started                     | -          |
 
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-13 -- Phase 3 complete (email infrastructure)_
+_Last updated: 2026-03-13 -- Phase 4 planned (6 plans in 4 waves)_
