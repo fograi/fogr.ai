@@ -186,6 +186,7 @@ export type Database = {
 					min_offer: number | null;
 					auto_decline_message: string | null;
 					price: number | null;
+					sale_price: number | null;
 					slug: string | null;
 					short_id: string | null;
 					status: string;
@@ -211,6 +212,7 @@ export type Database = {
 					min_offer?: number | null;
 					auto_decline_message?: string | null;
 					price?: number | null;
+					sale_price?: number | null;
 					slug?: string | null;
 					short_id?: string | null;
 					status?: string;
@@ -236,6 +238,7 @@ export type Database = {
 					min_offer?: number | null;
 					auto_decline_message?: string | null;
 					price?: number | null;
+					sale_price?: number | null;
 					slug?: string | null;
 					short_id?: string | null;
 					status?: string;
@@ -377,6 +380,27 @@ export type Database = {
 					count?: number;
 					created_at?: string;
 					updated_at?: string;
+				};
+				Relationships: [];
+			};
+			watchlist: {
+				Row: {
+					id: string;
+					user_id: string;
+					ad_id: string;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					user_id: string;
+					ad_id: string;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					user_id?: string;
+					ad_id?: string;
+					created_at?: string;
 				};
 				Relationships: [];
 			};

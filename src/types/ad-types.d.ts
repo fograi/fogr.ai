@@ -14,6 +14,8 @@ export interface AdCard {
 	firmPrice?: boolean;
 	minOffer?: number | null;
 	slug?: string;
+	createdAt?: string;
+	salePrice?: number | null;
 }
 
 export type ModerationAction = {
@@ -46,4 +48,5 @@ export type ApiAdRow = {
 	updated_at: string | null;
 	slug?: string;
 	short_id?: string;
+	sale_price?: number | null;
 };
