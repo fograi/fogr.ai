@@ -1,3 +1,5 @@
+import { escapeHtml, renderEmail } from './email/templates';
+
 const SUPPORT_EMAIL = 'eolas@fogr.ai';
 const DEFAULT_BASE_URL = 'https://fogr.ai';
 
@@ -35,56 +37,54 @@ const buildAdUrl = (id: string, baseUrl: string) => `${baseUrl.replace(/\/$/, ''
 export const buildTakedownEmail = (ctx: ModerationEmailContext): EmailTemplate => {
 	const baseUrl = ctx.baseUrl ?? DEFAULT_BASE_URL;
 	const adUrl = buildAdUrl(ctx.adSlug ?? ctx.adId, baseUrl);
-	const reasonCategory = ctx.reasonCategory ?? 'Unspecified';
-	const reasonDetails = ctx.reasonDetails ?? 'No additional details provided.';
-	const legalBasis = ctx.legalBasis ? `Legal or policy basis: ${ctx.legalBasis}` : '';
-	const reportLine = ctx.reportId ? `Report reference: ${ctx.reportId}` : '';
+	const reasonCategory = escapeHtml(ctx.reasonCategory ?? 'Unspecified');
+	const reasonDetails = escapeHtml(ctx.reasonDetails ?? 'No additional details provided.');
+	const legalBasis = ctx.legalBasis
+		? `<p><strong>Legal or policy basis:</strong> ${escapeHtml(ctx.legalBasis)}</p>`
+		: '';
+	const reportLine = ctx.reportId
+		? `<p><strong>Report reference:</strong> ${escapeHtml(ctx.reportId)}</p>`
+		: '';
+
+	const subject = 'Your fogr.ai listing was removed';
+	const bodyHtml = `<p>Hello,</p>
+    <p>We removed your listing on fogr.ai (ID: ${escapeHtml(ctx.adId)}).</p>
+    <p><strong>Decision:</strong> ${escapeHtml(ctx.decision)}.</p>
+    <p><strong>Reason category:</strong> ${reasonCategory}.</p>
+    <p><strong>Statement of reasons:</strong> ${reasonDetails}</p>
+    ${legalBasis}
+    ${reportLine}
+    <p>If you believe this decision is incorrect, you can appeal by signing in and opening your ad: <a href="${escapeHtml(adUrl)}">${escapeHtml(adUrl)}</a></p>
+    <p>Questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>`;
 
 	return {
-		subject: 'Your fogr.ai listing was removed',
-		body: [
-			'Hello,',
-			'',
-			`We removed your listing on fogr.ai (ID: ${ctx.adId}).`,
-			`Decision: ${ctx.decision}.`,
-			`Reason category: ${reasonCategory}.`,
-			`Statement of reasons: ${reasonDetails}`,
-			legalBasis,
-			reportLine,
-			'',
-			`If you believe this decision is incorrect, you can appeal by signing in and opening your ad: ${adUrl}`,
-			'',
-			`Questions? Contact us at ${SUPPORT_EMAIL}.`
-		]
-			.filter(Boolean)
-			.join('\n')
+		subject,
+		body: renderEmail(subject, bodyHtml)
 	};
 };
 
 export const buildStatementOfReasonsEmail = (ctx: ModerationEmailContext): EmailTemplate => {
 	const baseUrl = ctx.baseUrl ?? DEFAULT_BASE_URL;
 	const adUrl = buildAdUrl(ctx.adSlug ?? ctx.adId, baseUrl);
-	const reasonCategory = ctx.reasonCategory ?? 'Unspecified';
-	const reasonDetails = ctx.reasonDetails ?? 'No additional details provided.';
-	const legalBasis = ctx.legalBasis ? `Legal or policy basis: ${ctx.legalBasis}` : '';
+	const reasonCategory = escapeHtml(ctx.reasonCategory ?? 'Unspecified');
+	const reasonDetails = escapeHtml(ctx.reasonDetails ?? 'No additional details provided.');
+	const legalBasis = ctx.legalBasis
+		? `<p><strong>Legal or policy basis:</strong> ${escapeHtml(ctx.legalBasis)}</p>`
+		: '';
+
+	const subject = 'Statement of reasons for your fogr.ai listing';
+	const bodyHtml = `<p>Hello,</p>
+    <p>This message provides the statement of reasons for a moderation decision on your listing (ID: ${escapeHtml(ctx.adId)}).</p>
+    <p><strong>Decision:</strong> ${escapeHtml(ctx.decision)}.</p>
+    <p><strong>Reason category:</strong> ${reasonCategory}.</p>
+    <p><strong>Facts and circumstances:</strong> ${reasonDetails}</p>
+    ${legalBasis}
+    <p>You can review the decision in your account here: <a href="${escapeHtml(adUrl)}">${escapeHtml(adUrl)}</a></p>
+    <p>Questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>`;
 
 	return {
-		subject: 'Statement of reasons for your fogr.ai listing',
-		body: [
-			'Hello,',
-			'',
-			`This message provides the statement of reasons for a moderation decision on your listing (ID: ${ctx.adId}).`,
-			`Decision: ${ctx.decision}.`,
-			`Reason category: ${reasonCategory}.`,
-			`Facts and circumstances: ${reasonDetails}`,
-			legalBasis,
-			'',
-			`You can review the decision in your account here: ${adUrl}`,
-			'',
-			`Questions? Contact us at ${SUPPORT_EMAIL}.`
-		]
-			.filter(Boolean)
-			.join('\n')
+		subject,
+		body: renderEmail(subject, bodyHtml)
 	};
 };
 
@@ -92,22 +92,20 @@ export const buildAppealOutcomeEmail = (ctx: AppealOutcomeContext): EmailTemplat
 	const baseUrl = ctx.baseUrl ?? DEFAULT_BASE_URL;
 	const adUrl = buildAdUrl(ctx.adSlug ?? ctx.adId, baseUrl);
 	const outcomeLabel = ctx.outcome === 'resolved' ? 'resolved' : 'dismissed';
-	const appealLine = ctx.appealId ? `Appeal reference: ${ctx.appealId}` : '';
+	const appealLine = ctx.appealId
+		? `<p><strong>Appeal reference:</strong> ${escapeHtml(ctx.appealId)}</p>`
+		: '';
+
+	const subject = `Your fogr.ai appeal has been ${outcomeLabel}`;
+	const bodyHtml = `<p>Hello,</p>
+    <p>Your appeal for listing ${escapeHtml(ctx.adId)} has been ${outcomeLabel}.</p>
+    ${appealLine}
+    <p>You can review the latest decision in your account: <a href="${escapeHtml(adUrl)}">${escapeHtml(adUrl)}</a></p>
+    <p>Questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>`;
 
 	return {
-		subject: `Your fogr.ai appeal has been ${outcomeLabel}`,
-		body: [
-			'Hello,',
-			'',
-			`Your appeal for listing ${ctx.adId} has been ${outcomeLabel}.`,
-			appealLine,
-			'',
-			`You can review the latest decision in your account: ${adUrl}`,
-			'',
-			`Questions? Contact us at ${SUPPORT_EMAIL}.`
-		]
-			.filter(Boolean)
-			.join('\n')
+		subject,
+		body: renderEmail(subject, bodyHtml)
 	};
 };
 
@@ -116,9 +114,7 @@ export const buildModerationEmailPreviews = (
 ): ModerationEmailPreview => {
 	const statement = buildStatementOfReasonsEmail(ctx);
 	const takedown =
-		ctx.decision === 'reject' || ctx.decision === 'expire'
-			? buildTakedownEmail(ctx)
-			: undefined;
+		ctx.decision === 'reject' || ctx.decision === 'expire' ? buildTakedownEmail(ctx) : undefined;
 
 	return { statement, takedown };
 };
