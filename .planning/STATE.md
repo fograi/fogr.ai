@@ -94,6 +94,9 @@ Recent decisions affecting current work:
 - [03-01]: Inline CSS in email templates for maximum email client compatibility
 - [03-01]: EmailEnv type decoupled from cron worker Env -- avoids coupling email modules to full worker type
 - [03-01]: Template builder functions return inner HTML; callers wrap with renderEmail() for composability
+- [03-02]: PlatformEnv type cast pattern for Cloudflare Worker secrets -- matches existing admin route convention
+- [03-02]: Fail-open on suppressEmail in unsubscribe API: return 200 even if DB write fails
+- [03-02]: resolve() from $app/paths instead of deprecated resolveRoute() for type-safe navigation links
 - [03-03]: Email sends placed AFTER status updates -- ad status never blocked by email failure
 - [03-03]: Rejection emails skip preference check and omit unsubscribe (DSA Article 17 compliance)
 - [03-03]: Messages API email uses platform.ctx.waitUntil() for non-blocking delivery
@@ -112,6 +115,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-13T12:09:26Z
-Stopped at: Completed 03-03-PLAN.md
-Resume file: .planning/phases/03-email-infrastructure/03-03-SUMMARY.md
+Last session: 2026-03-13T12:12:12Z
+Stopped at: Completed 03-02-PLAN.md (parallel with 03-03)
+Resume file: .planning/phases/03-email-infrastructure/03-02-SUMMARY.md

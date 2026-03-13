@@ -101,7 +101,7 @@ Plans:
 Plans:
 
 - [x] 03-01-PLAN.md — DB migrations (email_preferences, saved_searches) + email core utilities (send, templates, unsubscribe tokens, preferences)
-- [ ] 03-02-PLAN.md — Unsubscribe flow (RFC 8058 API endpoint + browser confirmation page with re-subscribe)
+- [x] 03-02-PLAN.md — Unsubscribe flow (RFC 8058 API endpoint + browser confirmation page with re-subscribe)
 - [x] 03-03-PLAN.md — Wire email sending into cron worker (approve/reject) + messages API (new message notification)
 - [ ] 03-04-PLAN.md — Saved search daily digest cron dispatch (08:00 UTC, top 3 listings, preference-aware)
 
