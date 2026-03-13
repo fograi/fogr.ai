@@ -10,7 +10,8 @@ import type { EmailEnv } from './lib/server/email/send';
 import {
 	renderEmail,
 	buildAdApprovedEmailHtml,
-	buildAdRejectedEmailHtml
+	buildAdRejectedEmailHtml,
+	buildSearchAlertEmailHtml
 } from './lib/server/email/templates';
 import { generateUnsubscribeToken, buildUnsubscribeHeaders } from './lib/server/email/unsubscribe';
 import { isEmailSuppressed } from './lib/server/email/preferences';
@@ -32,6 +33,25 @@ type PendingAd = {
 	image_keys: string[] | null;
 	user_id: string;
 	slug?: string;
+};
+
+type SavedSearch = {
+	id: string;
+	user_id: string;
+	name: string | null;
+	category: string | null;
+	county: string | null;
+	locality: string | null;
+	query: string | null;
+	last_notified_at: string;
+};
+
+type MatchingAd = {
+	id: string;
+	title: string;
+	price: number | null;
+	currency: string | null;
+	slug: string | null;
 };
 
 type ModerationDecision = 'allow' | 'flagged' | 'unavailable';
@@ -304,6 +324,130 @@ async function sendRejectionEmail(env: Env, ad: PendingAd): Promise<void> {
 	});
 }
 
+// ----------------- Saved search digest helpers -----------------
+
+async function fetchNotifiableSearches(env: Env): Promise<SavedSearch[]> {
+	const url = new URL('/rest/v1/saved_searches', env.PUBLIC_SUPABASE_URL);
+	url.searchParams.set('select', 'id,user_id,name,category,county,locality,query,last_notified_at');
+	url.searchParams.set('notify', 'eq.true');
+	url.searchParams.set('limit', '100'); // Process up to 100 per tick to stay within CPU limits
+
+	const res = await fetch(url, { headers: supabaseHeaders(env) });
+	if (!res.ok) {
+		console.error('cron_saved_search_fetch_failed', await res.text());
+		return [];
+	}
+	return (await res.json()) as SavedSearch[];
+}
+
+async function findMatchingAds(env: Env, search: SavedSearch): Promise<MatchingAd[]> {
+	const url = new URL('/rest/v1/ads', env.PUBLIC_SUPABASE_URL);
+	url.searchParams.set('select', 'id,title,price,currency,slug');
+	url.searchParams.set('status', 'eq.active');
+	url.searchParams.set('created_at', `gt.${search.last_notified_at}`);
+	url.searchParams.set('order', 'created_at.desc');
+	url.searchParams.set('limit', '20'); // Fetch more than needed to get accurate count
+
+	// Apply filters based on saved search criteria
+	if (search.category) url.searchParams.set('category', `eq.${search.category}`);
+	if (search.county) url.searchParams.set('county', `eq.${search.county}`);
+	if (search.locality) url.searchParams.set('locality', `eq.${search.locality}`);
+
+	const res = await fetch(url, { headers: supabaseHeaders(env) });
+	if (!res.ok) return [];
+	return (await res.json()) as MatchingAd[];
+}
+
+async function runSavedSearchDigest(env: Env): Promise<void> {
+	if (!env.RESEND_API_KEY) return; // Email not configured
+
+	const searches = await fetchNotifiableSearches(env);
+	if (searches.length === 0) return;
+
+	const emailEnv = buildEmailEnv(env);
+	let sentCount = 0;
+
+	for (const search of searches) {
+		const matches = await findMatchingAds(env, search);
+		if (matches.length === 0) continue;
+
+		// Check if user has suppressed search alerts
+		const suppressed = await isEmailSuppressed(emailEnv, search.user_id, 'search_alerts');
+		if (suppressed) continue;
+
+		// Look up user email
+		const userEmail = await getUserEmail(env, search.user_id);
+		if (!userEmail) continue;
+
+		// Build top 3 listings for the email
+		const topListings = matches.slice(0, 3).map((ad) => ({
+			title: ad.title,
+			price:
+				ad.price !== null
+					? new Intl.NumberFormat('en-IE', {
+							style: 'currency',
+							currency: ad.currency ?? 'EUR',
+							maximumFractionDigits: 0
+						}).format(ad.price)
+					: 'Price on application',
+			url: `https://fogr.ai/ad/${ad.slug ?? ad.id}`
+		}));
+
+		// Build "View all" URL based on search criteria
+		const searchParams = new URLSearchParams();
+		if (search.category) searchParams.set('category', search.category);
+		if (search.county) searchParams.set('county', search.county);
+		if (search.query) searchParams.set('q', search.query);
+		const viewAllUrl = `https://fogr.ai/?${searchParams.toString()}`;
+
+		const searchName =
+			(search.name ?? [search.category, search.county].filter(Boolean).join(' in ')) ||
+			'your saved search';
+
+		// Generate unsubscribe token and URL
+		const token = await generateUnsubscribeToken(
+			env.UNSUBSCRIBE_SECRET ?? '',
+			search.user_id,
+			'search_alerts'
+		);
+		const unsubUrl = `https://fogr.ai/api/unsubscribe?token=${encodeURIComponent(token)}&type=search_alerts`;
+
+		const bodyHtml = buildSearchAlertEmailHtml({
+			searchName,
+			matchCount: matches.length,
+			topListings,
+			viewAllUrl,
+			unsubscribeUrl: unsubUrl
+		});
+		const html = renderEmail(
+			`${matches.length} new listing${matches.length === 1 ? '' : 's'} matching ${searchName}`,
+			bodyHtml
+		);
+
+		await sendEmail(emailEnv, {
+			to: userEmail,
+			subject: `${matches.length} new listing${matches.length === 1 ? '' : 's'} matching ${searchName}`,
+			html,
+			headers: buildUnsubscribeHeaders(unsubUrl)
+		});
+
+		// Update last_notified_at to now
+		const updateUrl = new URL('/rest/v1/saved_searches', env.PUBLIC_SUPABASE_URL);
+		updateUrl.searchParams.set('id', `eq.${search.id}`);
+		await fetch(updateUrl, {
+			method: 'PATCH',
+			headers: { ...supabaseHeaders(env), Prefer: 'return=minimal' },
+			body: JSON.stringify({ last_notified_at: new Date().toISOString() })
+		});
+
+		sentCount++;
+	}
+
+	if (sentCount > 0) {
+		console.log('cron_search_digest_sent', { count: sentCount });
+	}
+}
+
 async function retryPendingAds(env: Env): Promise<void> {
 	const publicBucket = env.ADS_BUCKET;
 	const pendingBucket = env.ADS_PENDING_BUCKET;
@@ -438,6 +582,7 @@ export default {
 					const utcDay = scheduledAt.getUTCDay(); // 0 = Sunday
 					const isDailyWindow = utcHour === 0 && utcMinute === 15;
 					const isWeeklyWindow = utcDay === 0 && utcHour === 0 && utcMinute === 30;
+					const isDigestWindow = utcHour === 8 && utcMinute === 0;
 
 					await expireActiveAds(env);
 					await retryPendingAds(env);
@@ -447,6 +592,9 @@ export default {
 					}
 					if (isWeeklyWindow) {
 						await runMetricsPurge(env);
+					}
+					if (isDigestWindow) {
+						await runSavedSearchDigest(env);
 					}
 				} catch (err) {
 					console.error('cron_error', err);
