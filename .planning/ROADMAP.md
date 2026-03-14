@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Email Infrastructure** - Integrate Resend transactional email with templates for all lifecycle events
 - [x] **Phase 4: Engagement and Retention** - Watchlist, saved searches, email alerts, Northern Ireland location support, and posted timestamps
 - [x] **Phase 5: Launch Hardening** - New-account moderation hold queue, mobile audit, commercial reseller detection, and content seeding
-- [ ] **Phase 6: Infrastructure and Cost Control** - Backups, monitoring, spending alerts, graceful degradation, and R2 redundancy
+- [x] **Phase 6: Infrastructure and Cost Control** - Backups, monitoring, spending alerts, graceful degradation, and R2 redundancy
 
 ## Phase Details
 
@@ -189,7 +189,7 @@ Plans:
 Plans:
 
 - [x] 06-01-PLAN.md — Health endpoint (/api/health) checking DB, cron heartbeat, and R2 + cron worker heartbeat KV write + wrangler.cron.jsonc KV binding
-- [ ] 06-02-PLAN.md — Ops documentation: backup/restore procedure, secrets inventory, cost alert setup checklist, monitoring setup, graceful degradation docs, R2 risk acceptance
+- [x] 06-02-PLAN.md — Ops documentation: backup/restore procedure, secrets inventory, cost alert setup checklist, monitoring setup, graceful degradation docs, R2 risk acceptance
 
 ---
 
@@ -205,9 +205,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Email Infrastructure            | 4/4            | Complete                        | 2026-03-13 |
 | 4. Engagement and Retention        | 6/6            | Complete                        | 2026-03-13 |
 | 5. Launch Hardening                | 6/6            | Complete                        | 2026-03-14 |
-| 6. Infrastructure and Cost Control | 1/2            | In progress                     | -          |
+| 6. Infrastructure and Cost Control | 2/2            | Complete                        | 2026-03-14 |
 
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-14 -- Phase 6 plan 1 complete (health endpoint + cron heartbeat)_
+_Last updated: 2026-03-14 -- Phase 6 complete (all 26 plans across 6 phases -- v1.0 milestone reached)_
