@@ -90,68 +90,70 @@ Deferred to future release. Tracked but not in current roadmap.
 
 Explicitly excluded. Documented to prevent scope creep.
 
-| Feature | Reason |
-|---------|--------|
-| Real-time chat / WebSocket messaging | Complex infra, high cost, async messaging sufficient for classifieds |
-| Native mobile app (iOS/Android) | Web-first, mobile-responsive covers 65% mobile users; app store overhead too high for solo operator |
-| Escrow / payment processing between buyers and sellers | PSD2/AML compliance burden; link to PayPal Goods & Services instead |
-| Vehicle history check integration | Requires commercial API agreements; link out to Cartell/HPI |
-| User ratings / feedback system | Highly gameable, requires moderation of the ratings themselves; defer to v2+ |
-| Display advertising (AdSense) | Contradicts "clean, no-clutter" brand; last resort only |
-| Forum / community features | Mission creep; boards.ie already exists |
-| Open API / external integrations | Complexity and spam vector; not needed for v1 |
-| Profile photo / identity upload for trust | GDPR implications; false security (easily faked) |
+| Feature                                                | Reason                                                                                              |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Real-time chat / WebSocket messaging                   | Complex infra, high cost, async messaging sufficient for classifieds                                |
+| Native mobile app (iOS/Android)                        | Web-first, mobile-responsive covers 65% mobile users; app store overhead too high for solo operator |
+| Escrow / payment processing between buyers and sellers | PSD2/AML compliance burden; link to PayPal Goods & Services instead                                 |
+| Vehicle history check integration                      | Requires commercial API agreements; link out to Cartell/HPI                                         |
+| User ratings / feedback system                         | Highly gameable, requires moderation of the ratings themselves; defer to v2+                        |
+| Display advertising (AdSense)                          | Contradicts "clean, no-clutter" brand; last resort only                                             |
+| Forum / community features                             | Mission creep; boards.ie already exists                                                             |
+| Open API / external integrations                       | Complexity and spam vector; not needed for v1                                                       |
+| Profile photo / identity upload for trust              | GDPR implications; false security (easily faked)                                                    |
 
 ## Traceability
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| SEO-01 | Phase 1 | Pending |
-| SEO-02 | Phase 2 | Pending |
-| SEO-03 | Phase 2 | Pending |
-| SEO-04 | Phase 2 | Pending |
-| SEO-05 | Phase 2 | Pending |
-| SEO-06 | Phase 2 | Pending |
-| SEO-07 | Phase 2 | Pending |
-| SEO-08 | Phase 2 | Pending |
-| SEO-09 | Phase 2 | Pending |
-| TRST-01 | Phase 4 | Pending |
-| TRST-02 | Phase 4 | Pending |
-| TRST-03 | Phase 2 | Pending |
-| TRST-04 | Phase 5 | Pending |
-| TRST-05 | Phase 2 | Pending |
-| TRST-06 | Phase 5 | Pending |
-| TRST-07 | Phase 5 | Pending |
-| ENGR-01 | Phase 4 | Pending |
-| ENGR-02 | Phase 4 | Pending |
-| ENGR-03 | Phase 4 | Pending |
-| ENGR-04 | Phase 4 | Pending |
-| ENGR-05 | Phase 4 | Pending |
-| ENGR-06 | Phase 4 | Pending |
-| ENGR-07 | Phase 4 | Pending |
-| EMAL-01 | Phase 3 | Pending |
-| EMAL-02 | Phase 3 | Pending |
-| EMAL-03 | Phase 3 | Pending |
-| EMAL-04 | Phase 3 | Pending |
-| EMAL-05 | Phase 3 | Pending |
-| EMAL-06 | Phase 3 | Pending |
-| LNCH-01 | Phase 5 | Pending |
-| LNCH-02 | Phase 5 | Pending |
-| LNCH-03 | Phase 5 | Pending |
-| LNCH-04 | Phase 5 | Pending |
-| INFR-01 | Phase 6 | Pending |
-| INFR-02 | Phase 6 | Pending |
-| INFR-03 | Phase 6 | Pending |
-| INFR-04 | Phase 6 | Pending |
-| INFR-05 | Phase 6 | Pending |
+| Requirement | Phase                          | Status  |
+| ----------- | ------------------------------ | ------- |
+| SEO-01      | Phase 1, Phase 7 (gap closure) | Pending |
+| SEO-02      | Phase 2                        | Pending |
+| SEO-03      | Phase 2                        | Pending |
+| SEO-04      | Phase 2                        | Pending |
+| SEO-05      | Phase 2                        | Pending |
+| SEO-06      | Phase 2                        | Pending |
+| SEO-07      | Phase 2                        | Pending |
+| SEO-08      | Phase 2                        | Pending |
+| SEO-09      | Phase 2                        | Pending |
+| TRST-01     | Phase 4                        | Pending |
+| TRST-02     | Phase 4                        | Pending |
+| TRST-03     | Phase 2                        | Pending |
+| TRST-04     | Phase 5                        | Pending |
+| TRST-05     | Phase 2                        | Pending |
+| TRST-06     | Phase 5                        | Pending |
+| TRST-07     | Phase 5                        | Pending |
+| ENGR-01     | Phase 4                        | Pending |
+| ENGR-02     | Phase 4                        | Pending |
+| ENGR-03     | Phase 4                        | Pending |
+| ENGR-04     | Phase 4                        | Pending |
+| ENGR-05     | Phase 4                        | Pending |
+| ENGR-06     | Phase 4                        | Pending |
+| ENGR-07     | Phase 4                        | Pending |
+| EMAL-01     | Phase 3                        | Pending |
+| EMAL-02     | Phase 3                        | Pending |
+| EMAL-03     | Phase 3                        | Pending |
+| EMAL-04     | Phase 3                        | Pending |
+| EMAL-05     | Phase 3                        | Pending |
+| EMAL-06     | Phase 3                        | Pending |
+| LNCH-01     | Phase 5                        | Pending |
+| LNCH-02     | Phase 5                        | Pending |
+| LNCH-03     | Phase 5                        | Pending |
+| LNCH-04     | Phase 5                        | Pending |
+| INFR-01     | Phase 6                        | Pending |
+| INFR-02     | Phase 6                        | Pending |
+| INFR-03     | Phase 6                        | Pending |
+| INFR-04     | Phase 6                        | Pending |
+| INFR-05     | Phase 6                        | Pending |
 
 **Coverage:**
+
 - v1 requirements: 38 total
 - Mapped to phases: 38
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after FB Marketplace research — 38 requirements mapped*
+
+_Requirements defined: 2026-03-11_
+_Last updated: 2026-03-11 after FB Marketplace research — 38 requirements mapped_

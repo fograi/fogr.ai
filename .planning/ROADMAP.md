@@ -19,6 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Engagement and Retention** - Watchlist, saved searches, email alerts, Northern Ireland location support, and posted timestamps
 - [x] **Phase 5: Launch Hardening** - New-account moderation hold queue, mobile audit, commercial reseller detection, and content seeding
 - [x] **Phase 6: Infrastructure and Cost Control** - Backups, monitoring, spending alerts, graceful degradation, and R2 redundancy
+- [ ] **Phase 7: Phase 01 Verification & Requirements Closure** - Verify Phase 01 slug migration, update all requirement checkboxes and traceability statuses
 
 ## Phase Details
 
@@ -193,21 +194,43 @@ Plans:
 
 ---
 
+### Phase 7: Phase 01 Verification & Requirements Closure
+
+**Goal**: Close the single remaining audit gap — formally verify Phase 01's slug migration and update all requirement documentation to reflect actual implementation status.
+
+**Depends on**: Phase 6 (all implementation phases complete)
+
+**Requirements**: SEO-01
+
+**Gap Closure:** Closes gaps from v1.0 milestone audit
+
+**Success Criteria** (what must be TRUE):
+
+1. Phase 01 has a VERIFICATION.md confirming all 5 success criteria are satisfied with code-level evidence
+2. SEO-01 is no longer orphaned — it appears as "satisfied" in the verification report
+3. All 38 REQUIREMENTS.md checkboxes show `[x]` matching their actual implementation status
+4. All 38 traceability table rows show `Satisfied` status
+
+**Plans:** TBD
+
+---
+
 ## Progress
 
 **Execution Order:**
 Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
-| Phase                              | Plans Complete | Status                          | Completed  |
-| ---------------------------------- | -------------- | ------------------------------- | ---------- |
-| 1. Slug Migration                  | 2/2            | Complete (pending verification) | 2026-03-11 |
-| 2. SEO Foundation                  | 6/6            | Complete                        | 2026-03-12 |
-| 3. Email Infrastructure            | 4/4            | Complete                        | 2026-03-13 |
-| 4. Engagement and Retention        | 6/6            | Complete                        | 2026-03-13 |
-| 5. Launch Hardening                | 6/6            | Complete                        | 2026-03-14 |
-| 6. Infrastructure and Cost Control | 2/2            | Complete                        | 2026-03-14 |
+| Phase                                  | Plans Complete | Status                          | Completed  |
+| -------------------------------------- | -------------- | ------------------------------- | ---------- |
+| 1. Slug Migration                      | 2/2            | Complete (pending verification) | 2026-03-11 |
+| 2. SEO Foundation                      | 6/6            | Complete                        | 2026-03-12 |
+| 3. Email Infrastructure                | 4/4            | Complete                        | 2026-03-13 |
+| 4. Engagement and Retention            | 6/6            | Complete                        | 2026-03-13 |
+| 5. Launch Hardening                    | 6/6            | Complete                        | 2026-03-14 |
+| 6. Infrastructure and Cost Control     | 2/2            | Complete                        | 2026-03-14 |
+| 7. Phase 01 Verification & Req Closure | 0/0            | Pending (gap closure)           | —          |
 
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-14 -- Phase 6 complete (all 26 plans across 6 phases -- v1.0 milestone reached)_
+_Last updated: 2026-03-14 -- Gap closure Phase 7 added from milestone audit_
