@@ -8,6 +8,7 @@
 	import type { OgData } from '$lib/seo/og';
 	import { formatFullDate } from '$lib/utils/relative-time';
 	import { formatMoney } from '$lib/utils/price';
+	import { QUICK_SAFETY_TIPS } from '$lib/safety-tips';
 	export let data: {
 		ad: AdCard;
 		moderation?: ModerationAction | null;
@@ -433,6 +434,21 @@
 			firmPrice={data.offerRules?.firmPrice ?? false}
 			on:flag={() => openPanel('report')}
 		/>
+	{/if}
+
+	{#if !data.isOwner && !data.isExpired}
+		<details class="safety-accordion">
+			<summary class="safety-summary">Stay Safe</summary>
+			<div class="safety-content">
+				<ul>
+					{#each QUICK_SAFETY_TIPS as tip (tip)}
+						<li>{tip}</li>
+					{/each}
+				</ul>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/safety" class="safety-link">Read our full safety guide</a>
+			</div>
+		</details>
 	{/if}
 
 	{#if data.isExpired && data.similarAds && data.similarAds.length > 0}
@@ -1063,5 +1079,45 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 		gap: 14px;
+	}
+	.safety-accordion {
+		max-width: 720px;
+		margin: 1.5rem auto 0;
+		border: 1px solid var(--hairline);
+		border-radius: 12px;
+		background: var(--surface);
+	}
+	.safety-summary {
+		padding: 12px 16px;
+		cursor: pointer;
+		font-weight: 700;
+		font-size: 0.9rem;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+		list-style: none;
+	}
+	.safety-summary::-webkit-details-marker {
+		display: none;
+	}
+	.safety-summary::marker {
+		display: none;
+	}
+	.safety-content {
+		padding: 0 16px 16px;
+	}
+	.safety-content ul {
+		margin: 0;
+		padding-left: 1.25rem;
+		display: grid;
+		gap: 6px;
+	}
+	.safety-content li {
+		color: color-mix(in srgb, var(--fg) 75%, transparent);
+		font-size: 0.92rem;
+		line-height: 1.4;
+	}
+	.safety-link {
+		display: inline-block;
+		margin-top: 10px;
+		font-size: 0.85rem;
 	}
 </style>

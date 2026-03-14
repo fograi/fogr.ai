@@ -67,6 +67,7 @@
 	let prevCountyId = '';
 	let locale = 'en-IE';
 	let ageConfirmed = data?.ageConfirmed ?? false;
+	let privateSeller = false;
 	let step = 1;
 	const totalSteps = 3;
 	let showErrors = false;
@@ -278,6 +279,7 @@
 
 	function validateFinal() {
 		if (!ageConfirmed) return 'Confirm you are 18 or older.';
+		if (!privateSeller) return 'Confirm this is a private sale.';
 		return '';
 	}
 
@@ -363,6 +365,7 @@
 			form.append('currency', currency);
 			form.append('locale', locale);
 			form.append('age_confirmed', ageConfirmed ? '1' : '0');
+			form.append('private_seller', privateSeller ? '1' : '0');
 			if (file) form.append('image', file);
 
 			const res = await fetch('/api/ads', { method: 'POST', body: form });
@@ -481,6 +484,10 @@
 	<header class="head">
 		<h1>Post an ad</h1>
 	</header>
+
+	<p class="private-seller-note">
+		Fogr.ai is for private sellers only. Commercial and trade listings are not permitted.
+	</p>
 
 	<ol class="steps" aria-label="Posting steps">
 		<li class:active={step === 1} class:done={step > 1}>
@@ -691,10 +698,22 @@
 						<p>{description || 'Your description will appear here.'}</p>
 					</div>
 				</div>
+				<div class="preview-safety">
+					<p class="preview-safety-title">Safety reminders</p>
+					<ul>
+						<li>Meet buyers in a public place</li>
+						<li>Cash on collection is safest</li>
+						<li>Never share sensitive personal details in your listing</li>
+					</ul>
+				</div>
 				<div class="preview-confirm">
 					<label class="checkbox">
 						<input type="checkbox" bind:checked={ageConfirmed} disabled={loading} />
 						<span>I am 18 or older.</span>
+					</label>
+					<label class="checkbox">
+						<input type="checkbox" bind:checked={privateSeller} disabled={loading} />
+						<span>This is a private sale -- I am not a trade or commercial seller.</span>
 					</label>
 				</div>
 			</div>
@@ -707,7 +726,12 @@
 				>
 					Edit
 				</button>
-				<button type="button" class="btn primary" on:click={handleSubmit} disabled={loading}>
+				<button
+					type="button"
+					class="btn primary"
+					on:click={handleSubmit}
+					disabled={loading || !ageConfirmed || !privateSeller}
+				>
 					Post ad
 				</button>
 			</footer>
@@ -730,6 +754,12 @@
 		margin: 0;
 		font-size: 1.7rem;
 		font-weight: 800;
+	}
+	.private-seller-note {
+		margin: 0 0 4px;
+		text-align: center;
+		font-size: 0.82rem;
+		color: color-mix(in srgb, var(--fg) 55%, transparent);
 	}
 
 	.steps {
@@ -922,9 +952,31 @@
 		font-weight: 700;
 		color: color-mix(in srgb, var(--fg) 70%, transparent);
 	}
+	.preview-safety {
+		padding: 12px 14px;
+		border: 1px solid var(--hairline);
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+	}
+	.preview-safety-title {
+		margin: 0 0 8px;
+		font-weight: 700;
+		font-size: 0.85rem;
+		color: color-mix(in srgb, var(--fg) 70%, transparent);
+	}
+	.preview-safety ul {
+		margin: 0;
+		padding-left: 1.25rem;
+		display: grid;
+		gap: 4px;
+	}
+	.preview-safety li {
+		font-size: 0.85rem;
+		color: color-mix(in srgb, var(--fg) 65%, transparent);
+		line-height: 1.4;
+	}
 	.preview-confirm {
-		display: flex;
-		align-items: center;
+		display: grid;
 		gap: 8px;
 		padding-top: 4px;
 	}
