@@ -26,6 +26,12 @@
 			"bucket_name": "fograi-pending" // <-- private bucket for pending ads
 		}
 	],
+	"kv_namespaces": [
+		{
+			"binding": "RATE_LIMIT",
+			"id": "cf5daa23362c48639599f07aa6afe7aa"
+		}
+	],
 	// Bindings (set via `wrangler secret put` or dashboard)
 	// "vars": {
 	//   "PUBLIC_SUPABASE_URL": "...",

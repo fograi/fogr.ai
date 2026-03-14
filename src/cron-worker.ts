@@ -1,5 +1,6 @@
 import type {
 	ExecutionContext,
+	KVNamespace,
 	R2Bucket,
 	R2ObjectBody,
 	ScheduledController
@@ -24,6 +25,7 @@ type Env = {
 	ADS_PENDING_BUCKET?: R2Bucket;
 	RESEND_API_KEY?: string;
 	UNSUBSCRIBE_SECRET?: string;
+	RATE_LIMIT?: KVNamespace;
 };
 
 type PendingAd = {
@@ -601,6 +603,18 @@ export default {
 					}
 					if (isDigestWindow) {
 						await runSavedSearchDigest(env);
+					}
+
+					// Write heartbeat timestamp for /api/health staleness check
+					if (env.RATE_LIMIT) {
+						try {
+							await env.RATE_LIMIT.put('cron:heartbeat', new Date().toISOString(), {
+								expirationTtl: 3600 // auto-expire after 1 hour (safety net)
+							});
+							console.log('cron_heartbeat_written');
+						} catch (err) {
+							console.error('cron_heartbeat_failed', err);
+						}
 					}
 				} catch (err) {
 					console.error('cron_error', err);
