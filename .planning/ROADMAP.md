@@ -161,7 +161,7 @@ Plans:
 
 - [x] 05-01-PLAN.md — Backend hardening: new-account noindex enforcement, reseller detection heuristics, private-seller validation in POST handler
 - [ ] 05-02-PLAN.md — Safety and trust UI: safety tips module, /safety page, accordion on ad view, safety checklist + private-seller elements in post form
-- [ ] 05-03-PLAN.md — Trust content pages: homepage hero copy, about page rewrite with brand story, footer trust messaging + safety link
+- [x] 05-03-PLAN.md — Trust content pages: homepage hero copy, about page rewrite with brand story, footer trust messaging + safety link
 - [x] 05-04-PLAN.md — Content seeding: seed script with ~192 locally-flavoured bicycle listings across all 32 counties
 - [ ] 05-05-PLAN.md — Mobile audit at 375px viewport + production cost review checkpoint
 
@@ -206,10 +206,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. SEO Foundation                  | 6/6            | Complete                        | 2026-03-12 |
 | 3. Email Infrastructure            | 4/4            | Complete                        | 2026-03-13 |
 | 4. Engagement and Retention        | 6/6            | Complete                        | 2026-03-13 |
-| 5. Launch Hardening                | 1/5            | In Progress                     | -          |
+| 5. Launch Hardening                | 3/5            | In Progress                     | -          |
 | 6. Infrastructure and Cost Control | 0/5            | Not started                     | -          |
 
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-14 -- Phase 5 plan 01 complete (backend launch hardening)_
+_Last updated: 2026-03-14 -- Phase 5 plan 03 complete (trust messaging)_
