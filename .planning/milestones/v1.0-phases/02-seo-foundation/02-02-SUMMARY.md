@@ -21,7 +21,11 @@ affects: [02-03-sitemap, 02-04-expired-ads, 02-05-robots-txt]
 # Tech tracking
 tech-stack:
   added: [slugify (county slug generation, already installed)]
-  patterns: [SvelteKit param matchers for flat URL routing, programmatic SEO page pattern with noindex gating]
+  patterns:
+    [
+      SvelteKit param matchers for flat URL routing,
+      programmatic SEO page pattern with noindex gating
+    ]
 
 key-files:
   created:
@@ -37,15 +41,15 @@ key-files:
   modified: []
 
 key-decisions:
-  - "Flat URL structure with param matchers: /bikes, /dublin, /bikes/dublin -- no /category/ prefix"
-  - "County slug lookup utility placed in src/lib/seo/county-slugs.ts for reuse by sitemap and expired ads"
-  - "noindex threshold set to 3 listings (per user decision in CONTEXT.md)"
-  - "Three separate page components instead of shared component -- clarity over DRY for 3 small files"
+  - 'Flat URL structure with param matchers: /bikes, /dublin, /bikes/dublin -- no /category/ prefix'
+  - 'County slug lookup utility placed in src/lib/seo/county-slugs.ts for reuse by sitemap and expired ads'
+  - 'noindex threshold set to 3 listings (per user decision in CONTEXT.md)'
+  - 'Three separate page components instead of shared component -- clarity over DRY for 3 small files'
 
 patterns-established:
-  - "Programmatic SEO page pattern: server load fetches /api/ads with filters, computes listing count + price range, builds SEO object with title/description/canonical/robots"
-  - "Param matcher pattern: validate param against pre-built Set at module load time for zero-cost routing"
-  - "County slug utility pattern: countySlugToOption() returns { id, name, slug } for server loads"
+  - 'Programmatic SEO page pattern: server load fetches /api/ads with filters, computes listing count + price range, builds SEO object with title/description/canonical/robots'
+  - 'Param matcher pattern: validate param against pre-built Set at module load time for zero-cost routing'
+  - 'County slug utility pattern: countySlugToOption() returns { id, name, slug } for server loads'
 
 # Metrics
 duration: 7min
@@ -65,7 +69,8 @@ completed: 2026-03-12
 - **Files created:** 9
 
 ## Accomplishments
-- SvelteKit param matchers validate category and county slugs at routing level, preventing collision with static routes (about, login, privacy, terms, ad/*)
+
+- SvelteKit param matchers validate category and county slugs at routing level, preventing collision with static routes (about, login, privacy, terms, ad/\*)
 - Three programmatic page types target transactional search queries ("second hand bikes for sale dublin")
 - All pages include title, meta description, canonical URL, OG tags, Twitter Card tags, and conditional noindex
 - Shared county-slugs utility ready for sitemap generation (Plan 03) and expired ad similar listings (Plan 04)
@@ -78,6 +83,7 @@ Each task was committed atomically:
 2. **Task 2: Create programmatic SEO page routes** - `8480bc7` (feat)
 
 ## Files Created/Modified
+
 - `src/params/category.ts` - Param matcher validating category slugs via slugToCategory()
 - `src/params/county.ts` - Param matcher validating county slugs via pre-built Set from location hierarchy
 - `src/lib/seo/county-slugs.ts` - County slug lookup utility: countySlugToOption(), countyIdToSlug(), getAllCountySlugs()
@@ -89,6 +95,7 @@ Each task was committed atomically:
 - `src/routes/(public)/[category=category]/[county=county]/+page.svelte` - Category+county page with linked filter chips
 
 ## Decisions Made
+
 - Used flat URL structure with param matchers (/bikes, /dublin, /bikes/dublin) -- no /category/ prefix, matching user decision
 - noindex threshold is 3 listings (matching CONTEXT.md decision, lower than roadmap's suggested 5 for early growth)
 - Three separate page components instead of a shared component -- each is under 130 lines, clarity wins over DRY
@@ -100,6 +107,7 @@ Each task was committed atomically:
 None - plan executed exactly as written.
 
 ## Issues Encountered
+
 - Pre-existing type errors in test spec files (home-page.server.spec.ts, page.svelte.spec.ts, ad/[slug]/+page.server.ts) unrelated to this plan -- did not affect build or new code
 
 ## User Setup Required
@@ -107,6 +115,7 @@ None - plan executed exactly as written.
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - Programmatic pages are live and ready for sitemap inclusion (Plan 03)
 - County slug utility (countySlugToOption, getAllCountySlugs) exported and ready for Plan 03 sitemap generation
 - Expired ad pages (Plan 04) can use the same county-slugs utility for similar listings lookup
@@ -120,5 +129,6 @@ None - no external service configuration required.
 - `npx svelte-check` confirmed no type errors in new files
 
 ---
-*Phase: 02-seo-foundation*
-*Completed: 2026-03-12*
+
+_Phase: 02-seo-foundation_
+_Completed: 2026-03-12_

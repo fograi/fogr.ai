@@ -6,14 +6,14 @@ tags: [slug-routing, 301-redirect, canonical-url, seo, sveltekit-redirect]
 
 # Dependency graph
 requires:
-  - "01-01: slug and short_id columns, generateAdSlug(), parseSlugShortId(), isUuidParam()"
+  - '01-01: slug and short_id columns, generateAdSlug(), parseSlugShortId(), isUuidParam()'
 provides:
-  - "Ad page loads by short_id extracted from slug URL"
-  - "UUID URLs 301-redirect to canonical slug URL"
-  - "Non-canonical slug URLs 301-redirect to canonical slug"
-  - "All ad link references across 13 files use slug URLs"
-  - "AdCard component accepts slug prop for link generation"
-  - "Moderation emails accept optional adSlug for URL generation"
+  - 'Ad page loads by short_id extracted from slug URL'
+  - 'UUID URLs 301-redirect to canonical slug URL'
+  - 'Non-canonical slug URLs 301-redirect to canonical slug'
+  - 'All ad link references across 13 files use slug URLs'
+  - 'AdCard component accepts slug prop for link generation'
+  - 'Moderation emails accept optional adSlug for URL generation'
 affects: [02-SEO-Foundation]
 
 # Tech tracking
@@ -39,13 +39,13 @@ key-files:
     - src/routes/+page.server.ts
 
 key-decisions:
-  - "Ad page queries Supabase directly by short_id instead of calling internal API -- avoids modifying UUID-based cache keys"
-  - "Admin appeals and messages pages keep UUID links with 301 redirect fallback -- avoids touching data pipelines for low-traffic admin pages"
-  - "Homepage and category page mappers also include slug in AdCard data -- discovered as Rule 2 deviation"
+  - 'Ad page queries Supabase directly by short_id instead of calling internal API -- avoids modifying UUID-based cache keys'
+  - 'Admin appeals and messages pages keep UUID links with 301 redirect fallback -- avoids touching data pipelines for low-traffic admin pages'
+  - 'Homepage and category page mappers also include slug in AdCard data -- discovered as Rule 2 deviation'
 
 patterns-established:
-  - "Three-case redirect pattern: UUID -> slug lookup -> 301, non-canonical -> 301, canonical -> render"
-  - "Graceful slug fallback: all slug references use (slug ?? id) to handle ads without slugs during transition"
+  - 'Three-case redirect pattern: UUID -> slug lookup -> 301, non-canonical -> 301, canonical -> render'
+  - 'Graceful slug fallback: all slug references use (slug ?? id) to handle ads without slugs during transition'
 
 # Metrics
 duration: 5min
@@ -65,6 +65,7 @@ completed: 2026-03-11
 - **Files modified:** 13
 
 ## Accomplishments
+
 - Ad page load function rewritten to resolve ads by short_id from slug, with three-case redirect logic (UUID, non-canonical, canonical)
 - All ad link integration points across 13 files updated to use slug URLs with graceful fallback to UUID
 - 121 unit tests pass, svelte-check clean (no new type errors introduced)
@@ -77,6 +78,7 @@ Each task was committed atomically:
 2. **Task 2: Update all ad link references across the codebase** - `1d6de96` (feat)
 
 ## Files Created/Modified
+
 - `src/routes/(public)/ad/[slug]/+page.server.ts` - Rewritten: direct Supabase query by short_id, UUID redirect, canonical redirect, owner access check
 - `src/routes/api/ads/[id]/+server.ts` - GET adds slug/short_id to select; PATCH loads slug, returns it in response
 - `src/lib/components/AdCard.svelte` - New slug prop, href uses slug with id fallback
@@ -92,6 +94,7 @@ Each task was committed atomically:
 - `src/routes/+page.server.ts` - Homepage passes slug through to AdCard
 
 ## Decisions Made
+
 - Ad page queries Supabase directly by short_id instead of calling the internal API endpoint -- avoids the need to modify UUID-based Cloudflare edge cache keys
 - Admin appeals and messages pages keep UUID links with 301 redirect fallback -- avoids touching the conversations and appeals data pipelines for low-traffic admin pages
 - Auth check deferred until needed: public active ads skip the getUser() call entirely, improving page load for the common case
@@ -101,6 +104,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 2 - Missing Critical] Homepage AdCard mapper missing slug**
+
 - **Found during:** Task 2
 - **Issue:** The plan listed 10 integration points but did not include the homepage (`src/routes/+page.server.ts`) which also maps API data to AdCard objects and renders AdCard components. Without slug in the mapper, homepage ad cards would still link to UUID URLs.
 - **Fix:** Added `slug: ad.slug ?? undefined` to the homepage's AdCard mapper, matching the category page pattern.
@@ -109,6 +113,7 @@ Each task was committed atomically:
 - **Committed in:** 1d6de96 (Task 2 commit)
 
 **2. [Rule 1 - Bug] Type cast for category/location profile data from Supabase**
+
 - **Found during:** Task 1 (svelte-check verification)
 - **Issue:** Direct Supabase query returns `Json | null` type for JSONB columns, which is not assignable to `Record<string, unknown> | null` without explicit cast. svelte-check reported type errors.
 - **Fix:** Added `as Record<string, unknown> | null` casts for category_profile_data and location_profile_data in the ad page mapper.
@@ -122,12 +127,15 @@ Each task was committed atomically:
 **Impact on plan:** Both auto-fixes necessary for correctness. No scope creep.
 
 ## Issues Encountered
+
 None beyond the deviations documented above.
 
 ## User Setup Required
+
 None - no external service configuration required. The backfill script (`scripts/backfill-slugs.ts`) must be run against the database before deployment (documented in Plan 01).
 
 ## Next Phase Readiness
+
 - Slug migration is functionally complete pending human verification (checkpoint)
 - Phase 1 satisfies all five success criteria from the roadmap:
   1. Visiting /ad/{slug} opens the correct ad
@@ -141,5 +149,6 @@ None - no external service configuration required. The backfill script (`scripts
 All 14 files verified present. Both task commits (75b479e, 1d6de96) verified in git log. 121 tests pass, svelte-check clean.
 
 ---
-*Phase: 01-slug-migration*
-*Completed: 2026-03-11*
+
+_Phase: 01-slug-migration_
+_Completed: 2026-03-11_

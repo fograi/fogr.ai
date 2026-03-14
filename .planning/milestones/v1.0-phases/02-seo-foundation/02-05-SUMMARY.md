@@ -7,13 +7,13 @@ tags: [json-ld, itemlist, breadcrumblist, structured-data, anonymous-access, sch
 # Dependency graph
 requires:
   - phase: 02-01
-    provides: "JSON-LD utility module (jsonld.ts) and SEO data pattern (seo object in server load)"
+    provides: 'JSON-LD utility module (jsonld.ts) and SEO data pattern (seo object in server load)'
   - phase: 02-02
-    provides: "Programmatic SEO page routes (category, county, category+county) with server loads"
+    provides: 'Programmatic SEO page routes (category, county, category+county) with server loads'
 provides:
-  - "ItemList JSON-LD on all programmatic pages listing ad URLs for Google rich snippets"
-  - "BreadcrumbList JSON-LD on all programmatic pages for navigation-path rich results"
-  - "Verified anonymous access across all public routes -- no auth gates block crawlers"
+  - 'ItemList JSON-LD on all programmatic pages listing ad URLs for Google rich snippets'
+  - 'BreadcrumbList JSON-LD on all programmatic pages for navigation-path rich results'
+  - 'Verified anonymous access across all public routes -- no auth gates block crawlers'
 affects: [03-engagement, 05-content-seeding]
 
 # Tech tracking
@@ -34,11 +34,11 @@ key-files:
 
 key-decisions:
   - "JSON-LD rendered as separate script tags (ItemList + BreadcrumbList) per Google's recommendation for multiple structured data types"
-  - "All public routes verified anonymous-accessible -- no auth walls found on any (public) route"
+  - 'All public routes verified anonymous-accessible -- no auth walls found on any (public) route'
 
 patterns-established:
-  - "JSON-LD array pattern: server load returns seo.jsonLd as array of objects, svelte:head iterates with #each"
-  - "Anonymous access audit pattern: verify getUser() is only called for optional owner features, never as an access gate"
+  - 'JSON-LD array pattern: server load returns seo.jsonLd as array of objects, svelte:head iterates with #each'
+  - 'Anonymous access audit pattern: verify getUser() is only called for optional owner features, never as an access gate'
 
 requirements-completed: [SEO-04, TRST-03]
 
@@ -60,6 +60,7 @@ completed: 2026-03-12
 - **Files modified:** 7
 
 ## Accomplishments
+
 - All three programmatic page types (category, county, category+county) now include ItemList JSON-LD listing ad URLs for Google rich snippet eligibility
 - BreadcrumbList JSON-LD added with correct navigation paths: Home > Category (2-level), Home > County (2-level), Home > Category > County (3-level)
 - Complete anonymous access audit of all public routes confirmed zero auth gates -- crawlers can access all public content without login
@@ -72,6 +73,7 @@ Each task was committed atomically:
 2. **Task 2: Audit and verify anonymous public access** - No commit (verification-only audit, no code changes needed)
 
 ## Files Created/Modified
+
 - `src/lib/seo/jsonld.ts` - Added `itemListJsonLd()` and `breadcrumbJsonLd()` builder functions
 - `src/routes/(public)/[category=category]/+page.server.ts` - Added jsonLd array to seo return object (both paths)
 - `src/routes/(public)/[category=category]/+page.svelte` - Added JSON-LD script tag rendering in svelte:head
@@ -81,6 +83,7 @@ Each task was committed atomically:
 - `src/routes/(public)/[category=category]/[county=county]/+page.svelte` - Added JSON-LD script tag rendering in svelte:head
 
 ## Decisions Made
+
 - **JSON-LD as separate script tags:** Rendered ItemList and BreadcrumbList as separate `<script type="application/ld+json">` blocks rather than a single combined block, following Google's documented recommendation for multiple structured data types on one page.
 - **Empty ItemList on error path:** When the /api/ads fetch fails, programmatic pages still include an empty ItemList and the BreadcrumbList, so the page structure is always present for crawlers.
 
@@ -92,32 +95,35 @@ None - plan executed exactly as written.
 
 All routes under `src/routes/(public)/` verified for anonymous access:
 
-| Route | Auth Used? | Purpose | Verdict |
-|-------|-----------|---------|---------|
-| `(public)/+layout.server.ts` | No | Empty load, returns `{}` | PASS |
-| `(public)/+layout.svelte` | Client-side only | `/api/me` fetch sets user store, null on failure | PASS |
-| `(public)/ad/[slug]/+page.server.ts` | Optional | `getUser()` for owner check only; active/expired ads public | PASS |
-| `(public)/category/[slug]/+page.server.ts` | No | Public fetch from /api/ads GET | PASS |
-| `(public)/[category=category]/+page.server.ts` | No | Public fetch from /api/ads GET | PASS |
-| `(public)/[county=county]/+page.server.ts` | No | Public fetch from /api/ads GET | PASS |
-| `(public)/[category=category]/[county=county]/+page.server.ts` | No | Public fetch from /api/ads GET | PASS |
-| `(public)/about/+page.svelte` | No | Static content | PASS |
-| `(public)/privacy/+page.svelte` | No | Static content | PASS |
-| `(public)/terms/+page.svelte` | No | Static content | PASS |
-| `(public)/report-status/+page.server.ts` | No | Reads URL params only | PASS |
-| `(public)/login/+page.server.ts` | Redirect-away | Redirects logged-in users; anonymous see login page | PASS |
-| `+page.server.ts` (homepage) | No | Public fetch from /api/ads GET | PASS |
-| `/api/ads` GET handler | No | No auth in GET (auth only in POST) | PASS |
+| Route                                                          | Auth Used?       | Purpose                                                     | Verdict |
+| -------------------------------------------------------------- | ---------------- | ----------------------------------------------------------- | ------- |
+| `(public)/+layout.server.ts`                                   | No               | Empty load, returns `{}`                                    | PASS    |
+| `(public)/+layout.svelte`                                      | Client-side only | `/api/me` fetch sets user store, null on failure            | PASS    |
+| `(public)/ad/[slug]/+page.server.ts`                           | Optional         | `getUser()` for owner check only; active/expired ads public | PASS    |
+| `(public)/category/[slug]/+page.server.ts`                     | No               | Public fetch from /api/ads GET                              | PASS    |
+| `(public)/[category=category]/+page.server.ts`                 | No               | Public fetch from /api/ads GET                              | PASS    |
+| `(public)/[county=county]/+page.server.ts`                     | No               | Public fetch from /api/ads GET                              | PASS    |
+| `(public)/[category=category]/[county=county]/+page.server.ts` | No               | Public fetch from /api/ads GET                              | PASS    |
+| `(public)/about/+page.svelte`                                  | No               | Static content                                              | PASS    |
+| `(public)/privacy/+page.svelte`                                | No               | Static content                                              | PASS    |
+| `(public)/terms/+page.svelte`                                  | No               | Static content                                              | PASS    |
+| `(public)/report-status/+page.server.ts`                       | No               | Reads URL params only                                       | PASS    |
+| `(public)/login/+page.server.ts`                               | Redirect-away    | Redirects logged-in users; anonymous see login page         | PASS    |
+| `+page.server.ts` (homepage)                                   | No               | Public fetch from /api/ads GET                              | PASS    |
+| `/api/ads` GET handler                                         | No               | No auth in GET (auth only in POST)                          | PASS    |
 
 **Conclusion:** Zero `redirect(**/login)` calls found in any public route. `getUser()` calls are used exclusively for optional owner features (moderation visibility, message counts), never as access gates.
 
 ## Issues Encountered
+
 None
 
 ## User Setup Required
+
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - Phase 02 (SEO Foundation) is now fully complete -- all 5 plans executed
 - All programmatic pages have meta tags, OG, Twitter Cards, JSON-LD, and verified anonymous access
 - Sitemap includes all programmatic URLs; robots.txt allows all major crawlers
@@ -128,5 +134,6 @@ None - no external service configuration required.
 All 7 modified files verified present on disk. Task 1 commit hash (b55cfed) verified in git log. Task 2 had no code changes (audit-only), so no commit to verify.
 
 ---
-*Phase: 02-seo-foundation*
-*Completed: 2026-03-12*
+
+_Phase: 02-seo-foundation_
+_Completed: 2026-03-12_

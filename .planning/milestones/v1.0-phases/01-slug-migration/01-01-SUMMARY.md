@@ -7,11 +7,11 @@ tags: [slugify, nanoid, slug-generation, supabase-migration, seo]
 # Dependency graph
 requires: []
 provides:
-  - "slug and short_id columns on ads table with unique indexes"
-  - "generateAdSlug() function for title-county-shortid slug format"
-  - "parseSlugShortId() and isUuidParam() for route-level slug parsing"
-  - "backfill script for populating existing ads with slugs"
-  - "POST handler generates slugs at ad creation with collision retry"
+  - 'slug and short_id columns on ads table with unique indexes'
+  - 'generateAdSlug() function for title-county-shortid slug format'
+  - 'parseSlugShortId() and isUuidParam() for route-level slug parsing'
+  - 'backfill script for populating existing ads with slugs'
+  - 'POST handler generates slugs at ad creation with collision retry'
 affects: [01-02-PLAN, 02-SEO-Foundation]
 
 # Tech tracking
@@ -34,15 +34,15 @@ key-files:
     - package-lock.json
 
 key-decisions:
-  - "Used slugify + nanoid as recommended by research -- battle-tested, tiny, ESM-compatible"
-  - "8-char alphanumeric short IDs using full 36-char alphabet (a-z0-9)"
-  - "Collision handling via retry with new short ID (max 3 attempts), not counter append"
-  - "Supabase types manually updated with slug/short_id as nullable -- will be regenerated after migration runs"
+  - 'Used slugify + nanoid as recommended by research -- battle-tested, tiny, ESM-compatible'
+  - '8-char alphanumeric short IDs using full 36-char alphabet (a-z0-9)'
+  - 'Collision handling via retry with new short ID (max 3 attempts), not counter append'
+  - 'Supabase types manually updated with slug/short_id as nullable -- will be regenerated after migration runs'
 
 patterns-established:
-  - "Slug format: {title}-{county}-{shortid} with stop word removal and 60-char truncation"
-  - "Insert-with-retry pattern for unique constraint violations (error code 23505)"
-  - "Backfill script pattern: batch 100 rows, 100ms delay, service role key"
+  - 'Slug format: {title}-{county}-{shortid} with stop word removal and 60-char truncation'
+  - 'Insert-with-retry pattern for unique constraint violations (error code 23505)'
+  - 'Backfill script pattern: batch 100 rows, 100ms delay, service role key'
 
 # Metrics
 duration: 9min
@@ -62,6 +62,7 @@ completed: 2026-03-11
 - **Files modified:** 10
 
 ## Accomplishments
+
 - Slug generation function producing `{title}-{county}-{shortid}` format with diacritic transliteration, stop word removal, and 60-char truncation
 - 14 unit tests covering edge cases: emoji fallback, diacritics, truncation, short ID format, UUID detection
 - Database migration adding nullable slug and short_id columns with unique indexes
@@ -76,6 +77,7 @@ Each task was committed atomically:
 2. **Task 2: Create backfill script, update types, and wire slug generation into POST handler** - `c126623` (feat)
 
 ## Files Created/Modified
+
 - `src/lib/server/slugs.ts` - Slug generation, short ID extraction, UUID detection functions
 - `src/lib/server/slugs.spec.ts` - 14 Vitest unit tests for slug generation edge cases
 - `supabase/migrations/20260312_000017_ads_slug_column.sql` - Add slug and short_id columns with unique indexes
@@ -88,6 +90,7 @@ Each task was committed atomically:
 - `package-lock.json` - Updated lockfile
 
 ## Decisions Made
+
 - Used slugify + nanoid as recommended by research (battle-tested, tiny, ESM-compatible)
 - 8-char alphanumeric short IDs using full 36-char alphabet (a-z0-9) via nanoid customAlphabet
 - Collision handling via retry with new short ID (max 3 attempts), not counter append
@@ -98,6 +101,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] Added slug and short_id to Supabase generated types**
+
 - **Found during:** Task 2 (svelte-check verification)
 - **Issue:** The auto-generated `src/lib/supabase.types.ts` does not know about slug/short_id columns since the migration has not been run on the actual database. This caused a type error in the POST handler where `result.data` was typed as `SelectQueryError` instead of `{ id: string; slug: string }`.
 - **Fix:** Manually added `slug: string | null` and `short_id: string | null` to Row, Insert, and Update types for the ads table. These will be overwritten when types are regenerated after migration.
@@ -111,17 +115,21 @@ Each task was committed atomically:
 **Impact on plan:** Auto-fix was necessary to resolve type errors from the not-yet-run migration. No scope creep.
 
 ## Issues Encountered
+
 None beyond the deviation documented above.
 
 ## User Setup Required
+
 None - no external service configuration required. The backfill script (`scripts/backfill-slugs.ts`) requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables when run, but these are standard development credentials.
 
 ## Next Phase Readiness
+
 - Plan 01 slug infrastructure is complete and ready for Plan 02 (route migration)
 - Plan 02 can now update route load functions to use `parseSlugShortId()` and `isUuidParam()` for slug-based lookups
 - Plan 02 can update all ad link references to use the slug field now available in API responses
 - Backfill script must be run against the database before Plan 02 deploys (existing ads need slugs)
 
 ---
-*Phase: 01-slug-migration*
-*Completed: 2026-03-11*
+
+_Phase: 01-slug-migration_
+_Completed: 2026-03-11_
