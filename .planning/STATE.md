@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: '2026-03-13T23:36:28.515Z'
-last_activity: 2026-03-13 -- Phase 4 plan 06 complete (saved search JSONB fix)
+stopped_at: Completed 05-01-PLAN.md
+last_updated: '2026-03-14T00:16:10.000Z'
+last_activity: 2026-03-14 -- Phase 5 plan 01 complete (backend launch hardening)
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
+  total_plans: 23
+  completed_plans: 19
+  percent: 83
 ---
 
 # Project State
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone in Ireland can post and find classified ads with minimal effort -- brief, honest listings without noise
-**Current focus:** Phase 4 -- Engagement and Retention (complete)
+**Current focus:** Phase 5 -- Launch Hardening (in progress)
 
 ## Current Position
 
-Phase: 4 of 6 (Engagement and Retention) -- COMPLETE
-Plan: 6 of 6 complete in current phase
+Phase: 5 of 6 (Launch Hardening)
+Plan: 1 of 5 complete in current phase
 Status: Executing
-Last activity: 2026-03-13 -- Phase 4 plan 06 complete (saved search JSONB fix)
+Last activity: 2026-03-14 -- Phase 5 plan 01 complete (backend launch hardening)
 
-Progress: [##########] 100%
+Progress: [########--] 83%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: 8min
-- Total execution time: 140min
+- Total execution time: 149min
 
 **By Phase:**
 
@@ -48,11 +48,12 @@ Progress: [##########] 100%
 | 2. SEO Foundation         | 6/6   | 34min | 6min     |
 | 3. Email Infrastructure   | 4/4   | 14min | 4min     |
 | 4. Engagement & Retention | 6/6   | 78min | 13min    |
+| 5. Launch Hardening       | 1/5   | 9min  | 9min     |
 
 **Recent Trend:**
 
-- Last 5 plans: 15min, 45min, 6min, 8min, 1min
-- Trend: stable execution; JSONB fix was a surgical one-file change
+- Last 5 plans: 45min, 6min, 8min, 1min, 9min
+- Trend: stable execution; backend hardening straightforward
 
 _Updated after each plan completion_
 
@@ -126,6 +127,11 @@ Recent decisions affecting current work:
 - [04-05]: NI SEO pages verified: all 6 NI counties in data + param matcher, slugs auto-generated
 - [04-06]: PostgREST JSONB path syntax for county matching: location_profile_data->county->>id (not flat columns)
 - [04-06]: Same JSONB pattern for locality: location_profile_data->locality->>id
+- [05-01]: Reseller threshold weight >= 2: single phone number (weight 1) does not flag; "call for price" (weight 2) alone does
+- [05-01]: Fail-open on isNewAccount check -- errors return false to avoid penalising users
+- [05-01]: Silent reseller flagging -- no seller notification to prevent gaming detection patterns
+- [05-01]: moderation_hold_reason TEXT column (not boolean) to support future hold reasons beyond reseller_flagged
+- [05-01]: Service-role client in page.server.ts via platform.env for admin-level isNewAccount check
 
 ### Pending Todos
 
