@@ -59,12 +59,13 @@ Set via `wrangler secret put <NAME> --config wrangler.cron.jsonc` or Cloudflare 
 
 Defined in `wrangler.cron.jsonc`.
 
-| Binding              | Type      | Resource                  | ID/Name                       |
-| -------------------- | --------- | ------------------------- | ----------------------------- |
-| `ADS_BUCKET`         | R2 bucket | Public approved images    | bucket_name: `fograi`         |
-| `ADS_PENDING_BUCKET` | R2 bucket | Pending moderation images | bucket_name: `fograi-pending` |
+| Binding              | Type         | Resource                  | ID/Name                                |
+| -------------------- | ------------ | ------------------------- | -------------------------------------- |
+| `RATE_LIMIT`         | KV namespace | Cron heartbeat writes     | id: `cf5daa23362c48639599f07aa6afe7aa` |
+| `ADS_BUCKET`         | R2 bucket    | Public approved images    | bucket_name: `fograi`                  |
+| `ADS_PENDING_BUCKET` | R2 bucket    | Pending moderation images | bucket_name: `fograi-pending`          |
 
-> **Note:** The cron worker does not have `RATE_LIMIT` KV or `PUBLIC_R2_BASE` -- it does not serve user requests or generate image URLs.
+> **Note:** The cron worker does not have `PUBLIC_R2_BASE` -- it does not serve user requests or generate image URLs. It does have `RATE_LIMIT` KV for writing heartbeat timestamps read by `/api/health`.
 
 ## Local Development (.env)
 
