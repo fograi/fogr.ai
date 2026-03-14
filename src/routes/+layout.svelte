@@ -27,8 +27,6 @@
 			<span class="brand-logo" aria-label="fógraí">{@html fograiWordmark}</span>
 			<span class="dot">•</span>
 			<span>© {year}</span>
-			<span class="dot">•</span>
-			<span class="trust-line">Private sellers only</span>
 		</div>
 		<div class="link-grid">
 			<nav class="link-group" aria-label="Company">
@@ -93,12 +91,6 @@
 	}
 	.dot {
 		opacity: 0.4;
-	}
-	.trust-line {
-		font-size: 0.75rem;
-		font-weight: 400;
-		color: color-mix(in srgb, var(--fg) 50%, transparent);
-		letter-spacing: 0.04em;
 	}
 	.link-grid {
 		display: grid;
