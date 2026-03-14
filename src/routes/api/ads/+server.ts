@@ -30,6 +30,7 @@ import { recordMetric } from '$lib/server/metrics';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
 import { classifyAdWriteError } from '$lib/server/ads-write-errors';
+import { detectResellerSignals, RESELLER_THRESHOLD } from '$lib/server/reseller-detection';
 import { generateAdSlug } from '$lib/server/slugs';
 import { asCategory, asCategorySort } from '$lib/category-browse';
 import {
@@ -355,6 +356,12 @@ export const POST: RequestHandler = async (event) => {
 
 		// ------------ validations ------------
 		if (!ageConfirmed) return errorResponse('Must confirm you are 18 or older.', 400, requestId);
+
+		const privateSeller = form.get('private_seller')?.toString() === '1';
+		if (!privateSeller) {
+			return errorResponse('You must confirm this is a private sale.', 400, requestId);
+		}
+
 		// Persist age confirmation (best-effort). Upsert avoids errors on repeat posts.
 		const { error: ageConfirmError } = await locals.supabase.from('user_age_confirmations').upsert(
 			{
@@ -475,6 +482,20 @@ export const POST: RequestHandler = async (event) => {
 		if (obscenity.hasMatch(combinedText))
 			return errorResponse('Failed obscenity filter.', 400, requestId);
 
+		// ------------ reseller detection (commercial patterns) ------------
+		const resellerSignals = detectResellerSignals(title, description);
+		const resellerScore = resellerSignals.reduce((sum, s) => sum + s.weight, 0);
+		const isResellerFlagged = resellerScore >= RESELLER_THRESHOLD;
+
+		if (isResellerFlagged) {
+			log('info', 'ads_post_reseller_flagged', {
+				userId: user.id,
+				signals: resellerSignals.map((s) => ({ signal: s.signal, matched: s.matched })),
+				score: resellerScore,
+				requestId
+			});
+		}
+
 		// ------------ image validations ------------
 		if (files.length > 0) {
 			const badType = files.find((f) => !ALLOWED_IMAGE_TYPES.includes(f.type));
@@ -521,7 +542,7 @@ export const POST: RequestHandler = async (event) => {
 			}
 		}
 
-		const status = moderationUnavailable ? 'pending' : PUBLIC_AD_STATUS;
+		const status = moderationUnavailable || isResellerFlagged ? 'pending' : PUBLIC_AD_STATUS;
 
 		const firmPriceValue = isLostAndFound
 			? false
@@ -563,7 +584,8 @@ export const POST: RequestHandler = async (event) => {
 					min_offer: minOfferValue,
 					auto_decline_message: autoDeclineValue,
 					slug,
-					short_id: shortId
+					short_id: shortId,
+					moderation_hold_reason: isResellerFlagged ? 'reseller_flagged' : null
 				})
 				.select('id, slug')
 				.single();

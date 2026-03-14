@@ -168,6 +168,7 @@ async function fetchPendingAds(env: Env): Promise<PendingAd[]> {
 	const url = new URL('/rest/v1/ads', env.PUBLIC_SUPABASE_URL);
 	url.searchParams.set('select', 'id,title,description,image_keys,user_id,slug');
 	url.searchParams.set('status', `eq.${PENDING_STATUS}`);
+	url.searchParams.set('moderation_hold_reason', 'is.null');
 	url.searchParams.set('order', 'created_at.asc');
 	url.searchParams.set('limit', String(BATCH_LIMIT));
 

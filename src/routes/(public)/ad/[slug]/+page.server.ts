@@ -8,6 +8,8 @@ import { productJsonLd } from '$lib/seo/jsonld';
 import { buildAdOg } from '$lib/seo/og';
 import { categoryToSlug } from '$lib/category-browse';
 import type { Category } from '$lib/constants';
+import { isNewAccount } from '$lib/server/new-account';
+import { createClient } from '@supabase/supabase-js';
 import {
 	isE2eMock,
 	E2E_MOCK_AD,
@@ -296,6 +298,20 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 	// Get category slug for OG fallback image
 	const catSlug = categoryToSlug(ad.category as Category) || 'home-garden';
 
+	// noindex for new-account sellers (< 3 approved ads or < 7 days old)
+	let isNewAccountSeller = false;
+	if (!isExpired && ad.status === 'active') {
+		const env = platform?.env as Record<string, string> | undefined;
+		const supabaseUrl = env?.PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
+		const serviceKey = env?.SUPABASE_SERVICE_ROLE_KEY;
+		if (supabaseUrl && serviceKey) {
+			const serviceClient = createClient(supabaseUrl, serviceKey, {
+				auth: { persistSession: false, autoRefreshToken: false }
+			});
+			isNewAccountSeller = await isNewAccount(serviceClient, ad.user_id);
+		}
+	}
+
 	return {
 		ad: mapped,
 		moderation: moderation ?? null,
@@ -338,7 +354,7 @@ export const load: PageServerLoad = async ({ params, locals, url, platform }) =>
 				},
 				url.origin
 			),
-			robots: isExpired ? 'noindex' : undefined
+			robots: isExpired || isNewAccountSeller ? 'noindex' : undefined
 		}
 	};
 };
