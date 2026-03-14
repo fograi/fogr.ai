@@ -404,7 +404,7 @@ async function runSavedSearchDigest(env: Env): Promise<void> {
 		// Build "View all" URL based on search criteria
 		const searchParams = new URLSearchParams();
 		if (search.category) searchParams.set('category', search.category);
-		if (search.county) searchParams.set('county', search.county);
+		if (search.county) searchParams.set('county_id', search.county);
 		if (search.query) searchParams.set('q', search.query);
 		const viewAllUrl = `https://fogr.ai/?${searchParams.toString()}`;
 
