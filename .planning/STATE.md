@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-05-PLAN.md
-last_updated: '2026-03-14T00:40:00.000Z'
-last_activity: 2026-03-14 -- Phase 5 complete (mobile audit & cost review)
+stopped_at: Completed 05-06-PLAN.md
+last_updated: '2026-03-14T03:23:00.000Z'
+last_activity: 2026-03-14 -- LNCH-01 gap closure (new-account pending hold wired into POST handler)
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 23
-  completed_plans: 23
+  total_plans: 24
+  completed_plans: 24
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone in Ireland can post and find classified ads with minimal effort -- brief, honest listings without noise
-**Current focus:** Phase 5 complete -- ready for Phase 6 (Infrastructure & Cost Control)
+**Current focus:** Phase 5 complete (incl. LNCH-01 gap closure) -- ready for Phase 6 (Infrastructure & Cost Control)
 
 ## Current Position
 
 Phase: 5 of 6 (Launch Hardening) -- COMPLETE
-Plan: 5 of 5 complete in current phase
+Plan: 6 of 6 complete in current phase
 Status: Executing
-Last activity: 2026-03-14 -- Phase 5 complete (mobile audit & cost review)
+Last activity: 2026-03-14 -- LNCH-01 gap closure (new-account pending hold wired into POST handler)
 
 Progress: [##########] 100% (Phases 1-5)
 
@@ -36,9 +36,9 @@ Progress: [##########] 100% (Phases 1-5)
 
 **Velocity:**
 
-- Total plans completed: 23
-- Average duration: 9min
-- Total execution time: 196min
+- Total plans completed: 24
+- Average duration: 8min
+- Total execution time: 198min
 
 **By Phase:**
 
@@ -48,12 +48,12 @@ Progress: [##########] 100% (Phases 1-5)
 | 2. SEO Foundation         | 6/6   | 34min | 6min     |
 | 3. Email Infrastructure   | 4/4   | 14min | 4min     |
 | 4. Engagement & Retention | 6/6   | 78min | 13min    |
-| 5. Launch Hardening       | 5/5   | 56min | 11min    |
+| 5. Launch Hardening       | 6/6   | 58min | 10min    |
 
 **Recent Trend:**
 
-- Last 5 plans: 9min, 12min, 17min, 12min, 6min
-- Trend: Phase 5 complete; mobile audit required zero CSS fixes -- existing responsive design handles 375px
+- Last 5 plans: 12min, 17min, 12min, 6min, 2min
+- Trend: LNCH-01 gap closure completed in 2min -- single focused change to wire existing utility into POST handler
 
 _Updated after each plan completion_
 
@@ -146,6 +146,9 @@ Recent decisions affecting current work:
 - [05-05]: No CSS fixes needed at 375px -- existing 640px responsive breakpoints handle narrow viewports correctly
 - [05-05]: Production cost confirmed ~$38-43/month (Supabase Pro $25 + domain ~$12.50/mo amortised + OpenAI ~$1-5)
 - [05-05]: .ai domain costs ~$150/year (not $15), transferred to Cloudflare, renews July
+- [05-06]: isNewAccount() called with limiterClient (service-role) after rate limit check in POST handler
+- [05-06]: New-account pending ads use null moderation_hold_reason for cron-worker auto-approval pickup
+- [05-06]: Bucket routing unchanged for new-account holds -- clean content goes to public bucket, not visible until status=active
 
 ### Pending Todos
 
@@ -160,6 +163,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-14T00:40:00Z
-Stopped at: Completed 05-05-PLAN.md (Phase 5 complete)
-Resume file: .planning/phases/05-launch-hardening/05-05-SUMMARY.md
+Last session: 2026-03-14T03:23:00Z
+Stopped at: Completed 05-06-PLAN.md (LNCH-01 gap closure)
+Resume file: .planning/phases/05-launch-hardening/05-06-SUMMARY.md
