@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: '2026-03-14T00:29:28.000Z'
-last_activity: 2026-03-14 -- Phase 5 plan 02 complete (safety & trust UI)
+stopped_at: Completed 05-05-PLAN.md
+last_updated: '2026-03-14T00:40:00.000Z'
+last_activity: 2026-03-14 -- Phase 5 complete (mobile audit & cost review)
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 23
-  completed_plans: 22
-  percent: 96
+  completed_plans: 23
+  percent: 100
 ---
 
 # Project State
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone in Ireland can post and find classified ads with minimal effort -- brief, honest listings without noise
-**Current focus:** Phase 5 -- Launch Hardening (in progress)
+**Current focus:** Phase 5 complete -- ready for Phase 6 (Infrastructure & Cost Control)
 
 ## Current Position
 
-Phase: 5 of 6 (Launch Hardening)
-Plan: 4 of 5 complete in current phase
+Phase: 5 of 6 (Launch Hardening) -- COMPLETE
+Plan: 5 of 5 complete in current phase
 Status: Executing
-Last activity: 2026-03-14 -- Phase 5 plan 02 complete (safety & trust UI)
+Last activity: 2026-03-14 -- Phase 5 complete (mobile audit & cost review)
 
-Progress: [#########-] 96%
+Progress: [##########] 100% (Phases 1-5)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 9min
-- Total execution time: 190min
+- Total execution time: 196min
 
 **By Phase:**
 
@@ -48,12 +48,12 @@ Progress: [#########-] 96%
 | 2. SEO Foundation         | 6/6   | 34min | 6min     |
 | 3. Email Infrastructure   | 4/4   | 14min | 4min     |
 | 4. Engagement & Retention | 6/6   | 78min | 13min    |
-| 5. Launch Hardening       | 4/5   | 50min | 13min    |
+| 5. Launch Hardening       | 5/5   | 56min | 11min    |
 
 **Recent Trend:**
 
-- Last 5 plans: 1min, 9min, 12min, 17min, 12min
-- Trend: stable execution; safety/trust UI plan required atomic file writes to work around aggressive linter
+- Last 5 plans: 9min, 12min, 17min, 12min, 6min
+- Trend: Phase 5 complete; mobile audit required zero CSS fixes -- existing responsive design handles 375px
 
 _Updated after each plan completion_
 
@@ -143,6 +143,9 @@ Recent decisions affecting current work:
 - [05-03]: About page gets script block with resolve() for ESLint compliance despite plan suggesting no script block
 - [05-03]: eslint-disable-next-line for pre-existing @html wordmark in layout footer
 - [05-03]: Brand name format: "fogr.ai -- Fograi" on key pages, just "fogr.ai" in compact contexts
+- [05-05]: No CSS fixes needed at 375px -- existing 640px responsive breakpoints handle narrow viewports correctly
+- [05-05]: Production cost confirmed ~$38-43/month (Supabase Pro $25 + domain ~$12.50/mo amortised + OpenAI ~$1-5)
+- [05-05]: .ai domain costs ~$150/year (not $15), transferred to Cloudflare, renews July
 
 ### Pending Todos
 
@@ -157,6 +160,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-14T00:29:28Z
-Stopped at: Completed 05-02-PLAN.md
-Resume file: .planning/phases/05-launch-hardening/05-02-SUMMARY.md
+Last session: 2026-03-14T00:40:00Z
+Stopped at: Completed 05-05-PLAN.md (Phase 5 complete)
+Resume file: .planning/phases/05-launch-hardening/05-05-SUMMARY.md
