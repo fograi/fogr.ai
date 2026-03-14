@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 6 context gathered
-last_updated: '2026-03-14T04:31:07.717Z'
-last_activity: 2026-03-14 -- LNCH-01 gap closure (new-account pending hold wired into POST handler)
+stopped_at: Completed 06-02-PLAN.md
+last_updated: '2026-03-14T04:55:00Z'
+last_activity: 2026-03-14 -- INFR-02/03/04/05 ops runbooks (backup, secrets, cost alerts, degradation)
 progress:
   total_phases: 6
-  completed_phases: 5
-  total_plans: 24
-  completed_plans: 24
+  completed_phases: 6
+  total_plans: 26
+  completed_plans: 26
   percent: 100
 ---
 
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone in Ireland can post and find classified ads with minimal effort -- brief, honest listings without noise
-**Current focus:** Phase 5 complete (incl. LNCH-01 gap closure) -- ready for Phase 6 (Infrastructure & Cost Control)
+**Current focus:** Phase 6 complete -- all 26 plans across 6 phases executed. v1.0 milestone reached.
 
 ## Current Position
 
-Phase: 5 of 6 (Launch Hardening) -- COMPLETE
-Plan: 6 of 6 complete in current phase
-Status: Executing
-Last activity: 2026-03-14 -- LNCH-01 gap closure (new-account pending hold wired into POST handler)
+Phase: 6 of 6 (Infrastructure & Cost Control) -- COMPLETE
+Plan: 2 of 2 complete in current phase
+Status: Complete
+Last activity: 2026-03-14 -- INFR-02/03/04/05 ops runbooks (backup, secrets, cost alerts, degradation)
 
-Progress: [##########] 100% (Phases 1-5)
+Progress: [##########] 100% (26/26 plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 24
+- Total plans completed: 26
 - Average duration: 8min
-- Total execution time: 198min
+- Total execution time: 205min
 
 **By Phase:**
 
@@ -49,11 +49,12 @@ Progress: [##########] 100% (Phases 1-5)
 | 3. Email Infrastructure   | 4/4   | 14min | 4min     |
 | 4. Engagement & Retention | 6/6   | 78min | 13min    |
 | 5. Launch Hardening       | 6/6   | 58min | 10min    |
+| 6. Infrastructure & Cost  | 2/2   | 7min  | 4min     |
 
 **Recent Trend:**
 
-- Last 5 plans: 12min, 17min, 12min, 6min, 2min
-- Trend: LNCH-01 gap closure completed in 2min -- single focused change to wire existing utility into POST handler
+- Last 5 plans: 12min, 6min, 2min, 3min, 4min
+- Trend: INFR-02 completed in 4min -- four ops runbooks documenting existing capabilities
 
 _Updated after each plan completion_
 
@@ -149,6 +150,14 @@ Recent decisions affecting current work:
 - [05-06]: isNewAccount() called with limiterClient (service-role) after rate limit check in POST handler
 - [05-06]: New-account pending ads use null moderation_hold_reason for cron-worker auto-approval pickup
 - [05-06]: Bucket routing unchanged for new-account holds -- clean content goes to public bucket, not visible until status=active
+- [06-01]: R2 health check uses HEAD on non-existent key -- null response proves R2 is reachable, only thrown exception means down
+- [06-01]: Cron heartbeat uses existing RATE_LIMIT KV namespace to avoid new KV namespace costs
+- [06-01]: 30-minute cron staleness threshold allows for 2 missed 15-minute ticks before reporting degraded
+- [06-01]: Health endpoint returns 503 for both degraded and down states so UptimeRobot detects both
+- [06-02]: No code changes needed -- all INFR requirements satisfied by documenting existing capabilities
+- [06-02]: R2 risk acceptance: 11-nines durability sufficient for v1, no backup needed
+- [06-02]: UptimeRobot for monitoring over BetterStack -- simpler free tier, migrate if restrictions apply
+- [06-02]: OpenAI hard limit at $10/month -- graceful degradation already handles API unavailability
 
 ### Pending Todos
 
@@ -163,6 +172,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-14T04:31:07.713Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-infrastructure-and-cost-control/06-CONTEXT.md
+Last session: 2026-03-14T04:55:00Z
+Stopped at: Completed 06-02-PLAN.md -- all plans complete
+Resume file: .planning/phases/06-infrastructure-and-cost-control/06-02-SUMMARY.md

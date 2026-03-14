@@ -188,7 +188,7 @@ Plans:
 
 Plans:
 
-- [ ] 06-01-PLAN.md — Health endpoint (/api/health) checking DB, cron heartbeat, and R2 + cron worker heartbeat KV write + wrangler.cron.jsonc KV binding
+- [x] 06-01-PLAN.md — Health endpoint (/api/health) checking DB, cron heartbeat, and R2 + cron worker heartbeat KV write + wrangler.cron.jsonc KV binding
 - [ ] 06-02-PLAN.md — Ops documentation: backup/restore procedure, secrets inventory, cost alert setup checklist, monitoring setup, graceful degradation docs, R2 risk acceptance
 
 ---
@@ -205,9 +205,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Email Infrastructure            | 4/4            | Complete                        | 2026-03-13 |
 | 4. Engagement and Retention        | 6/6            | Complete                        | 2026-03-13 |
 | 5. Launch Hardening                | 6/6            | Complete                        | 2026-03-14 |
-| 6. Infrastructure and Cost Control | 0/2            | Not started                     | -          |
+| 6. Infrastructure and Cost Control | 1/2            | In progress                     | -          |
 
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-14 -- Phase 6 planned: 2 plans (health endpoint + ops documentation)_
+_Last updated: 2026-03-14 -- Phase 6 plan 1 complete (health endpoint + cron heartbeat)_
