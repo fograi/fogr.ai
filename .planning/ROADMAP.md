@@ -184,15 +184,12 @@ Plans:
 4. If OpenAI is unreachable, ads queue for later moderation rather than being rejected — the platform degrades gracefully rather than blocking posting
 5. R2 image storage has a documented backup or redundancy strategy — a single storage failure does not permanently destroy user-uploaded images
 
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 06-01: Database backups — configure Supabase automated backups (requires Pro tier), document and test restore procedure
-- [ ] 06-02: Monitoring and alerting — configure uptime monitoring for critical endpoints, alert on cron worker failures and R2 errors
-- [ ] 06-03: Cost guardrails — set spending alerts on all external services at 75% of intended monthly ceiling
-- [ ] 06-04: Graceful degradation — OpenAI unavailable path queues ads; email unavailable path retries; surface no hard failures to posting users
-- [ ] 06-05: R2 redundancy — evaluate and implement backup strategy for image storage (cross-bucket copy, periodic export, or equivalent)
+- [ ] 06-01-PLAN.md — Health endpoint (/api/health) checking DB, cron heartbeat, and R2 + cron worker heartbeat KV write + wrangler.cron.jsonc KV binding
+- [ ] 06-02-PLAN.md — Ops documentation: backup/restore procedure, secrets inventory, cost alert setup checklist, monitoring setup, graceful degradation docs, R2 risk acceptance
 
 ---
 
@@ -208,9 +205,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Email Infrastructure            | 4/4            | Complete                        | 2026-03-13 |
 | 4. Engagement and Retention        | 6/6            | Complete                        | 2026-03-13 |
 | 5. Launch Hardening                | 6/6            | Complete                        | 2026-03-14 |
-| 6. Infrastructure and Cost Control | 0/5            | Not started                     | -          |
+| 6. Infrastructure and Cost Control | 0/2            | Not started                     | -          |
 
 ---
 
 _Roadmap created: 2026-03-11_
-_Last updated: 2026-03-14 -- Phase 5 complete (LNCH-01 gap closure executed: isNewAccount() wired into POST handler)_
+_Last updated: 2026-03-14 -- Phase 6 planned: 2 plans (health endpoint + ops documentation)_
