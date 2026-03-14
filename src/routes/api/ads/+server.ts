@@ -30,6 +30,7 @@ import { recordMetric } from '$lib/server/metrics';
 import { getPagination } from '$lib/server/pagination';
 import { checkRateLimit } from '$lib/server/rate-limit';
 import { classifyAdWriteError } from '$lib/server/ads-write-errors';
+import { isNewAccount } from '$lib/server/new-account';
 import { detectResellerSignals, RESELLER_THRESHOLD } from '$lib/server/reseller-detection';
 import { generateAdSlug } from '$lib/server/slugs';
 import { asCategory, asCategorySort } from '$lib/category-browse';
@@ -473,6 +474,9 @@ export const POST: RequestHandler = async (event) => {
 			);
 		}
 
+		// ------------ new-account detection (after rate limit, before moderation) ------------
+		const isNewAccountUser = await isNewAccount(limiterClient, user.id);
+
 		// category, currency, and price are validated above
 
 		// ------------ local moderation (fast) ------------
@@ -492,6 +496,13 @@ export const POST: RequestHandler = async (event) => {
 				userId: user.id,
 				signals: resellerSignals.map((s) => ({ signal: s.signal, matched: s.matched })),
 				score: resellerScore,
+				requestId
+			});
+		}
+
+		if (isNewAccountUser && !isResellerFlagged) {
+			log('info', 'ads_post_new_account_hold', {
+				userId: user.id,
 				requestId
 			});
 		}
@@ -542,7 +553,8 @@ export const POST: RequestHandler = async (event) => {
 			}
 		}
 
-		const status = moderationUnavailable || isResellerFlagged ? 'pending' : PUBLIC_AD_STATUS;
+		const status =
+			moderationUnavailable || isResellerFlagged || isNewAccountUser ? 'pending' : PUBLIC_AD_STATUS;
 
 		const firmPriceValue = isLostAndFound
 			? false
@@ -708,9 +720,10 @@ export const POST: RequestHandler = async (event) => {
 				usedPresetOnly: categoryProfileValidation.categoryProfileData ? usedPresetOnly : null
 			}
 		});
-		const responseMessage = moderationUnavailable
-			? 'Ad submitted and pending review.'
-			: 'Ad submitted.';
+		const responseMessage =
+			moderationUnavailable || isNewAccountUser
+				? 'Ad submitted and pending review.'
+				: 'Ad submitted.';
 		return json(
 			{
 				success: true,
