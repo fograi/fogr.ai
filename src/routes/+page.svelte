@@ -298,6 +298,10 @@
 	</div>
 {/if}
 
+{#if data.ads.length > 0}
+	<p class="browse-tagline">No dealers. No middlemen. Real people selling real things.</p>
+{/if}
+
 <ul bind:this={container} class="masonry-grid">
 	{#each data.ads as ad (ad.id)}
 		<AdCard {...ad} />
@@ -537,6 +541,13 @@
 		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 		gap: 16px;
 		grid-auto-rows: 8px; /* ← pair with JS 'row' */
+	}
+	.browse-tagline {
+		text-align: center;
+		font-size: 0.85rem;
+		color: color-mix(in srgb, var(--fg) 50%, transparent);
+		margin: 0 0 12px;
+		font-style: italic;
 	}
 	.pager {
 		display: flex;

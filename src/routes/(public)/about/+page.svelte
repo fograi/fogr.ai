@@ -15,10 +15,10 @@
 		<p class="kicker">About fogr.ai &mdash; Fograi</p>
 		<h1>Your local noticeboard, online.</h1>
 		<p class="lead">
-			Fogr.ai takes its name from the Irish word <em>fograi</em> &mdash; meaning
-			advertisements or notices. It is a classifieds platform built in Ireland, for Ireland.
-			A place where real people across all 32 counties can buy and sell second-hand goods
-			without noise, without dealers, and without the usual hassle.
+			Fogr.ai takes its name from the Irish word <em>fograi</em> &mdash; meaning advertisements or notices.
+			It is a classifieds platform built in Ireland, for Ireland. A place where real people across all
+			32 counties can buy and sell second-hand goods without noise, without dealers, and without the usual
+			hassle.
 		</p>
 	</header>
 
@@ -28,16 +28,14 @@
 			<article class="card">
 				<h3>Private sellers only</h3>
 				<p>
-					No dealers, no showrooms, no commercial listings. Every ad is from a real person
-					selling their own things.
+					No dealers, no showrooms, no commercial listings. Every ad is from a real person selling
+					their own things.
 				</p>
 			</article>
 
 			<article class="card">
 				<h3>Clear, honest listings</h3>
-				<p>
-					Required fields and validation keep listings readable, complete, and quick to create.
-				</p>
+				<p>Required fields and validation keep listings readable, complete, and quick to create.</p>
 			</article>
 
 			<article class="card">
@@ -49,24 +47,20 @@
 
 			<article class="card">
 				<h3>Your privacy, your terms</h3>
-				<p>
-					Messages are anonymous in-app. Share contact details only if you choose to.
-				</p>
+				<p>Messages are anonymous in-app. Share contact details only if you choose to.</p>
 			</article>
 
 			<article class="card">
 				<h3>Scam awareness built in</h3>
 				<p>
-					Safety tips on every ad, messages checked for common scam signals, and a proper
-					reporting flow.
+					Safety tips on every ad, messages checked for common scam signals, and a proper reporting
+					flow.
 				</p>
 			</article>
 
 			<article class="card">
 				<h3>An Irish platform for Irish people</h3>
-				<p>
-					Built in Ireland, for Ireland. All 32 counties, North and South.
-				</p>
+				<p>Built in Ireland, for Ireland. All 32 counties, North and South.</p>
 			</article>
 		</div>
 	</section>
@@ -74,25 +68,25 @@
 	<section class="section">
 		<h2>Why we built this</h2>
 		<p class="prose">
-			We were tired of scrolling through Facebook Marketplace, wondering which sellers were
-			real people and which were dealers pretending to be. Cluttered interfaces, hidden
-			commercial listings, and no accountability. We wanted somewhere simple and honest to
-			buy and sell locally &mdash; so we built it.
+			We were tired of scrolling through Facebook Marketplace, wondering which sellers were real
+			people and which were dealers pretending to be. Cluttered interfaces, hidden commercial
+			listings, and no accountability. We wanted somewhere simple and honest to buy and sell locally
+			&mdash; so we built it.
 		</p>
 		<p class="prose">
-			Fogr.ai is designed around one idea: classified ads should be brief, honest, and easy
-			to browse. No algorithms pushing promoted content. No dealer showrooms mixed in with
-			your neighbour selling a bike. Just a clean noticeboard for your county.
+			Fogr.ai is designed around one idea: classified ads should be brief, honest, and easy to
+			browse. No algorithms pushing promoted content. No dealer showrooms mixed in with your
+			neighbour selling a bike. Just a clean noticeboard for your county.
 		</p>
 	</section>
 
 	<section class="section">
 		<h2>Private sellers only</h2>
 		<p class="prose">
-			Trade and commercial listings are not allowed on fogr.ai and will be removed.
-			This policy keeps the platform honest and fair for everyone. If you are buying here,
-			you are buying from a real person. If you are selling, you are listing your own things
-			&mdash; not running a business.
+			Trade and commercial listings are not allowed on fogr.ai and will be removed. This policy
+			keeps the platform honest and fair for everyone. If you are buying here, you are buying from a
+			real person. If you are selling, you are listing your own things &mdash; not running a
+			business.
 		</p>
 	</section>
 

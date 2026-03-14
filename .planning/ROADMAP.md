@@ -162,7 +162,7 @@ Plans:
 - [x] 05-01-PLAN.md — Backend hardening: new-account noindex enforcement, reseller detection heuristics, private-seller validation in POST handler
 - [ ] 05-02-PLAN.md — Safety and trust UI: safety tips module, /safety page, accordion on ad view, safety checklist + private-seller elements in post form
 - [ ] 05-03-PLAN.md — Trust content pages: homepage hero copy, about page rewrite with brand story, footer trust messaging + safety link
-- [ ] 05-04-PLAN.md — Content seeding: seed script with ~192 locally-flavoured bicycle listings across all 32 counties
+- [x] 05-04-PLAN.md — Content seeding: seed script with ~192 locally-flavoured bicycle listings across all 32 counties
 - [ ] 05-05-PLAN.md — Mobile audit at 375px viewport + production cost review checkpoint
 
 ---
