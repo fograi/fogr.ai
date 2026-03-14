@@ -185,7 +185,11 @@
 	<div class="search__inner">
 		<div class="search__copy">
 			<h1>Buy. Sell. Done.</h1>
-			<p class="sub">Local deals, made simple.</p>
+			<p class="sub">Honest ads. Fair prices. No clutter.</p>
+			<p class="sub-desc">
+				Second-hand goods from real people across Ireland. No dealers, no clutter &mdash; just
+				honest listings.
+			</p>
 		</div>
 		<form class="search__form" method="GET" action={resolve('/')}>
 			<div class="search__row">
